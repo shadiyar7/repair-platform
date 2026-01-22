@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Configure axios to include credentials (cookies)
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = 'http://localhost:3000';
+
 
 interface User {
     id: string;
