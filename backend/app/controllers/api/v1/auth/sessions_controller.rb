@@ -2,6 +2,7 @@ module Api
   module V1
     module Auth
       class SessionsController < ApplicationController
+        skip_before_action :authenticate_user!
 
 
         # POST /api/v1/auth/login_password
