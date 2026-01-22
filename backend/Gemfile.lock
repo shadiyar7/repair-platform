@@ -165,10 +165,13 @@ GEM
       racc (~> 1.4)
     nokogiri (1.18.10-arm64-darwin)
       racc (~> 1.4)
+    nokogiri (1.18.10-x86_64-linux-gnu)
+      racc (~> 1.4)
     orm_adapter (0.5.0)
     pdf-core (0.9.0)
     pg (1.6.2-aarch64-linux)
     pg (1.6.2-arm64-darwin)
+    pg (1.6.2-x86_64-linux)
     pp (0.6.3)
       prettyprint
     prawn (2.4.0)
@@ -240,6 +243,7 @@ GEM
     securerandom (0.4.1)
     sqlite3 (2.8.1-aarch64-linux-gnu)
     sqlite3 (2.8.1-arm64-darwin)
+    sqlite3 (2.8.1-x86_64-linux-gnu)
     stringio (3.2.0)
     thor (1.4.0)
     timeout (0.6.0)
@@ -263,6 +267,7 @@ GEM
 PLATFORMS
   aarch64-linux
   arm64-darwin-23
+  x86_64-linux
 
 DEPENDENCIES
   aasm
