@@ -42,7 +42,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     const {
         register: registerPass,
         handleSubmit: handleSubmitPass,
-        setValue: setPassEmail,
         formState: { errors: passErrors, isSubmitting: isPassSubmitting },
     } = useForm<PasswordFormValues>({ resolver: zodResolver(passwordSchema) });
 
