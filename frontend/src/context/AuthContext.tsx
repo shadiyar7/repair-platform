@@ -36,11 +36,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const sendOtp = async (email: string) => {
-        await api.post('/auth/login', { email });
+        await api.post('/api/v1/auth/login', { email });
     };
 
     const verifyOtp = async (email: string, otp: string) => {
-        const response = await api.post('/auth/verify', { email, otp });
+        const response = await api.post('/api/v1/auth/verify', { email, otp });
         const userData = response.data.user.data.attributes;
         // Map backend attributes to frontend User interface
         const newUser: User = {
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const loginWithPassword = async (email: string, password: string) => {
-        const response = await api.post('/auth/login_password', { email, password });
+        const response = await api.post('/api/v1/auth/login_password', { email, password });
         console.log("LOGIN RESPONSE:", response.data);
 
         let userData;
