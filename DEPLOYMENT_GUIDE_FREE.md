@@ -15,6 +15,9 @@
 3.  Подключите ваш репозиторий.
 4.  **Настройки:**
     *   **Name:** `repair-platform-backend`
+    *   **Region:** Frankfurt (или любой другой)
+    *   **Branch:** `main`
+    *   **Root Directory:** `backend` (ВАЖНО! Иначе ничего не заработает)
     *   **Environment:** `Ruby`
     *   **Build Command:** `./bin/render-build.sh`
     *   **Start Command:** `./bin/rails server`
