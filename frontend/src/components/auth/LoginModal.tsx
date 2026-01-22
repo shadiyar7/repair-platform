@@ -92,13 +92,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         }
     };
 
-    const fillCreds = (email: string, pass: string) => {
-        setLoginMethod('password');
-        setTimeout(() => {
-            setPassEmail('email', email);
-            setPassEmail('password', pass);
-        }, 0);
-    };
+
 
     if (!isOpen) return null;
 
