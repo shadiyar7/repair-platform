@@ -94,46 +94,6 @@ const LoginPage: React.FC = () => {
                                 Зарегистрируйтесь здесь
                             </Link>
                         </div>
-
-                        <div className="mt-6 pt-6 border-t border-gray-100">
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 text-center">
-                                Демо-данные (Пароль: password123)
-                            </p>
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => { setEmail('client@repair.com'); setPassword('password123'); }}
-                                    className="text-xs p-2 bg-red-50 text-red-700 rounded hover:bg-red-100 transition-colors text-left"
-                                >
-                                    <span className="font-bold block">Клиент</span>
-                                    client@repair.com
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setEmail('warehouse@repair.com'); setPassword('password123'); }}
-                                    className="text-xs p-2 bg-orange-50 text-orange-700 rounded hover:bg-orange-100 transition-colors text-left"
-                                >
-                                    <span className="font-bold block">Склад</span>
-                                    warehouse@repair.com
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setEmail('driver@repair.com'); setPassword('password123'); }}
-                                    className="text-xs p-2 bg-green-50 text-green-700 rounded hover:bg-green-100 transition-colors text-left"
-                                >
-                                    <span className="font-bold block">Водитель</span>
-                                    driver@repair.com
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setEmail('admin@repair.com'); setPassword('password123'); }}
-                                    className="text-xs p-2 bg-gray-50 text-gray-700 rounded hover:bg-gray-100 transition-colors text-left"
-                                >
-                                    <span className="font-bold block">Админ</span>
-                                    admin@repair.com
-                                </button>
-                            </div>
-                        </div>
                     </CardFooter>
                 </form>
             </Card>

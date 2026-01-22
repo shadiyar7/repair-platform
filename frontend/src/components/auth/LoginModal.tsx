@@ -192,28 +192,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     </TabsContent>
                 </Tabs>
 
-                {/* Footer with Creds */}
-                <div className="mt-6 pt-4 border-t border-gray-100 bg-gray-50/50 p-4 rounded-b-lg -m-6 -mt-0 text-xs text-gray-500">
-                    <p className="font-semibold mb-2 text-gray-700 uppercase tracking-wider text-[10px]">Тестовые аккаунты (Нажми чтобы заполнить)</p>
-                    <div className="grid grid-cols-2 gap-2">
-                        <button onClick={() => fillCreds('client@repair.com', 'password123')} className="text-left p-2 hover:bg-white hover:shadow-sm rounded transition-all border border-transparent hover:border-gray-200">
-                            <span className="font-medium text-gray-900 block">Клиент</span>
-                            client@repair.com
-                        </button>
-                        <button onClick={() => fillCreds('warehouse@repair.com', 'password123')} className="text-left p-2 hover:bg-white hover:shadow-sm rounded transition-all border border-transparent hover:border-gray-200">
-                            <span className="font-medium text-gray-900 block">Склад</span>
-                            warehouse@repair.com
-                        </button>
-                        <button onClick={() => fillCreds('driver@repair.com', 'password123')} className="text-left p-2 hover:bg-white hover:shadow-sm rounded transition-all border border-transparent hover:border-gray-200">
-                            <span className="font-medium text-gray-900 block">Водитель</span>
-                            driver@repair.com
-                        </button>
-                        <button onClick={() => fillCreds('admin@repair.com', 'password123')} className="text-left p-2 hover:bg-white hover:shadow-sm rounded transition-all border border-transparent hover:border-gray-200">
-                            <span className="font-medium text-gray-900 block">Админ</span>
-                            admin@repair.com
-                        </button>
-                    </div>
-                </div>
+                {/* Footer removed as per request */}
             </div>
         </div>
     );

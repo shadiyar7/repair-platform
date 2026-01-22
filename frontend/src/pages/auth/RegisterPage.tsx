@@ -26,7 +26,7 @@ const RegisterPage: React.FC = () => {
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { login } = useAuth();
+    const { loginWithPassword } = useAuth();
     const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,19 +45,16 @@ const RegisterPage: React.FC = () => {
         }
 
         try {
-            const response = await api.post('/signup', {
+            await api.post('/signup', {
                 user: formData
             });
 
-            const token = response.headers.authorization?.split(' ')[1];
-            if (token) {
-                login(token, response.data.data);
-                navigate('/');
-            } else {
-                setError('Регистрация прошла успешно, но вход не удался. Пожалуйста, войдите вручную.');
-                navigate('/login');
-            }
+            // Registration successful (200 OK)
+            // Automatically log in the user using the credentials they just created
+            await loginWithPassword(formData.email, formData.password);
+            navigate('/');
         } catch (err: any) {
+            console.error("Registration error:", err);
             setError(err.response?.data?.status?.message || 'Ошибка регистрации. Пожалуйста, проверьте введенные данные.');
         } finally {
             setIsLoading(false);
