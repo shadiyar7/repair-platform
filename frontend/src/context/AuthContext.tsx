@@ -1,9 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-
-// Configure axios to include credentials (cookies)
-axios.defaults.withCredentials = true;
-
+import api from '@/lib/api';
 
 interface User {
     id: string;
@@ -40,11 +36,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const sendOtp = async (email: string) => {
-        await axios.post('/api/v1/auth/login', { email });
+        await api.post('/auth/login', { email });
     };
 
     const verifyOtp = async (email: string, otp: string) => {
-        const response = await axios.post('/api/v1/auth/verify', { email, otp });
+        const response = await api.post('/auth/verify', { email, otp });
         const userData = response.data.user.data.attributes;
         // Map backend attributes to frontend User interface
         const newUser: User = {
@@ -60,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const loginWithPassword = async (email: string, password: string) => {
-        const response = await axios.post('/api/v1/auth/login_password', { email, password });
+        const response = await api.post('/auth/login_password', { email, password });
         console.log("LOGIN RESPONSE:", response.data);
 
         let userData;
@@ -95,7 +91,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const logout = async () => {
         try {
-            await axios.delete('/logout'); // Devise logout to clear cookie
+            // Note: Our backend doesn't have a specific logout endpoint that clears cookies yet 
+            // (Devise uses DELETE /users/sign_out usually), but clearing frontend state is enough for JWT.
+            // If you use cookies, you might need to hit an endpoint.
+            // api.delete('/logout'); 
         } catch (error) {
             console.error('Logout error', error);
         } finally {
