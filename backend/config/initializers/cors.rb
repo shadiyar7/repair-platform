@@ -10,7 +10,8 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # Allow localhost, specific FRONTEND_URL, AND any Vercel deployment (preview or prod)
     origins 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000', 
             ENV.fetch('FRONTEND_URL', ''),
-            /https:\/\/.*\.vercel\.app/
+            /https:\/\/.*\.vercel\.app/,
+            'https://dynamix.kz', 'https://www.dynamix.kz'
 
     resource "*",
       headers: :any,
