@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_19_190832) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_27_215810) do
   create_table "company_requisites", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "company_name"
@@ -105,9 +105,32 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_19_190832) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  create_table "warehouse_stocks", force: :cascade do |t|
+    t.integer "warehouse_id", null: false
+    t.string "product_sku"
+    t.decimal "quantity", precision: 10, scale: 2, default: "0.0"
+    t.datetime "synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_sku"], name: "index_warehouse_stocks_on_product_sku"
+    t.index ["warehouse_id", "product_sku"], name: "index_warehouse_stocks_on_warehouse_id_and_product_sku", unique: true
+    t.index ["warehouse_id"], name: "index_warehouse_stocks_on_warehouse_id"
+  end
+
+  create_table "warehouses", force: :cascade do |t|
+    t.string "name"
+    t.integer "external_id_1c"
+    t.string "address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "last_synced_at"
+    t.index ["external_id_1c"], name: "index_warehouses_on_external_id_1c"
+  end
+
   add_foreign_key "company_requisites", "users"
   add_foreign_key "order_items", "orders"
   add_foreign_key "order_items", "products"
   add_foreign_key "orders", "company_requisites"
   add_foreign_key "orders", "users"
+  add_foreign_key "warehouse_stocks", "warehouses"
 end

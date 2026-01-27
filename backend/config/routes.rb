@@ -32,7 +32,15 @@ Rails.application.routes.draw do
         member do
           post 'location', to: 'smart_links#update_location'
         end
-      end    end
+      end
+
+      namespace :integrations do
+        namespace :one_c do
+          get 'stocks', to: 'stocks#index'
+          post 'stocks', to: 'stocks#update'
+        end
+      end
+    end
   end
   devise_for :users, path: '', path_names: {
     sign_in: 'login',

@@ -1,0 +1,17 @@
+one:
+  name: "Drill"
+  sku: "TEST-SKU-1"
+  price: 199.99
+  category: "Tools"
+  stock: 10
+  description: "Powerful drill"
+  warehouse_location: "A-1"
+
+two:
+  name: "Hammer"
+  sku: "TEST-SKU-2"
+  price: 29.99
+  category: "Tools"
+  stock: 5
+  description: "Heavy hammer"
+  warehouse_location: "B-2"
