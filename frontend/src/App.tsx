@@ -15,6 +15,8 @@ import CheckoutPage from '@/pages/orders/CheckoutPage';
 import WarehouseDashboard from '@/pages/warehouse/WarehouseDashboard';
 import DriverDashboard from '@/pages/driver/DriverDashboard';
 import ProfilePage from '@/pages/ProfilePage';
+import AdminWarehousesPage from '@/pages/admin/AdminWarehousesPage';
+import AdminProductsPage from '@/pages/admin/AdminProductsPage';
 
 import SmartLinkPage from '@/pages/driver/SmartLinkPage';
 
@@ -79,6 +81,22 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="admin/warehouses"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AdminWarehousesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="admin/warehouses/:id"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AdminProductsPage />
                     </ProtectedRoute>
                   }
                 />
