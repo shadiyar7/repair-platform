@@ -46,22 +46,53 @@ CompanyRequisite.find_or_create_by!(user: client) do |cr|
   cr.swift = 'HALYK'
 end
 
-# 3. Products
-puts "Seeding Products..."
-warehouses = ['Кушмурун', 'Павлодар', 'Атырау', 'Шымкент', 'Аягоз']
+# 3. Warehouses (1C Simulation)
+puts "Seeding Warehouses..."
+# Order matches CatalogPage.tsx hardcoded list:
+# 1. Атырау
+# 2. Кушмурун
+# 3. Павлодар
+# 4. Аягоз
+# 5. Шымкент
+warehouse_names = ['Атырау', 'Кушмурун', 'Павлодар', 'Аягоз', 'Шымкент']
+warehouses = []
+
+warehouse_names.each_with_index do |name, index|
+  # sequential ID: 1, 2, 3...
+  wh = Warehouse.find_or_create_by!(name: name) do |w|
+    w.external_id_1c = index + 1
+    w.address = "#{name}, Industrial Zone #{index + 1}"
+    w.last_synced_at = Time.now
+  end
+  # Ensure ID matches index + 1 even if record existed (update it)
+  wh.update!(external_id_1c: index + 1)
+  warehouses << wh
+end
+
+# 4. Products & Stocks
+puts "Seeding Products & Stocks..."
 
 # Wheelsets
 thickness_ranges = ['30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '64-69', 'СОНК']
 thickness_ranges.each do |range|
   warehouses.each do |wh|
-    sku = "WS-#{range.gsub('-', '')}-#{wh[0..2].upcase}"
-    Product.find_or_create_by!(sku: sku) do |p|
+    sku = "WS-#{range.gsub('-', '')}-#{wh.external_id_1c}"
+    
+    product = Product.find_or_create_by!(sku: sku) do |p|
       p.name = "Колесная пара (толщина #{range} мм)"
       p.price = 180000 + (range.to_i * 1000)
       p.category = 'Колесные пары'
-      p.stock = rand(3..20)
-      p.warehouse_location = wh
+      p.stock = 0 # Stock is tracked in WarehouseStock
       p.characteristics = { thickness: range }
+      p.is_active = true
+      p.warehouse_location = wh.name # Legacy field, can be kept for simple display
+    end
+
+    # Create/Update Stock
+    stock_qty = rand(3..20)
+    WarehouseStock.find_or_create_by!(warehouse: wh, product_sku: sku) do |ws|
+      ws.quantity = stock_qty
+      ws.synced_at = Time.now
     end
   end
 end
@@ -73,25 +104,26 @@ age_ranges = ['1-5 лет', '6-10 лет', '11-15 лет', '16-20 лет', '21-2
 casting_types.each do |type|
   age_ranges.each do |age|
     warehouses.each do |wh|
-      sku = "CST-#{type[0..2].upcase}-#{age.gsub(' ', '')}-#{wh[0..2].upcase}"
-      Product.find_or_create_by!(sku: sku) do |p|
+      sku = "CST-#{type[0..2].upcase}-#{age.gsub(' ', '')}-#{wh.external_id_1c}"
+      
+      product = Product.find_or_create_by!(sku: sku) do |p|
         p.name = "#{type} (#{age})"
         p.price = 90000.00 - (age.to_i * 1000)
         p.category = 'Литье'
-        p.stock = rand(5..15)
-        p.warehouse_location = wh
+        p.stock = 0
         p.characteristics = { age: age }
+        p.is_active = true
+        p.warehouse_location = wh.name
+      end
+
+       # Create/Update Stock
+      stock_qty = rand(5..15)
+      WarehouseStock.find_or_create_by!(warehouse: wh, product_sku: sku) do |ws|
+        ws.quantity = stock_qty
+        ws.synced_at = Time.now
       end
     end
   end
 end
-
-# Other Parts - Simplifying loop for brevity but keeping logic
-other_parts_list = [
-  "Поглощающий аппарат", "Тяговый хомут", "Триангель", "Клин фрикционный"
-  # ... (truncated list for brevity in code, but logic remains same)
-]
-# Note: For production, we might want a localized list or just recreate if missing. 
-# For now, let's just create a few key other parts.
 
 puts "Database seeded successfully!"

@@ -50,10 +50,20 @@ const AdminWarehousesPage: React.FC = () => {
 
     const handleCreate = async () => {
         try {
+            const externalId = parseInt(newId1c);
+            if (isNaN(externalId)) {
+                alert("ID из 1С должен быть числом");
+                return;
+            }
+            if (!newName || !newAddress) {
+                alert("Заполните все поля");
+                return;
+            }
+
             await api.post('/api/v1/admin/warehouses', {
                 warehouse: {
                     name: newName,
-                    external_id_1c: parseInt(newId1c),
+                    external_id_1c: externalId,
                     address: newAddress
                 }
             });
@@ -62,9 +72,13 @@ const AdminWarehousesPage: React.FC = () => {
             setNewId1c('');
             setNewAddress('');
             fetchWarehouses();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to create warehouse:", error);
-            alert("Ошибка при создании склада");
+            // Show backend errors if available
+            const errorMsg = error.response?.data?.errors
+                ? JSON.stringify(error.response.data.errors)
+                : "Ошибка при создании склада";
+            alert(errorMsg);
         }
     };
 

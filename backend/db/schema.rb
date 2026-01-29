@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_27_215810) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_27_221902) do
   create_table "company_requisites", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "company_name"
@@ -73,6 +73,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_27_215810) do
     t.datetime "updated_at", null: false
     t.string "warehouse_location"
     t.text "characteristics", default: "{}"
+    t.boolean "is_active", default: true
     t.index ["sku"], name: "index_products_on_sku"
   end
 

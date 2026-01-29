@@ -18,6 +18,7 @@ Rails.application.routes.draw do
         end
       end
       resources :products, only: [:index, :show]
+      resources :warehouses, only: [:index, :show]
       resources :company_requisites
       get 'orders/by_token/:token', to: 'orders#by_token'
 
@@ -32,6 +33,12 @@ Rails.application.routes.draw do
         member do
           post 'location', to: 'smart_links#update_location'
         end
+      end
+
+      # Admin Namespace
+      namespace :admin do
+        resources :warehouses
+        resources :products, only: [:index, :create, :update, :destroy]
       end
 
       namespace :integrations do

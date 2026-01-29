@@ -57,7 +57,6 @@ const CatalogPage: React.FC = () => {
 
         fetchProducts();
     }, []);
-    // ----------------------------
 
     const filteredProducts = useMemo(() => {
         return products.filter((p: any) => {

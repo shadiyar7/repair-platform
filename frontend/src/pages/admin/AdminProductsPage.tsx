@@ -13,12 +13,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, ArrowLeft, Trash2, Edit } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ProductData {
-    id: string; // JSON:API ID is string
+    id: string;
     attributes: {
         name: string;
         sku: string;
@@ -26,8 +27,18 @@ interface ProductData {
         category: string;
         is_active: boolean;
         characteristics: any;
+        warehouse_location?: string;
     }
 }
+
+const CATEGORIES = {
+    WHEELSETS: 'Колесные пары',
+    CASTING: 'Литье',
+    OTHER: 'Другое'
+};
+
+const THICKNESS_RANGES = ['30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '64-69', 'СОНК'];
+const AGE_RANGES = ['1-5 лет', '6-10 лет', '11-15 лет', '16-20 лет', '21-25 лет'];
 
 const AdminProductsPage: React.FC = () => {
     const { id: warehouseId } = useParams();
@@ -38,16 +49,19 @@ const AdminProductsPage: React.FC = () => {
 
     // Modal State
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [editingProduct, setEditingProduct] = useState<any>(null); // null = Create Mode
+    const [editingProduct, setEditingProduct] = useState<ProductData | null>(null);
 
     // Form State
     const [formData, setFormData] = useState({
         name: '',
         sku: '',
         price: '',
-        category: '',
+        category: CATEGORIES.WHEELSETS,
         is_active: true,
-        characteristics_json: '{}'
+        // Dynamic Characteristics
+        thickness: '',
+        age: '',
+        other_details: '' // Fallback for 'Other' or raw JSON
     });
 
     useEffect(() => {
@@ -56,12 +70,9 @@ const AdminProductsPage: React.FC = () => {
 
     const fetchData = async () => {
         try {
-            // Fetch Warehouse Name
             const whRes = await api.get(`/api/v1/admin/warehouses/${warehouseId}`);
             setWarehouseName(whRes.data.name);
 
-            // Fetch Products
-            // Note: Admin Products API supports filter by warehouse_id
             const prodRes = await api.get(`/api/v1/admin/products`, { params: { warehouse_id: warehouseId } });
             if (prodRes.data && prodRes.data.data) {
                 setProducts(prodRes.data.data);
@@ -77,36 +88,45 @@ const AdminProductsPage: React.FC = () => {
         setEditingProduct(null);
         setFormData({
             name: '',
-            sku: '',
+            sku: '', // User wants next available ID ideally, but manual input for now
             price: '',
-            category: 'Колесные пары', // Default
+            category: CATEGORIES.WHEELSETS,
             is_active: true,
-            characteristics_json: '{\n  "thickness": "30-34"\n}'
+            thickness: THICKNESS_RANGES[0],
+            age: AGE_RANGES[0],
+            other_details: ''
         });
         setIsEditOpen(true);
     };
 
     const openEditModal = (product: ProductData) => {
         setEditingProduct(product);
+        const chars = product.attributes.characteristics || {};
+
         setFormData({
             name: product.attributes.name,
             sku: product.attributes.sku,
             price: product.attributes.price.toString(),
-            category: product.attributes.category || '',
+            category: product.attributes.category || CATEGORIES.WHEELSETS,
             is_active: product.attributes.is_active,
-            characteristics_json: JSON.stringify(product.attributes.characteristics || {}, null, 2)
+            thickness: chars.thickness || THICKNESS_RANGES[0],
+            age: chars.age || AGE_RANGES[0],
+            other_details: JSON.stringify(chars) // keep original if needed
         });
         setIsEditOpen(true);
     };
 
     const handleSave = async () => {
         try {
-            let parsedChars = {};
-            try {
-                parsedChars = JSON.parse(formData.characteristics_json);
-            } catch (e) {
-                alert("Ошибка валидации JSON характеристик");
-                return;
+            // Build characteristics based on category
+            let characteristics: any = {};
+            if (formData.category === CATEGORIES.WHEELSETS) {
+                characteristics = { thickness: formData.thickness };
+            } else if (formData.category === CATEGORIES.CASTING) {
+                characteristics = { age: formData.age };
+            } else {
+                // For "Other", likely empty or custom.
+                characteristics = {};
             }
 
             const payload = {
@@ -116,8 +136,9 @@ const AdminProductsPage: React.FC = () => {
                     price: parseFloat(formData.price),
                     category: formData.category,
                     is_active: formData.is_active,
-                    characteristics: parsedChars
-                }
+                    characteristics: characteristics
+                },
+                warehouse_id: warehouseId // Context for linking
             };
 
             if (editingProduct) {
@@ -174,6 +195,7 @@ const AdminProductsPage: React.FC = () => {
                                 <TableHead>1C ID (SKU)</TableHead>
                                 <TableHead>Название</TableHead>
                                 <TableHead>Цена</TableHead>
+                                <TableHead>Категория</TableHead>
                                 <TableHead>Статус</TableHead>
                                 <TableHead className="text-right">Действия</TableHead>
                             </TableRow>
@@ -184,11 +206,16 @@ const AdminProductsPage: React.FC = () => {
                                     <TableCell className="font-mono font-medium">{product.attributes.sku}</TableCell>
                                     <TableCell>
                                         <div>{product.attributes.name}</div>
-                                        <div className="text-xs text-gray-400">{product.attributes.category}</div>
+                                        {/* Display characteristics preview */}
+                                        <div className="text-xs text-gray-400">
+                                            {product.attributes.category === CATEGORIES.WHEELSETS && `Толщина: ${product.attributes.characteristics?.thickness}`}
+                                            {product.attributes.category === CATEGORIES.CASTING && `Год: ${product.attributes.characteristics?.age}`}
+                                        </div>
                                     </TableCell>
                                     <TableCell>
                                         {new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(product.attributes.price)}
                                     </TableCell>
+                                    <TableCell>{product.attributes.category}</TableCell>
                                     <TableCell>
                                         {product.attributes.is_active ?
                                             <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Активен</Badge> :
@@ -207,8 +234,8 @@ const AdminProductsPage: React.FC = () => {
                             ))}
                             {products.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                                        Товары не найдены.
+                                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                                        Товары не найдены на этом складе.
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -248,26 +275,77 @@ const AdminProductsPage: React.FC = () => {
                             <Input
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="Колесная пара..."
+                                placeholder="Название товара..."
                             />
                         </div>
+
                         <div className="space-y-2">
                             <Label>Категория</Label>
-                            <Input
+                            <Select
                                 value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                placeholder="Колесные пары"
-                            />
+                                onValueChange={(val) => setFormData({ ...formData, category: val })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Выберите категорию" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={CATEGORIES.WHEELSETS}>{CATEGORIES.WHEELSETS}</SelectItem>
+                                    <SelectItem value={CATEGORIES.CASTING}>{CATEGORIES.CASTING}</SelectItem>
+                                    <SelectItem value={CATEGORIES.OTHER}>{CATEGORIES.OTHER}</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Характеристики (JSON)</Label>
-                            <textarea
-                                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={formData.characteristics_json}
-                                onChange={(e) => setFormData({ ...formData, characteristics_json: e.target.value })}
-                            />
+
+                        {/* Dynamic Characteristics */}
+                        <div className="p-4 bg-gray-50 rounded-md border border-gray-100 space-y-4">
+                            <Label className="text-xs font-semibold uppercase text-gray-500">Характеристики</Label>
+
+                            {formData.category === CATEGORIES.WHEELSETS && (
+                                <div className="space-y-2">
+                                    <Label>Толщина обода (мм)</Label>
+                                    <Select
+                                        value={formData.thickness}
+                                        onValueChange={(val) => setFormData({ ...formData, thickness: val })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Выберите толщину" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {THICKNESS_RANGES.map(range => (
+                                                <SelectItem key={range} value={range}>{range}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
+                            {formData.category === CATEGORIES.CASTING && (
+                                <div className="space-y-2">
+                                    <Label>Год выпуска / Возраст</Label>
+                                    <Select
+                                        value={formData.age}
+                                        onValueChange={(val) => setFormData({ ...formData, age: val })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Выберите год" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {AGE_RANGES.map(age => (
+                                                <SelectItem key={age} value={age}>{age}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
+                            {formData.category === CATEGORIES.OTHER && (
+                                <div className="text-sm text-gray-500 italic">
+                                    Для категории "Другое" дополнительные характеристики не требуются.
+                                </div>
+                            )}
                         </div>
-                        <div className="flex items-center space-x-2">
+
+                        <div className="flex items-center space-x-2 pt-2">
                             <Switch
                                 id="active-mode"
                                 checked={formData.is_active}

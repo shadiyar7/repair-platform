@@ -67,7 +67,7 @@ Stores the actual cache of products per warehouse.
 **Method:** `POST`
 **Headers:**
 - `Content-Type: application/json`
-- `Authorization: Bearer [SHARED_SECRET_TOKEN]` (Optional security)
+- `Authorization`: **REMOVED** (No longer required)
 
 **Expected Payload:**
 ```json

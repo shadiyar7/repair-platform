@@ -3,7 +3,9 @@ module Api
     module Integrations
       module OneC
         class StocksController < ApplicationController
-          skip_before_action :authenticate_user!
+          skip_before_action :authenticate_user!, raise: false
+          skip_before_action :verify_authenticity_token, raise: false
+
 
           # GET /api/v1/integrations/one_c/stocks
           def index
@@ -14,12 +16,30 @@ module Api
               return
             end
             
-            stocks = warehouse.warehouse_stocks
+            stocks = warehouse.warehouse_stocks.where("quantity > 0")
+            
+            # Map stocks to Product details
+            items = []
+            stocks.each do |stock|
+              product = Product.find_by(sku: stock.product_sku)
+              
+              # Only show if product exists AND is active
+              if product && product.is_active
+                items << {
+                  sku: stock.product_sku,
+                  name: product.name,
+                  price: product.price,
+                  characteristics: product.characteristics,
+                  quantity: stock.quantity,
+                  synced_at: stock.synced_at
+                }
+              end
+            end
             
             render json: {
               warehouse: warehouse.name,
               last_synced_at: warehouse.last_synced_at,
-              items: stocks.map { |s| { sku: s.product_sku, quantity: s.quantity, synced_at: s.synced_at } }
+              items: items
             }
           end
 

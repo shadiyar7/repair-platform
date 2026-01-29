@@ -43,9 +43,11 @@ module Api
             # assert_equal 50, @product.stock # Disabled by user request
           end
 
-          test "should get stocks list" do
+          test "should get stocks list merged with products" do
              # Seed some data
-             WarehouseStock.create!(warehouse: @warehouse, product_sku: "TEST-SKU-1", quantity: 77)
+             stock = WarehouseStock.create!(warehouse: @warehouse, product_sku: @product.sku, quantity: 77)
+             # Ensure product is active
+             @product.update!(is_active: true)
 
              get api_v1_integrations_one_c_stocks_url, as: :json
              assert_response :success
@@ -53,7 +55,20 @@ module Api
              json_response = JSON.parse(response.body)
              assert_equal @warehouse.name, json_response["warehouse"]
              assert_equal 1, json_response["items"].length
-             assert_equal "77.0", json_response["items"][0]["quantity"]
+             
+             item = json_response["items"][0]
+             assert_equal "77.0", item["quantity"]
+             assert_equal @product.name, item["name"]
+             assert_equal @product.sku, item["sku"]
+          end
+
+          test "should hide inactive items" do
+             stock = WarehouseStock.create!(warehouse: @warehouse, product_sku: @product.sku, quantity: 77)
+             @product.update!(is_active: false)
+             
+             get api_v1_integrations_one_c_stocks_url, as: :json
+             json_response = JSON.parse(response.body)
+             assert_equal 0, json_response["items"].length
           end
 
           test "should return error for missing warehouse" do
