@@ -3,7 +3,7 @@ class User < ApplicationRecord
 
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
-         :jwt_authenticatable, jwt_revocation_strategy: self
+         :jwt_authenticatable, :confirmable, jwt_revocation_strategy: self
 
   enum role: { client: 'client', admin: 'admin', warehouse: 'warehouse', driver: 'driver', director: 'director' }
 
@@ -26,7 +26,7 @@ class User < ApplicationRecord
 
   # OTP Logic
   def generate_otp!
-    self.otp_code = Rails.env.development? || Rails.env.test? ? '111111' : rand(100000..999999).to_s
+    self.otp_attempt = Rails.env.development? || Rails.env.test? ? '111111' : rand(100000..999999).to_s
     self.otp_sent_at = Time.current
     save!
   end

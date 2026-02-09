@@ -44,6 +44,7 @@ const AdminProductsPage: React.FC = () => {
     const { id: warehouseId } = useParams();
     const navigate = useNavigate();
     const [products, setProducts] = useState<ProductData[]>([]);
+    const [unlinkedItems, setUnlinkedItems] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [warehouseName, setWarehouseName] = useState('');
 
@@ -66,6 +67,7 @@ const AdminProductsPage: React.FC = () => {
 
     useEffect(() => {
         fetchData();
+        fetchUnlinked();
     }, [warehouseId]);
 
     const fetchData = async () => {
@@ -81,6 +83,15 @@ const AdminProductsPage: React.FC = () => {
             console.error("Failed to fetch admin data:", error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchUnlinked = async () => {
+        try {
+            const res = await api.get('/api/v1/admin/products/unlinked', { params: { warehouse_id: warehouseId } });
+            setUnlinkedItems(res.data);
+        } catch (error) {
+            console.error("Failed to fetch unlinked items:", error);
         }
     };
 
@@ -112,6 +123,21 @@ const AdminProductsPage: React.FC = () => {
             thickness: chars.thickness || THICKNESS_RANGES[0],
             age: chars.age || AGE_RANGES[0],
             other_details: JSON.stringify(chars) // keep original if needed
+        });
+        setIsEditOpen(true);
+    };
+
+    const createFromUnlinked = (item: any) => {
+        setEditingProduct(null);
+        setFormData({
+            name: `Товар ${item.sku}`,
+            sku: item.sku,
+            price: '',
+            category: CATEGORIES.WHEELSETS,
+            is_active: true,
+            thickness: THICKNESS_RANGES[0],
+            age: AGE_RANGES[0],
+            other_details: ''
         });
         setIsEditOpen(true);
     };
@@ -149,6 +175,7 @@ const AdminProductsPage: React.FC = () => {
 
             setIsEditOpen(false);
             fetchData();
+            fetchUnlinked();
         } catch (error) {
             console.error("Save failed:", error);
             alert("Ошибка сохранения");
@@ -188,59 +215,83 @@ const AdminProductsPage: React.FC = () => {
                     <span className="loading-spinner text-red-600">Загрузка...</span>
                 </div>
             ) : (
-                <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="bg-gray-50/50">
-                                <TableHead>1C ID (SKU)</TableHead>
-                                <TableHead>Название</TableHead>
-                                <TableHead>Цена</TableHead>
-                                <TableHead>Категория</TableHead>
-                                <TableHead>Статус</TableHead>
-                                <TableHead className="text-right">Действия</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {products.map((product) => (
-                                <TableRow key={product.id}>
-                                    <TableCell className="font-mono font-medium">{product.attributes.sku}</TableCell>
-                                    <TableCell>
-                                        <div>{product.attributes.name}</div>
-                                        {/* Display characteristics preview */}
-                                        <div className="text-xs text-gray-400">
-                                            {product.attributes.category === CATEGORIES.WHEELSETS && `Толщина: ${product.attributes.characteristics?.thickness}`}
-                                            {product.attributes.category === CATEGORIES.CASTING && `Год: ${product.attributes.characteristics?.age}`}
+                <div className="space-y-8">
+                    {/* Unlinked Items Section */}
+                    {unlinkedItems.length > 0 && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                            <h2 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
+                                <span className="mr-2">⚠️</span> Новые поступления из 1С (Не привязаны)
+                            </h2>
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {unlinkedItems.map((item, idx) => (
+                                    <div key={idx} className="bg-white p-4 rounded border border-orange-100 shadow-sm flex justify-between items-center">
+                                        <div>
+                                            <div className="font-mono font-medium text-gray-900">{item.sku}</div>
+                                            <div className="text-sm text-gray-500">Кол-во: {item.quantity}</div>
                                         </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(product.attributes.price)}
-                                    </TableCell>
-                                    <TableCell>{product.attributes.category}</TableCell>
-                                    <TableCell>
-                                        {product.attributes.is_active ?
-                                            <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Активен</Badge> :
-                                            <Badge variant="outline" className="text-gray-500">Скрыт</Badge>
-                                        }
-                                    </TableCell>
-                                    <TableCell className="text-right space-x-2">
-                                        <Button variant="ghost" size="icon" onClick={() => openEditModal(product)}>
-                                            <Edit className="h-4 w-4 text-blue-600" />
+                                        <Button size="sm" variant="outline" className="border-orange-200 text-orange-700 hover:bg-orange-50" onClick={() => createFromUnlinked(item)}>
+                                            <Plus className="w-3 h-3 mr-1" /> Создать
                                         </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}>
-                                            <Trash2 className="h-4 w-4 text-red-600" />
-                                        </Button>
-                                    </TableCell>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-gray-50/50">
+                                    <TableHead>1C ID (SKU)</TableHead>
+                                    <TableHead>Название</TableHead>
+                                    <TableHead>Цена</TableHead>
+                                    <TableHead>Категория</TableHead>
+                                    <TableHead>Статус</TableHead>
+                                    <TableHead className="text-right">Действия</TableHead>
                                 </TableRow>
-                            ))}
-                            {products.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                                        Товары не найдены на этом складе.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {products.map((product) => (
+                                    <TableRow key={product.id}>
+                                        <TableCell className="font-mono font-medium">{product.attributes.sku}</TableCell>
+                                        <TableCell>
+                                            <div>{product.attributes.name}</div>
+                                            {/* Display characteristics preview */}
+                                            <div className="text-xs text-gray-400">
+                                                {product.attributes.category === CATEGORIES.WHEELSETS && `Толщина: ${product.attributes.characteristics?.thickness}`}
+                                                {product.attributes.category === CATEGORIES.CASTING && `Год: ${product.attributes.characteristics?.age}`}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(product.attributes.price)}
+                                        </TableCell>
+                                        <TableCell>{product.attributes.category}</TableCell>
+                                        <TableCell>
+                                            {product.attributes.is_active ?
+                                                <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Активен</Badge> :
+                                                <Badge variant="outline" className="text-gray-500">Скрыт</Badge>
+                                            }
+                                        </TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            <Button variant="ghost" size="icon" onClick={() => openEditModal(product)}>
+                                                <Edit className="h-4 w-4 text-blue-600" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}>
+                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {products.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                                            Товары не найдены на этом складе.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
             )}
 

@@ -1,36 +1,53 @@
-# verification_script.rb
-require_relative 'config/environment'
 
-puts "== Starting Verification =="
+require 'dotenv/load'
+puts "Starting email verification..."
+puts "Key present: #{ENV['RESEND_API_KEY'].present?}"
 
-# 1. Create User
-user = User.find_or_create_by!(email: 'test_driver@example.com') do |u|
-  u.role = 'driver'
-  u.password = 'password123'
-  u.jti = SecureRandom.uuid
-end
-puts "[OK] User created/found: #{user.email}"
+Resend.api_key = ENV['RESEND_API_KEY']
 
-# 2. Create Order
-order = Order.create!(
-  user: user,
-  delivery_address: 'Test Address',
-  delivery_notes: 'Test Notes',
-  status: 'searching_driver'
-)
-
-# 3. Verify Token Generation
-if order.smart_link_token.present?
-  puts "[OK] SmartLink Token Generated: #{order.smart_link_token}"
-else
-  puts "[FAIL] SmartLink Token is missing!"
-  exit 1
+# 1. shadiyar.alakhan@gmail.com (Likely Owner)
+begin
+  puts "1. Sending to shadiyar.alakhan@gmail.com..."
+  Resend::Emails.send({
+    from: 'onboarding@resend.dev',
+    to: 'shadiyar.alakhan@gmail.com',
+    subject: 'Repair Platform: Verification Test',
+    html: '<strong>Resend is connected!</strong><p>This email confirms your API key works.</p>'
+  })
+  puts "✅ Success: Custom email sent to shadiyar.alakhan@gmail.com"
+rescue => e
+  puts "❌ Failed: shadiyar.alakhan@gmail.com"
+  puts "   Error Class: #{e.class}"
+  puts "   Error Message: #{e.message}"
+  puts "   Error Response: #{e.respond_to?(:response) ? e.response : 'No response'}"
 end
 
-# 4. Verify Della Mock Service
-puts "Testing Della Mock Service..."
-service = Logistics::DellaMockService.new(order)
-result = service.call
-puts "[OK] Della Mock Result: #{result.inspect}"
+# 2. shadiyar@geeko.tech
+begin
+  puts "\n2. Sending to shadiyar@geeko.tech..."
+  Resend::Emails.send({
+    from: 'onboarding@resend.dev',
+    to: 'shadiyar@geeko.tech', 
+    subject: 'Repair Platform: Verification Test',
+    html: '<strong>Resend is connected!</strong>'
+  })
+  puts "✅ Success: Sent to shadiyar@geeko.tech"
+rescue => e
+  puts "❌ Failed: shadiyar@geeko.tech" 
+  puts "   Error: #{e.message}"
+end
 
-puts "== Verification Complete =="
+# 3. shadiyar.botcorp@gmail.com
+begin
+  puts "\n3. Sending to shadiyar.botcorp@gmail.com..."
+  Resend::Emails.send({
+    from: 'onboarding@resend.dev',
+    to: 'shadiyar.botcorp@gmail.com',
+    subject: 'Repair Platform: Verification Test',
+    html: '<strong>Resend is connected!</strong>'
+  })
+  puts "✅ Success: Sent to shadiyar.botcorp@gmail.com"
+rescue => e
+  puts "❌ Failed: shadiyar.botcorp@gmail.com"
+  puts "   Error: #{e.message}"
+end

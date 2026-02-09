@@ -27,6 +27,15 @@ Rails.application.routes.draw do
         post 'login', to: 'sessions#create'
         post 'login_password', to: 'sessions#login_password'
         post 'verify', to: 'sessions#verify'
+        post 'signup', to: 'registrations#create'
+        put 'profile', to: 'registrations#update'
+        
+        # Password Reset
+        post 'password', to: 'passwords#create' # request link
+        put 'password', to: 'passwords#update'  # reset with token
+        
+        # Confirmation
+        get 'confirmation', to: 'confirmations#show'
       end
       
       resources :smart_links, param: :token, only: [:show] do
@@ -38,7 +47,9 @@ Rails.application.routes.draw do
       # Admin Namespace
       namespace :admin do
         resources :warehouses
-        resources :products, only: [:index, :create, :update, :destroy]
+        resources :products, only: [:index, :create, :update, :destroy] do
+          get 'unlinked', on: :collection
+        end
       end
 
       namespace :integrations do

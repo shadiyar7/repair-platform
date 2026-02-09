@@ -16,6 +16,14 @@ module Api
               return
             end
             
+            # Check if sync is needed (stale data > 1 hour)
+            if warehouse.last_synced_at.nil? || warehouse.last_synced_at < 1.hour.ago
+               # Avoid spamming jobs: could add a cache/redis lock here, but for MVP just fire it.
+               # Ideally we should also check if a job is already running.
+               SyncStocksJob.perform_later(warehouse.id)
+               Rails.logger.info "Enqueued SyncStocksJob for warehouse #{warehouse.id} (Stale data)"
+            end
+
             stocks = warehouse.warehouse_stocks.where("quantity > 0")
             
             # Map stocks to Product details

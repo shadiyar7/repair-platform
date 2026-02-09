@@ -7,6 +7,11 @@ class Api::V1::ProductsController < ApplicationController
     render json: ProductSerializer.new(products).serializable_hash
   end
 
+  def show
+    product = Product.find(params[:id])
+    render json: ProductSerializer.new(product).serializable_hash
+  end
+
   private
 
   def check_sync_status
@@ -22,8 +27,5 @@ class Api::V1::ProductsController < ApplicationController
     end
   end
 
-  def show
-    product = Product.find(params[:id])
-    render json: ProductSerializer.new(product).serializable_hash
-  end
+
 end

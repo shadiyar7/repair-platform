@@ -1,13 +1,66 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      /* Email styles need to be inline */
+      /* Reset & Basics */
+      body { margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-text-size-adjust: 100%; }
+      table { border-spacing: 0; width: 100%; }
+      td { padding: 0; }
+      img { border: 0; }
+      
+      /* Colors */
+      .bg-primary { background-color: #2563EB; } /* Corporate Blue */
+      .text-primary { color: #2563EB; }
+      .bg-gray { background-color: #f3f4f6; }
+      .bg-white { background-color: #ffffff; }
+      
+      /* Components */
+      .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+      .header { padding: 24px; text-align: center; }
+      .content { padding: 32px 24px; color: #374151; line-height: 1.6; font-size: 16px; }
+      .footer { padding: 24px; text-align: center; color: #6b7280; font-size: 12px; background-color: #f9fafb; margin-top: 20px;}
+      
+      /* Button */
+      .btn { display: inline-block; padding: 12px 24px; background-color: #2563EB; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+      
+      /* Typography */
+      h1 { color: #111827; font-size: 24px; margin-bottom: 16px; font-weight: 700; }
+      p { margin-bottom: 16px; }
+      a { color: #2563EB; text-decoration: none; }
     </style>
   </head>
+  <body class="bg-gray">
+    <table role="presentation" class="bg-gray" style="width: 100%;">
+      <tr>
+        <td style="padding: 40px 0;">
+          <div class="container">
+            <!-- Header -->
+            <table role="presentation" style="width: 100%;">
+              <tr>
+                <td class="header bg-primary">
+                  <!-- Logo or Brand Name -->
+                  <h2 style="margin: 0; color: #ffffff; font-size: 24px; letter-spacing: 1px;">REPAIR PLATFORM</h2>
+                </td>
+              </tr>
+            </table>
 
-  <body>
-    <%= yield %>
+            <!-- Main Content -->
+            <div class="content">
+              <%= yield %>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+              <p>&copy; <%= Time.now.year %> Repair Platform. All rights reserved.</p>
+              <p>
+                Sent securely by the platform.
+              </p>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>

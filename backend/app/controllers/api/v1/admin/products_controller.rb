@@ -23,6 +23,31 @@ module Api
           render json: ProductSerializer.new(@products).serializable_hash
         end
 
+        # GET /api/v1/admin/products/unlinked
+        # Returns stocks that do NOT have a corresponding Product record (orphan SKUs from 1C)
+        def unlinked
+          warehouse_id = params[:warehouse_id]
+          
+          # Find all SKUs in WarehouseStock
+          scope = WarehouseStock.select(:product_sku, :quantity, :synced_at, :warehouse_id)
+          scope = scope.where(warehouse_id: warehouse_id) if warehouse_id.present?
+          
+          # Find all existing Product SKUs
+          existing_skus = Product.pluck(:sku)
+          
+          # Filter stocks where SKU is NOT in existing_skus
+          unlinked_stocks = scope.where.not(product_sku: existing_skus)
+          
+          render json: unlinked_stocks.map { |stock|
+            {
+              sku: stock.product_sku,
+              quantity: stock.quantity,
+              synced_at: stock.synced_at,
+              warehouse_id: stock.warehouse_id
+            }
+          }
+        end
+
         # POST /api/v1/admin/products
         def create
           @product = Product.new(product_params)

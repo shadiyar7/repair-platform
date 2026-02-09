@@ -34,9 +34,17 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
-
+  config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_caching = false
+  
+  # Resend Configuration
+  config.action_mailer.delivery_method = :resend
+  config.action_mailer.resend_settings = {
+    api_key: ENV.fetch('RESEND_API_KEY', 're_123456789') # Replace with actual key in .env
+  }
+  
+  # URL options for links (e.g. confirmation link)
+  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

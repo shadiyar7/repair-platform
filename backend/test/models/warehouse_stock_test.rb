@@ -1,22 +1,25 @@
 require "test_helper"
 
 class WarehouseStockTest < ActiveSupport::TestCase
-  setup do
-    @warehouse = Warehouse.create!(name: "Stock Test Warehouse", external_id_1c: 100)
+  test "valid factory" do
+    assert build(:warehouse_stock).valid?
   end
 
-  test "should be valid with valid attributes" do
-    stock = WarehouseStock.new(warehouse: @warehouse, product_sku: "SKU123", quantity: 10)
+  test "invalid without warehouse" do
+    stock = build(:warehouse_stock, warehouse: nil)
+    assert_not stock.valid?
+  end
+
+  test "invalid without sku" do
+    stock = build(:warehouse_stock, product_sku: nil)
+    assert_not stock.valid?
+  end
+
+  test "validates quantity numericality" do
+    stock = build(:warehouse_stock, quantity: -1)
+    assert_not stock.valid?
+
+    stock.quantity = 0
     assert stock.valid?
-  end
-
-  test "should require product_sku" do
-    stock = WarehouseStock.new(warehouse: @warehouse, quantity: 10)
-    assert_not stock.valid?
-  end
-
-  test "should require valid quantity" do
-    stock = WarehouseStock.new(warehouse: @warehouse, product_sku: "SKU123", quantity: -1)
-    assert_not stock.valid?
   end
 end
