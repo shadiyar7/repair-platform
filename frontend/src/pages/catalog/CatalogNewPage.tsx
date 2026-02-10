@@ -183,9 +183,13 @@ const CatalogNewPage: React.FC = () => {
             document.body.appendChild(link);
             link.click();
             link.remove();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to generate CP", error);
-            alert("Ошибка генерации КП");
+            if (error.response && error.response.status === 401) {
+                alert("Пожалуйста, авторизуйтесь для скачивания КП");
+            } else {
+                alert("Ошибка генерации КП");
+            }
         }
     };
 
