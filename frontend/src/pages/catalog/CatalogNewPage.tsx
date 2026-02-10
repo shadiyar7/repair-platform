@@ -136,12 +136,14 @@ const CatalogNewPage: React.FC = () => {
             console.error("Item has no ID, cannot add to cart", item);
             return;
         }
+        // CartContext expects { id, attributes: { name, price, image_url } }
         addToCart({
             id: item.id,
-            name: item.name,
-            price: parseFloat(item.price),
-            sku: item.sku,
-            image: item.image || null
+            attributes: {
+                name: item.name,
+                price: item.price,
+                image_url: item.image // StocksController returns 'image', CartContext expects image_url in attributes
+            }
         });
     };
 
