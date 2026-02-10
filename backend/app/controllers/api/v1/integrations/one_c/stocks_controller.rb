@@ -43,6 +43,8 @@ module Api
                   id: product.id,
                   sku: stock.product_sku,
                   name: product.name,
+                  category: product.category,
+                  image: product.image_url,
                   price: product.price,
                   characteristics: product.characteristics,
                   quantity: stock.quantity,
