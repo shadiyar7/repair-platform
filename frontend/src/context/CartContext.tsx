@@ -7,6 +7,7 @@ export interface CartItem {
     price: number;
     quantity: number;
     image_url: string;
+    warehouseId?: string;
 }
 
 interface CartContextType {
@@ -53,7 +54,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 name: product.attributes.name,
                 price: parseFloat(product.attributes.price),
                 quantity: 1,
-                image_url: product.attributes.image_url
+                image_url: product.attributes.image_url,
+                warehouseId: product.attributes.warehouseId
             }];
         });
     };

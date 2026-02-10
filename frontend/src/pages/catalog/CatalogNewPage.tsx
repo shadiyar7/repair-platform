@@ -15,8 +15,7 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RefreshCw, ShoppingCart, FileText, MapPin, Plus, Minus, Filter } from 'lucide-react';
+import { RefreshCw, ShoppingCart, FileText, MapPin, Plus, Minus, Filter, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,7 +29,7 @@ const WAREHOUSES = [
 
 const CatalogNewPage: React.FC = () => {
     const navigate = useNavigate();
-    const { addToCart, items, updateQuantity } = useCart();
+    const { addToCart, items, updateQuantity, clearCart } = useCart();
     const [selectedWarehouseId, setSelectedWarehouseId] = useState("000000001");
     const [warehouseData, setWarehouseData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -39,9 +38,6 @@ const CatalogNewPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState('wheelsets');
     const [thicknessFilter, setThicknessFilter] = useState<string | null>(null);
     const [ageFilter, setAgeFilter] = useState<string | null>(null);
-
-    // CP Selection State
-    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
     // Constants from CatalogPage
     const thicknessRanges = ['30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '64-69', 'СОНК'];
@@ -53,7 +49,6 @@ const CatalogNewPage: React.FC = () => {
 
     const fetchStocks = async (warehouseId: string) => {
         setIsLoading(true);
-        setSelectedItems(new Set());
         setThicknessFilter(null); // Reset filters on warehouse change
         setAgeFilter(null);
 
@@ -98,33 +93,6 @@ const CatalogNewPage: React.FC = () => {
         });
     }, [warehouseData, activeTab, thicknessFilter, ageFilter]);
 
-    // Selection Logic
-    const toggleSelection = (sku: string) => {
-        const newSelection = new Set(selectedItems);
-        if (newSelection.has(sku)) {
-            newSelection.delete(sku);
-        } else {
-            newSelection.add(sku);
-        }
-        setSelectedItems(newSelection);
-    };
-
-    const toggleAll = () => {
-        if (filteredItems.length === 0) return;
-
-        // If all filtered items are selected, unselect them. Otherwise select all filtered.
-        const allFilteredSkus = filteredItems.map((i: any) => i.sku);
-        const allSelected = allFilteredSkus.every((sku: string) => selectedItems.has(sku));
-
-        const newSelection = new Set(selectedItems);
-        if (allSelected) {
-            allFilteredSkus.forEach((sku: string) => newSelection.delete(sku));
-        } else {
-            allFilteredSkus.forEach((sku: string) => newSelection.add(sku));
-        }
-        setSelectedItems(newSelection);
-    };
-
     // Cart Logic
     const getItemQuantity = (productId: string) => {
         if (!productId) return 0;
@@ -136,40 +104,41 @@ const CatalogNewPage: React.FC = () => {
             console.error("Item has no ID, cannot add to cart", item);
             return;
         }
-        // CartContext expects { id, attributes: { name, price, image_url } }
+
+        // Validate Warehouse
+        if (items.length > 0) {
+            const cartWarehouseId = items[0].warehouseId;
+            // If item has warehouseId, check it. (Old items might not have it, but we can assume safe defaults or clear)
+            if (cartWarehouseId && cartWarehouseId !== selectedWarehouseId) {
+                if (confirm("В корзине находятся товары с другого склада. Очистить корзину для добавления товаров с текущего склада?")) {
+                    clearCart();
+                    // Proceed to add after clear
+                } else {
+                    return;
+                }
+            }
+        }
+
+        // CartContext expects { id, attributes: { name, price, image_url, warehouseId } }
         addToCart({
             id: item.id,
             attributes: {
                 name: item.name,
                 price: item.price,
-                image_url: item.image // StocksController returns 'image', CartContext expects image_url in attributes
+                image_url: item.image,
+                warehouseId: selectedWarehouseId
             }
         });
     };
 
-    const handleBulkAddToCart = () => {
-        if (!warehouseData?.items) return;
-        warehouseData.items.forEach((item: any) => {
-            if (selectedItems.has(item.sku)) {
-                // Check if already in cart to avoid double add
-                const qty = getItemQuantity(item.id);
-                if (qty === 0) {
-                    handleAddToCart(item);
-                }
-            }
-        });
-    };
-
-    // CP Logic
+    // CP Logic (Based on Cart)
     const handleGetCP = async () => {
-        if (selectedItems.size === 0) {
-            alert("Выберите товары для КП");
+        if (items.length === 0) {
+            alert("Корзина пуста. Добавьте товары для генерации КП.");
             return;
         }
 
-        const itemsPayload = warehouseData.items
-            .filter((i: any) => selectedItems.has(i.sku))
-            .map((i: any) => ({ id: i.id, quantity: 1 }));
+        const itemsPayload = items.map((i) => ({ id: i.id, quantity: i.quantity }));
 
         try {
             const response = await api.post('/api/v1/commercial_proposals', { items: itemsPayload }, {
@@ -249,63 +218,62 @@ const CatalogNewPage: React.FC = () => {
                             <TabsTrigger value="casting">Литье и прочие</TabsTrigger>
                         </TabsList>
 
-                        {/* Filters & Actions */}
+                        {/* Filters Row */}
                         <div className="space-y-6">
-                            <div className="flex flex-wrap items-center justify-between gap-4">
-                                {/* Filter Chips */}
-                                <div className="flex flex-wrap items-center gap-4 bg-gray-50 p-4 rounded-lg border flex-1">
-                                    <div className="flex items-center text-sm font-medium text-gray-600 mr-2">
-                                        <Filter className="w-4 h-4 mr-2" />
-                                        Фильтры:
-                                    </div>
-                                    {activeTab === 'wheelsets' && (
-                                        <div className="flex flex-wrap gap-2">
-                                            <Button variant={thicknessFilter === null ? "secondary" : "ghost"} size="sm" onClick={() => setThicknessFilter(null)} className={thicknessFilter === null ? "bg-red-100 text-red-700" : ""}>Все</Button>
-                                            {thicknessRanges.map(r => (
-                                                <Button key={r} variant={thicknessFilter === r ? "secondary" : "ghost"} size="sm" onClick={() => setThicknessFilter(r)} className={thicknessFilter === r ? "bg-red-100 text-red-700" : ""}>{r}</Button>
-                                            ))}
-                                        </div>
-                                    )}
-                                    {activeTab === 'casting' && (
-                                        <div className="flex flex-wrap gap-2">
-                                            <Button variant={ageFilter === null ? "secondary" : "ghost"} size="sm" onClick={() => setAgeFilter(null)} className={ageFilter === null ? "bg-red-100 text-red-700" : ""}>Все</Button>
-                                            {ageRanges.map(r => (
-                                                <Button key={r} variant={ageFilter === r ? "secondary" : "ghost"} size="sm" onClick={() => setAgeFilter(r)} className={ageFilter === r ? "bg-red-100 text-red-700" : ""}>{r}</Button>
-                                            ))}
-                                        </div>
-                                    )}
+                            <div className="flex flex-wrap items-center gap-4 bg-gray-50 p-4 rounded-lg border">
+                                <div className="flex items-center text-sm font-medium text-gray-600 mr-2">
+                                    <Filter className="w-4 h-4 mr-2" />
+                                    Фильтры:
                                 </div>
-
-                                {/* CP / Cart Actions */}
-                                <div className="flex gap-2 items-center bg-white p-4 rounded-lg border shadow-sm">
-                                    <div className="text-sm text-gray-600 mr-2">
-                                        Выбрано: <b>{selectedItems.size}</b>
+                                {activeTab === 'wheelsets' && (
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button variant={thicknessFilter === null ? "secondary" : "ghost"} size="sm" onClick={() => setThicknessFilter(null)} className={thicknessFilter === null ? "bg-red-100 text-red-700" : ""}>Все</Button>
+                                        {thicknessRanges.map(r => (
+                                            <Button key={r} variant={thicknessFilter === r ? "secondary" : "ghost"} size="sm" onClick={() => setThicknessFilter(r)} className={thicknessFilter === r ? "bg-red-100 text-red-700" : ""}>{r}</Button>
+                                        ))}
                                     </div>
-                                    <Button variant="outline" onClick={handleGetCP} disabled={selectedItems.size === 0} className="border-red-200 hover:bg-red-50 text-red-700">
-                                        <FileText className="w-4 h-4 mr-2" />
-                                        КП
-                                    </Button>
-                                    <Button variant="secondary" onClick={handleBulkAddToCart} disabled={selectedItems.size === 0}>
-                                        <ShoppingCart className="w-4 h-4 mr-2" />
-                                        В корзину
-                                    </Button>
-                                    <Button className="bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200" onClick={() => navigate('/cart')}>
-                                        Корзина ({items.reduce((acc, i) => acc + i.quantity, 0)})
-                                    </Button>
-                                </div>
+                                )}
+                                {activeTab === 'casting' && (
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button variant={ageFilter === null ? "secondary" : "ghost"} size="sm" onClick={() => setAgeFilter(null)} className={ageFilter === null ? "bg-red-100 text-red-700" : ""}>Все</Button>
+                                        {ageRanges.map(r => (
+                                            <Button key={r} variant={ageFilter === r ? "secondary" : "ghost"} size="sm" onClick={() => setAgeFilter(r)} className={ageFilter === r ? "bg-red-100 text-red-700" : ""}>{r}</Button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
+
+                            {/* Actions Row (Below Filters) */}
+                            {items.length > 0 && (
+                                <div className="flex flex-wrap gap-4 items-center justify-end animate-in fade-in slide-in-from-top-2">
+                                    <div className="text-sm text-gray-500 mr-auto">
+                                        В корзине: <b>{items.reduce((acc, i) => acc + i.quantity, 0)} товаров</b>
+                                    </div>
+
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleGetCP}
+                                        className="border-red-200 hover:bg-red-50 text-red-700"
+                                    >
+                                        <FileText className="w-4 h-4 mr-2" />
+                                        Скачать КП (Корзина)
+                                    </Button>
+
+                                    <Button
+                                        className="bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200"
+                                        onClick={() => navigate('/cart')}
+                                    >
+                                        Оформить заказ
+                                        <ArrowRight className="w-4 h-4 ml-2" />
+                                    </Button>
+                                </div>
+                            )}
 
                             {/* Table */}
                             <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
-                                            <TableHead className="w-[50px]">
-                                                <Checkbox
-                                                    checked={filteredItems.length > 0 && filteredItems.every((i: any) => selectedItems.has(i.sku))}
-                                                    onChange={toggleAll}
-                                                />
-                                            </TableHead>
                                             <TableHead>Наименование</TableHead>
                                             <TableHead>Характеристики</TableHead>
                                             <TableHead>Артикул</TableHead>
@@ -320,12 +288,6 @@ const CatalogNewPage: React.FC = () => {
                                                 const quantity = getItemQuantity(item.id);
                                                 return (
                                                     <TableRow key={item.sku} className="group hover:bg-gray-50/50 transition-colors">
-                                                        <TableCell>
-                                                            <Checkbox
-                                                                checked={selectedItems.has(item.sku)}
-                                                                onChange={() => toggleSelection(item.sku)}
-                                                            />
-                                                        </TableCell>
                                                         <TableCell className="font-medium">{item.name}</TableCell>
                                                         <TableCell>
                                                             <div className="flex flex-wrap gap-1">
@@ -392,7 +354,7 @@ const CatalogNewPage: React.FC = () => {
                                             })
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={7} className="text-center py-12 text-gray-500">
+                                                <TableCell colSpan={6} className="text-center py-12 text-gray-500">
                                                     Нет товаров по выбранным фильтрам
                                                 </TableCell>
                                             </TableRow>
