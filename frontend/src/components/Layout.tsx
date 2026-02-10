@@ -8,9 +8,9 @@ import LoginModal from '@/components/auth/LoginModal';
 
 const Layout: React.FC = () => {
     const { user, logout } = useAuth();
-    const { totalItems } = useCart();
+    const { totalItems, isCartOpen, setIsCartOpen } = useCart();
     const navigate = useNavigate();
-    const [isCartOpen, setIsCartOpen] = useState(false);
+    // const [isCartOpen, setIsCartOpen] = useState(false); // Moved to Context
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
     const handleLogout = () => {

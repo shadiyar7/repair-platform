@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/tabs";
 import { RefreshCw, ShoppingCart, FileText, MapPin, Plus, Minus, Filter, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { useNavigate } from 'react-router-dom';
 
 const WAREHOUSES = [
     { id: "000000001", name: "Павлодар", region: "северо-восток" }, // Main
@@ -28,8 +27,7 @@ const WAREHOUSES = [
 ];
 
 const CatalogNewPage: React.FC = () => {
-    const navigate = useNavigate();
-    const { addToCart, items, updateQuantity, clearCart } = useCart();
+    const { addToCart, items, updateQuantity, clearCart, setIsCartOpen } = useCart();
     const [selectedWarehouseId, setSelectedWarehouseId] = useState("000000001");
     const [warehouseData, setWarehouseData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -261,7 +259,7 @@ const CatalogNewPage: React.FC = () => {
 
                                     <Button
                                         className="bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200"
-                                        onClick={() => navigate('/cart')}
+                                        onClick={() => setIsCartOpen(true)}
                                     >
                                         Оформить заказ
                                         <ArrowRight className="w-4 h-4 ml-2" />
