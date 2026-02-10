@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h2>Здравствуйте!</h2>
+    <p>
+      Ваш код подтверждения для входа в <b>Dynamix</b>:
+    </p>
+    <div style="text-align: center; margin: 30px 0;">
+      <h1 style="color: #000; font-family: Helvetica, Arial, sans-serif; letter-spacing: 8px; font-size: 32px; background: #f0f0f0; padding: 20px; border-radius: 8px; display: inline-block; margin: 0;">
+        <%= @otp_code %>
+      </h1>
+    </div>
+    <p>
+      Код действителен в течение 5 минут.
+    </p>
+    <p style="color: #666; font-size: 14px;">
+      Если вы не запрашивали этот код, просто проигнорируйте это письмо.
+    </p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+    <p style="color: #999; font-size: 12px; text-align: center;">
+      © 2026 Dynamix Platform. Все права защищены.
+    </p>
+  </body>
+</html>
