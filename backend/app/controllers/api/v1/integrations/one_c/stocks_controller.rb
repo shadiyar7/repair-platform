@@ -9,21 +9,27 @@ module Api
 
           # GET /api/v1/integrations/one_c/stocks
           def index
-            # MVP: Just return stocks for the first warehouse or by param
-            warehouse = Warehouse.first
+            # Filter by warehouse_id (external_id_1c) from params, or default to "000000001" (Pavlodar)
+            warehouse_id = params[:warehouse_id] || "000000001"
+            
+            warehouse = Warehouse.find_by(external_id_1c: warehouse_id)
+            
+            # If not found (e.g. invalid ID), try first one or return empty
+            warehouse ||= Warehouse.first
+
             unless warehouse
               render json: { items: [], last_synced_at: nil }
               return
             end
             
-            # Check if sync is needed (stale data > 1 hour)
+            # Check if sync is needed (stale data > 1 hour OR never synced)
             if warehouse.last_synced_at.nil? || warehouse.last_synced_at < 1.hour.ago
-               # Avoid spamming jobs: could add a cache/redis lock here, but for MVP just fire it.
-               # Ideally we should also check if a job is already running.
+               # Enqueue sync job
                SyncStocksJob.perform_later(warehouse.id)
-               Rails.logger.info "Enqueued SyncStocksJob for warehouse #{warehouse.id} (Stale data)"
+               Rails.logger.info "Enqueued SyncStocksJob for warehouse #{warehouse.name} (#{warehouse.external_id_1c}) - Stale data"
             end
 
+            # Get stocks for this specific warehouse
             stocks = warehouse.warehouse_stocks.where("quantity > 0")
             
             # Map stocks to Product details
@@ -34,6 +40,7 @@ module Api
               # Only show if product exists AND is active
               if product && product.is_active
                 items << {
+                  id: product.id,
                   sku: stock.product_sku,
                   name: product.name,
                   price: product.price,
@@ -45,7 +52,11 @@ module Api
             end
             
             render json: {
-              warehouse: warehouse.name,
+              warehouse: {
+                name: warehouse.name,
+                id: warehouse.id,
+                external_id_1c: warehouse.external_id_1c
+              },
               last_synced_at: warehouse.last_synced_at,
               items: items
             }

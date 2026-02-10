@@ -51,6 +51,8 @@ Rails.application.routes.draw do
           get 'unlinked', on: :collection
         end
       end
+      
+      resources :commercial_proposals, only: [:create]
 
       namespace :integrations do
         namespace :one_c do

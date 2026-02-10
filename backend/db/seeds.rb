@@ -48,24 +48,32 @@ end
 
 # 3. Warehouses (1C Simulation)
 puts "Seeding Warehouses..."
-# Order matches CatalogPage.tsx hardcoded list:
-# 1. Атырау
-# 2. Кушмурун
-# 3. Павлодар
-# 4. Аягоз
-# 5. Шымкент
-warehouse_names = ['Атырау', 'Кушмурун', 'Павлодар', 'Аягоз', 'Шымкент']
+# IDs from User Screenshot:
+# 000000001 - Основной склад (Павлодар)
+# 000000003 - Склад Атырау
+# 000000005 - Склад Аягоз
+# 000000004 - Склад Караганда
+# 000000002 - Склад Шымкент
+
+warehouses_data = [
+  { name: 'Павлодар (Основной)', id_1c: '000000001' },
+  { name: 'Атырау', id_1c: '000000003' },
+  { name: 'Аягоз', id_1c: '000000005' },
+  { name: 'Караганда', id_1c: '000000004' },
+  { name: 'Шымкент', id_1c: '000000002' }
+]
+
 warehouses = []
 
-warehouse_names.each_with_index do |name, index|
-  # sequential ID: 1, 2, 3...
-  wh = Warehouse.find_or_create_by!(name: name) do |w|
-    w.external_id_1c = index + 1
-    w.address = "#{name}, Industrial Zone #{index + 1}"
-    w.last_synced_at = Time.now
+warehouses_data.each do |data|
+  # Use string for external_id_1c to match 1C format exactly
+  wh = Warehouse.find_or_create_by!(external_id_1c: data[:id_1c]) do |w|
+    w.name = data[:name]
+    w.address = "#{data[:name]}, Промзона"
+    w.last_synced_at = Time.now - 2.hours # Set as stale to test sync trigger
   end
-  # Ensure ID matches index + 1 even if record existed (update it)
-  wh.update!(external_id_1c: index + 1)
+  # Ensure name is updated if it exists
+  wh.update!(name: data[:name])
   warehouses << wh
 end
 
