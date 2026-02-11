@@ -32,6 +32,12 @@ class Api::V1::OrdersController < ApplicationController
     
     if @order.save
       assign_company_requisites if params[:order][:requisites].present?
+      
+      # Auto-transition if requisites are present
+      if @order.company_requisite.present?
+        @order.submit_requisites!
+      end
+
       render json: OrderSerializer.new(@order).serializable_hash, status: :created
     else
       render json: @order.errors, status: :unprocessable_entity
