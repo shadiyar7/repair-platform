@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Trash2, Plus, Save } from 'lucide-react';
+import { Trash2, Plus, Save, Edit2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,7 +37,8 @@ const ProfilePage: React.FC = () => {
 
     // Modal State for Requisites
     const [isRequisiteModalOpen, setIsRequisiteModalOpen] = useState(false);
-    const { register: registerReq, handleSubmit: handleSubmitReq, reset: resetReq } = useForm<CompanyRequisite>();
+    const [editingRequisite, setEditingRequisite] = useState<CompanyRequisite | null>(null);
+    const { register: registerReq, handleSubmit: handleSubmitReq, reset: resetReq, setValue: setReqValue } = useForm<CompanyRequisite>();
 
     // Profile Form State
     const { register: registerProfile, handleSubmit: handleSubmitProfile, setValue: setProfileValue, formState: { isDirty: isProfileDirty, isSubmitting: isProfileSubmitting } } = useForm<UserCompanyProfile>();
@@ -116,16 +117,38 @@ const ProfilePage: React.FC = () => {
 
     const onSaveRequisite = async (data: CompanyRequisite) => {
         try {
-            await api.post('/api/v1/company_requisites', {
-                company_requisite: data
-            });
+            if (editingRequisite) {
+                await api.put(`/api/v1/company_requisites/${editingRequisite.id}`, {
+                    company_requisite: data
+                });
+            } else {
+                await api.post('/api/v1/company_requisites', {
+                    company_requisite: data
+                });
+            }
             setIsRequisiteModalOpen(false);
+            setEditingRequisite(null);
             resetReq();
             fetchRequisites();
         } catch (error) {
             console.error('Error saving requisite', error);
-            alert('Ошибка при добавлении счета');
+            alert('Ошибка при сохранении счета');
         }
+    };
+
+    const handleEditRequisite = (req: CompanyRequisite) => {
+        setEditingRequisite(req);
+        setReqValue('bank_name', req.bank_name);
+        setReqValue('iban', req.iban);
+        setReqValue('swift', req.swift);
+        setReqValue('kbe', req.kbe);
+        setIsRequisiteModalOpen(true);
+    };
+
+    const handleNewRequisite = () => {
+        setEditingRequisite(null);
+        resetReq();
+        setIsRequisiteModalOpen(true);
     };
 
     const handleDeleteRequisite = async (id: string) => {
@@ -204,7 +227,7 @@ const ProfilePage: React.FC = () => {
                         <h2 className="text-xl font-bold">Банковские счета</h2>
                         <p className="text-gray-500 text-sm">Добавьте несколько счетов для выбора при заказе</p>
                     </div>
-                    <Button onClick={() => setIsRequisiteModalOpen(true)} variant="outline">
+                    <Button onClick={handleNewRequisite} variant="outline">
                         <Plus className="mr-2 h-4 w-4" />
                         Добавить счет
                     </Button>
@@ -216,7 +239,7 @@ const ProfilePage: React.FC = () => {
                     <Card className="text-center py-8">
                         <CardContent>
                             <p className="text-gray-500 mb-2">Счетов пока нет</p>
-                            <Button size="sm" onClick={() => setIsRequisiteModalOpen(true)}>Добавить первый счет</Button>
+                            <Button size="sm" onClick={handleNewRequisite}>Добавить первый счет</Button>
                         </CardContent>
                     </Card>
                 ) : (
@@ -226,9 +249,14 @@ const ProfilePage: React.FC = () => {
                                 <CardHeader className="pb-2">
                                     <div className="flex justify-between items-start">
                                         <CardTitle className="text-base font-medium">{req.bank_name || 'Банк не указан'}</CardTitle>
-                                        <Button size="icon" variant="ghost" className="h-6 w-6 text-gray-400 hover:text-red-500" onClick={() => handleDeleteRequisite(req.id)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
+                                        <div className="flex space-x-1">
+                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-gray-400 hover:text-blue-500" onClick={() => handleEditRequisite(req)}>
+                                                <Edit2 className="h-4 w-4" />
+                                            </Button>
+                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-gray-400 hover:text-red-500" onClick={() => handleDeleteRequisite(req.id)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </div>
                                     <CardDescription className="text-xs break-all">
                                         IBAN: {req.iban}
@@ -248,7 +276,7 @@ const ProfilePage: React.FC = () => {
             <Dialog open={isRequisiteModalOpen} onOpenChange={setIsRequisiteModalOpen}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
-                        <DialogTitle>Добавление банковского счета</DialogTitle>
+                        <DialogTitle>{editingRequisite ? 'Редактирование счета' : 'Добавление банковского счета'}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmitReq(onSaveRequisite)} className="space-y-4 py-4">
                         <div className="grid grid-cols-1 gap-4">
