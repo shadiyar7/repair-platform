@@ -10,33 +10,43 @@ class Users::RegistrationsController < Devise::RegistrationsController
   # end
 
   # POST /resource
-  # def create
-  #   super
-  # end
+  def create
+    build_resource(sign_up_params)
 
-  # GET /resource/edit
-  # def edit
-  #   super
-  # end
+    resource.transaction do
+      resource.save
+      if resource.persisted?
+        if resource.active_for_authentication?
+          # This should not happen if confirmable is on and user is not confirmed
+          # But if it does, sign them in
+          set_flash_message! :notice, :signed_up
+          sign_up(resource_name, resource)
+          respond_with resource, location: after_sign_up_path_for(resource)
+        else
+          # User created but needs confirmation.
+          # Generate OTP and send email
+          resource.generate_otp!
+          begin
+             UserMailer.with(user: resource).otp_email.deliver_now
+          rescue => e
+             Rails.logger.error "Failed to send OTP email: #{e.message}"
+          end
 
-  # PUT /resource
-  # def update
-  #   super
-  # end
-
-  # DELETE /resource
-  # def destroy
-  #   super
-  # end
-
-  # GET /resource/cancel
-  # Forces the session data which is usually expired after sign
-  # in to be expired now. This is useful if the user wants to
-  # cancel oauth signing in/up in the middle of the process,
-  # removing all OAuth session data.
-  # def cancel
-  #   super
-  # end
+          render json: {
+            status: { code: 200, message: 'Registration successful. Please check your email for OTP.' },
+            data: { 
+              email: resource.email,
+              verification_required: true 
+            }
+          }
+        end
+      else
+        clean_up_passwords resource
+        set_minimum_password_length
+        respond_with resource
+      end
+    end
+  end
 
   respond_to :json
 
@@ -49,8 +59,13 @@ class Users::RegistrationsController < Devise::RegistrationsController
         data: UserSerializer.new(resource).serializable_hash[:data][:attributes]
       }
     else
+      # Format errors to match Frontend expectation
       render json: {
-        status: { message: "User could not be created successfully. #{resource.errors.full_messages.to_sentence}" }
+        status: { 
+          message: "User could not be created successfully.",
+          errors: resource.errors.full_messages 
+        },
+        errors: resource.errors.messages 
       }, status: :unprocessable_entity
     end
   end

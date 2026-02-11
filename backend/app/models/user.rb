@@ -36,6 +36,12 @@ class User < ApplicationRecord
     code == otp_attempt
   end
 
+  # Override Devise's default confirmation email to do nothing
+  # We will send our own OTP email manually in Controller
+  def send_confirmation_instructions
+    # Do nothing
+  end
+
   # Temporary: Keep legacy fields accessible but prefer CompanyRequisite
   # In future steps we will migrate data and remove these columns
 end

@@ -8,6 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 const RegisterPage: React.FC = () => {
+    const [step, setStep] = useState<'form' | 'verify'>('form');
+    const [emailForOtp, setEmailForOtp] = useState('');
+    const [otp, setOtp] = useState('');
+
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -26,7 +30,7 @@ const RegisterPage: React.FC = () => {
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { loginWithPassword } = useAuth();
+    const { verifyOtp, loginWithPassword } = useAuth(); // Removed loginWithPassword usage for direct OTP login
     const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,21 +49,103 @@ const RegisterPage: React.FC = () => {
         }
 
         try {
-            await api.post('/signup', {
+            const response = await api.post('/signup', {
                 user: formData
             });
 
-            // Registration successful (200 OK)
-            // Automatically log in the user using the credentials they just created
-            await loginWithPassword(formData.email, formData.password);
-            navigate('/');
+            // Check if verification is required
+            if (response.data?.data?.verification_required) {
+                setEmailForOtp(formData.email);
+                setStep('verify');
+            } else {
+                // Should not happen with new config, but fallback to auto-login
+                await loginWithPassword(formData.email, formData.password);
+                navigate('/');
+            }
         } catch (err: any) {
             console.error("Registration error:", err);
-            setError(err.response?.data?.status?.message || 'Ошибка регистрации. Пожалуйста, проверьте введенные данные.');
+
+            // Improved Error Parsing
+            let errorMessage = 'Ошибка регистрации. Пожалуйста, проверьте введенные данные.';
+
+            if (err.response?.data?.status?.errors) {
+                // Format: { status: { errors: ["Email has already been taken"] } }
+                errorMessage = Array.isArray(err.response.data.status.errors)
+                    ? err.response.data.status.errors.join(', ')
+                    : err.response.data.status.errors;
+            } else if (err.response?.data?.errors) {
+                // Format: { errors: { email: ["has already been taken"] } }
+                const errors = err.response.data.errors;
+                const messages = Object.keys(errors).map(key => `${key} ${errors[key].join(', ')}`);
+                errorMessage = messages.join('; ');
+            } else if (err.response?.data?.status?.message) {
+                errorMessage = err.response.data.status.message;
+            }
+
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
     };
+
+    const handleVerifyOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
+        try {
+            await verifyOtp(emailForOtp, otp);
+            navigate('/');
+        } catch (err: any) {
+            console.error("Verification error:", err);
+            setError('Неверный код или срок действия истек.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (step === 'verify') {
+        return (
+            <div className="flex items-center justify-center min-h-[80vh] py-12">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <CardTitle>Подтверждение Email</CardTitle>
+                        <CardDescription>
+                            Мы отправили код подтверждения на <b>{emailForOtp}</b>
+                        </CardDescription>
+                    </CardHeader>
+                    <form onSubmit={handleVerifyOtp}>
+                        <CardContent className="space-y-4">
+                            {error && <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md">{error}</div>}
+                            <div className="space-y-2">
+                                <Label htmlFor="otp">Код из письма</Label>
+                                <Input
+                                    id="otp"
+                                    className="text-center tracking-[0.5em] text-lg font-mono"
+                                    maxLength={6}
+                                    placeholder="000000"
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex flex-col space-y-4">
+                            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isLoading}>
+                                {isLoading ? 'Проверка...' : 'Подтвердить'}
+                            </Button>
+                            <button
+                                type="button"
+                                onClick={() => setStep('form')}
+                                className="text-sm text-gray-500 hover:underline"
+                            >
+                                Назад к регистрации
+                            </button>
+                        </CardFooter>
+                    </form>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center justify-center min-h-[80vh] py-12">

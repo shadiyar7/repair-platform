@@ -51,6 +51,9 @@ module Api
           user = User.find_by(email: params[:email])
           
           if user&.verify_otp(params[:otp])
+            # Confirm user if not already confirmed
+            user.confirm unless user.confirmed?
+
             sign_in(user)
             token = current_token
             
