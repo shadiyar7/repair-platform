@@ -79,7 +79,7 @@ module Api
         private
 
         def current_token
-          request.env['warden-jwt_auth.token']
+          request.env['warden-jwt_auth.token'] || Warden::JWTAuth::UserEncoder.new.call(current_user, :user, nil).first
         end
       end
     end

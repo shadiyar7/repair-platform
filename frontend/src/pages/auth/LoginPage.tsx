@@ -37,10 +37,10 @@ const LoginPage: React.FC = () => {
                 } else if (userData.role === 'driver') {
                     navigate('/driver');
                 } else {
-                    navigate('/catalog');
+                    navigate('/'); // Catalog is at root
                 }
             } else {
-                navigate('/catalog');
+                navigate('/');
             }
 
         } catch (err: any) {
