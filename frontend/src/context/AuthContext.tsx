@@ -29,8 +29,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Check if user is logged in by hitting a protected endpoint or profile
         // For now, simple check using localStorage persistence for USER SESSIONS ONLY (not tokens)
         const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const storedToken = localStorage.getItem('token');
+
+        if (storedUser && storedToken) {
             setUser(JSON.parse(storedUser));
+        } else {
+            // If we have a user but no token (or neither), force clean state
+            if (storedUser || storedToken) {
+                console.warn("Invalid session state (missing user or token). Logging out.");
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+                setUser(null);
+            }
         }
         setIsLoading(false);
     }, []);
