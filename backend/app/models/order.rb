@@ -28,7 +28,6 @@ class Order < ApplicationRecord
 
     aasm column: :status do
       state :cart, initial: true
-      state :requisites_selected
       state :pending_director_signature
       state :pending_signature
       state :pending_payment
@@ -42,17 +41,17 @@ class Order < ApplicationRecord
       state :completed
 
       event :checkout do
-        transitions from: :cart, to: :requisites_selected
+        transitions from: :cart, to: :pending_director_signature
       end
 
       event :submit_requisites do
-        transitions from: :cart, to: :requisites_selected
+        transitions from: :cart, to: :pending_director_signature
       end
 
-      event :prepare_contract do
-        transitions from: :requisites_selected, to: :pending_director_signature
-      end
-
+      # prepare_contract is now redundant if we skip requisites_selected, 
+      # but we can keep it for manual transitions if needed or remove it. 
+      # Removing it to clean up as requested "remove it entirely".
+      
       event :director_sign do
         transitions from: :pending_director_signature, to: :pending_signature, after: :set_director_signed_at
       end
