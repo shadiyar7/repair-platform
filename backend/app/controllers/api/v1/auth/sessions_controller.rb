@@ -23,7 +23,8 @@ module Api
 
             render json: {
               message: 'Logged in successfully',
-              user: UserSerializer.new(user).serializable_hash
+              user: UserSerializer.new(user).serializable_hash,
+              token: token
             }
           else
             render json: { error: 'Invalid email or password' }, status: :unauthorized
@@ -67,7 +68,8 @@ module Api
             
             render json: { 
               message: 'Logged in successfully', 
-              user: UserSerializer.new(user).serializable_hash 
+              user: UserSerializer.new(user).serializable_hash,
+              token: token
             }
           else
             render json: { error: 'Invalid OTP' }, status: :unauthorized

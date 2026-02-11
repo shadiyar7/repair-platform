@@ -42,6 +42,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const verifyOtp = async (email: string, otp: string) => {
         const response = await api.post('/api/v1/auth/verify', { email, otp });
         const userData = response.data.user.data.attributes;
+        const token = response.data.token;
+
+        if (token) {
+            localStorage.setItem('token', token);
+        }
+
         // Map backend attributes to frontend User interface
         const newUser: User = {
             id: response.data.user.data.id,
@@ -58,6 +64,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loginWithPassword = async (email: string, password: string) => {
         const response = await api.post('/api/v1/auth/login_password', { email, password });
         console.log("LOGIN RESPONSE:", response.data);
+
+        if (response.data.token) {
+            localStorage.setItem('token', response.data.token);
+        }
 
         let userData;
 
@@ -100,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
             setUser(null);
             localStorage.removeItem('user');
+            localStorage.removeItem('token');
         }
     };
 
