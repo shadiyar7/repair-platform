@@ -48,7 +48,7 @@ module Api
         end
 
         def account_update_params
-          params.permit(:company_name, :phone, :director_name, :inn, :bin, :iban, :swift)
+          params.permit(:company_name, :phone, :director_name, :acting_on_basis, :legal_address, :actual_address, :inn, :bin, :iban, :swift)
         end
 
         def current_token

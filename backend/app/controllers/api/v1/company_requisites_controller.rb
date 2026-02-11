@@ -18,6 +18,16 @@ module Api
       # POST /api/v1/company_requisites
       def create
         @company_requisite = current_user.company_requisites.build(company_requisite_params)
+        
+        # Auto-fill company details from User profile if not provided
+        # This allows Frontend to only send bank details
+        @company_requisite.company_name = current_user.company_name if @company_requisite.company_name.blank?
+        @company_requisite.bin = current_user.bin if @company_requisite.bin.blank?
+        @company_requisite.inn = current_user.inn if @company_requisite.inn.blank?
+        @company_requisite.director_name = current_user.director_name if @company_requisite.director_name.blank?
+        @company_requisite.acting_on_basis = current_user.acting_on_basis if @company_requisite.acting_on_basis.blank?
+        @company_requisite.legal_address = current_user.legal_address if @company_requisite.legal_address.blank?
+        @company_requisite.actual_address = current_user.actual_address if @company_requisite.actual_address.blank?
 
         if @company_requisite.save
           render json: CompanyRequisiteSerializer.new(@company_requisite).serializable_hash, status: :created
