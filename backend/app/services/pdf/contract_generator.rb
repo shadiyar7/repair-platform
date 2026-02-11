@@ -6,32 +6,26 @@ module Pdf
       @order = order
       @document = Prawn::Document.new(page_size: 'A4', margin: 40)
       
-      # Use a font that supports Cyrillic. 
-      # Prawn by default doesn't support Cyrillic well without a font.
-      # We need to ensure we have a font or use a default one if available.
-      # Ideally we should load a font file. For now, let's try to use a standard one if possible
-      # or assumes the system has one. 
-      # ACTUALLY, Prawn needs a TTF file for Cyrillic.
-      # I will check if there are fonts in assets or vendor.
-      # If not, I will try to use a standard path or download one.
-      # For safety in this environment, I'll try to use a standard font path or fallback.
+      # Load bundled font for Cyrillic support
+      font_path = Rails.root.join('vendor', 'fonts', 'Roboto-Regular.ttf')
       
-      font_families.update("OpenSans" => {
-        normal: "/System/Library/Fonts/Supplemental/Arial.ttf", # Mac specific or local fallback
-        bold: "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
-      }) rescue nil
-      
-      # Fallback to built-in if system font not found (might show boxes for Cyrillic)
-      # In a real app we'd bundle the font.
+      if File.exist?(font_path)
+        @document.font_families.update("Roboto" => {
+          normal: font_path.to_s
+        })
+        @document.font "Roboto"
+      else
+        Rails.logger.warn "Font file missing or invalid at #{font_path}. Using Helvetica (No Cyrillic)."
+        @document.font "Helvetica"
+      end
     end
 
     def generate
-      # Attempt to use a Cyrillic compatible font
-      # Since we are on Mac (User OS), let's try standard paths
-      if File.exist?("/System/Library/Fonts/Supplemental/Arial.ttf")
-        font "/System/Library/Fonts/Supplemental/Arial.ttf"
-      elsif File.exist?("/System/Library/Fonts/Helvetica.ttc")
-        font "/System/Library/Fonts/Helvetica.ttc"
+      # Ensure using the custom font if available
+      if @document.font_families["Roboto"]
+         @document.font "Roboto"
+      else
+         @document.font "Helvetica"
       end
 
       text "ДОГОВОР ПОСТАВКИ № #{@order.id}", size: 16, style: :bold, align: :center

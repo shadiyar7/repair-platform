@@ -40,3 +40,4 @@ yandex:
   region: ru-central1
   bucket: <%= ENV['YANDEX_BUCKET'] %>
   endpoint: https://storage.yandexcloud.net
+  force_path_style: true
