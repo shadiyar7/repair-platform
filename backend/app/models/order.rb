@@ -1,5 +1,7 @@
 class Order < ApplicationRecord
   include AASM
+  
+  has_one_attached :document
 
   belongs_to :user
   belongs_to :company_requisite, optional: true    

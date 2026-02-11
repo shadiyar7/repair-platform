@@ -81,64 +81,26 @@ class Api::V1::OrdersController < ApplicationController
 
   def download_contract
     authorize @order, :show?
-    pdf = IDocs::ContractSigner.new(@order).generate_contract_pdf
-    send_data pdf, filename: "contract_#{@order.id}.pdf", type: "application/pdf"
-  end
-
-  def pay
-    authorize @order, :update?
-    @order.pay! if @order.pending_payment?
-    # Trigger driver search automatically after payment? Or manual?
-    # Requirement: "Status: Waiting for payment" -> "Payment" -> "Search Driver"
-    render json: { message: "Payment successful", status: @order.status }
-  end
-
-  def find_driver
-    authorize @order, :update?
-    service = Logistics::DriverFinder.new(@order)
-    result = service.call
-    render json: result
-  end
-
-  # Debug endpoint to force driver assignment
-  def assign_driver
-    authorize @order, :update?
-    # Expected params: driver_name, driver_phone, driver_car_number, driver_arrival_time
-    @order.update(
-      driver_name: params[:driver_name],
-      driver_phone: params[:driver_phone],
-      driver_car_number: params[:driver_car_number],
-      driver_arrival_time: params[:driver_arrival_time]
-    )
-    @order.assign_driver!
-    render json: OrderSerializer.new(@order).serializable_hash
-  end
-
-  def driver_arrived
-    authorize @order, :update?
-    @order.driver_arrived!
-    render json: OrderSerializer.new(@order).serializable_hash
-  end
-
-  def start_trip
-    authorize @order, :update?
-    @order.start_trip!
-    render json: OrderSerializer.new(@order).serializable_hash
-  end
-
-  def deliver
-    authorize @order, :update?
-    @order.deliver!
-    render json: OrderSerializer.new(@order).serializable_hash
-  end
-
-  def complete
-    authorize @order, :update?
-    @order.complete!
-    render json: OrderSerializer.new(@order).serializable_hash
+    
+    unless @order.document.attached?
+      # Generate on the fly if missing (fallback)
+      generate_and_attach_contract(@order)
+    end
+    
+    # Redirect to Yandex S3 presigned URL
+    redirect_to @order.document.url(expires_in: 5.minutes), allow_other_host: true
   end
 
   private
+
+  def generate_and_attach_contract(order)
+    pdf_content = Pdf::ContractGenerator.new(order).generate
+    order.document.attach(
+      io: StringIO.new(pdf_content),
+      filename: "Dogovor_#{order.id}.pdf",
+      content_type: 'application/pdf'
+    )
+  end
 
   def assign_company_requisites
     return unless params[:order][:requisites].present?
@@ -149,9 +111,6 @@ class Api::V1::OrdersController < ApplicationController
       bank_details: [:bank_name, :iban, :swift, :kbe]
     )
 
-    # Serialize bank_details/flatten or store as fields. 
-    # Current CompanyRequisite model has flattened fields.
-    
     attributes = requisites_params.except(:bank_details)
     
     if requisites_params[:bank_details]
@@ -160,12 +119,13 @@ class Api::V1::OrdersController < ApplicationController
       attributes[:kbe] = requisites_params[:bank_details][:kbe]
     end
 
-    # Find existing requisite or create new one for the user
-    # We match by BIN to avoid duplicates for the same user
     company_requisite = current_user.company_requisites.find_or_initialize_by(bin: attributes[:bin])
     company_requisite.update!(attributes)
 
     @order.update!(company_requisite: company_requisite)
+    
+    # Generate Contract immediately after assigning requisites
+    generate_and_attach_contract(@order)
   end
 
   def set_order

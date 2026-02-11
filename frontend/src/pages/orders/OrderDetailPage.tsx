@@ -129,13 +129,13 @@ const OrderDetailPage: React.FC = () => {
 
         switch (status) {
             case 'pending_director_signature':
-                if (role === 'director') {
-                    title = 'Требуется подпись Директора';
-                    description = 'Подпишите договор от лица компании.';
+                if (role === 'client' || role === 'director' || role === 'admin') {
+                    title = 'Требуется подписание договора';
+                    description = 'Договор сформирован. Пожалуйста, проверьте и подпишите его.';
                     type = 'warning';
                 } else {
-                    title = 'Ожидание подписи Директора';
-                    description = 'Ожидается подпись договора со стороны исполнителя.';
+                    title = 'Ожидание подписания';
+                    description = 'Клиент должен подписать договор.';
                     type = 'info';
                 }
                 break;
@@ -356,17 +356,17 @@ const OrderDetailPage: React.FC = () => {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {/* Client Actions */}
-                            {attributes.status === 'pending_director_signature' && (user?.role === 'director' || user?.role === 'admin') && (
+                            {attributes.status === 'pending_director_signature' && (user?.role === 'client' || user?.role === 'director' || user?.role === 'admin') && (
                                 <div className="space-y-4">
                                     <div className="p-4 bg-orange-50 border border-orange-100 rounded-md flex items-start space-x-3">
                                         <FileText className="h-5 w-5 text-orange-600 mt-0.5" />
-                                        <p className="text-sm text-orange-700">Необходимо подписать договор со стороны компании.</p>
+                                        <p className="text-sm text-orange-700">Договор готов. Скачайте для ознакомления или подпишите для продолжения.</p>
                                     </div>
                                     <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => directorSignMutation.mutate()} disabled={directorSignMutation.isPending}>
-                                        <CheckCircle className="mr-2 h-4 w-4" /> Подписать как Директор
+                                        <CheckCircle className="mr-2 h-4 w-4" /> Подписать договор
                                     </Button>
                                     <Button variant="outline" className="w-full" onClick={() => downloadFile('contract')}>
-                                        <Download className="mr-2 h-4 w-4" /> Просмотреть договор
+                                        <Download className="mr-2 h-4 w-4" /> Скачать договор
                                     </Button>
                                 </div>
                             )}

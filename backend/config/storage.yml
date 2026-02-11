@@ -32,3 +32,11 @@ local:
 #   service: Mirror
 #   primary: local
 #   mirrors: [ amazon, google, microsoft ]
+
+yandex:
+  service: S3
+  access_key_id: <%= ENV['YANDEX_ACCESS_KEY_ID'] %>
+  secret_access_key: <%= ENV['YANDEX_SECRET_ACCESS_KEY'] %>
+  region: ru-central1
+  bucket: <%= ENV['YANDEX_BUCKET'] %>
+  endpoint: https://storage.yandexcloud.net
