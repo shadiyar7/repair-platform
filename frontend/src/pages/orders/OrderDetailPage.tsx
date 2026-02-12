@@ -14,7 +14,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, ShoppingBag, Building } from 'lucide-react';
+import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const OrderDetailPage: React.FC = () => {
