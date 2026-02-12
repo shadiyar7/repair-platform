@@ -173,9 +173,13 @@ module Pdf
       move_down 10
 
       items = @order.order_items.map.with_index(1) do |item, index|
-        # Fallback to product price if item price is missing or zero (matches frontend behavior)
-        effective_price = item.price.to_f > 0 ? item.price : (item.product&.price || 0)
+        # Fallback to product price if item price is missing or zero
+        product_price = item.product&.price || 0
+        current_price = item.price.to_f
+        effective_price = current_price > 0 ? current_price : product_price
         
+        Rails.logger.info "PDF Gen [Item ##{item.id}]: DB Price=#{item.price.inspect}, Product Price=#{product_price}, Effective=#{effective_price}"
+
         [
           index.to_s,
           item.product&.name,

@@ -79,23 +79,19 @@ class Api::V1::OrdersController < ApplicationController
     send_data pdf, filename: "invoice_#{@order.id}.pdf", type: "application/pdf"
   end
 
-  def download_contract
+    # ALWAYS GENERATE FOR DEBUGGING
+    # Purge old file to ensure fresh generation
     authorize @order, :show?
     
-    # Allow forcing regeneration (e.g. if template changed or file is corrupted)
-    if params[:force] == 'true'
-      @order.document.purge if @order.document.attached?
-    end
+    @order.document.purge if @order.document.attached?
+    generate_and_attach_contract(@order)
     
-    unless @order.document.attached?
-      # Generate on the fly if missing (fallback)
-      generate_and_attach_contract(@order)
-    end
+    timestamp = Time.current.strftime('%H%M%S')
     
     # PROXY MODE: Download from S3 and send to client to avoid CORS issues
     # and ensure correct filename/content type.
     send_data @order.document.download,
-              filename: "Dogovor_#{@order.id}.pdf",
+              filename: "Dogovor_#{@order.id}_#{timestamp}.pdf",
               type: 'application/pdf',
               disposition: 'inline'
   end
