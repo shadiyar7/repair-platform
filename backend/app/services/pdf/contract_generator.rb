@@ -8,27 +8,29 @@ module Pdf
       
       # Load bundled font for Cyrillic support
       # Load bundled fonts for Cyrillic support (Roboto 2013 version for Prawn compatibility)
+      # Load bundled fonts for Cyrillic support (Roboto 2013 version for Prawn compatibility)
+      # Note: Using Regular for Bold temporarily to fix missing file 500 error
       font_regular = Rails.root.join('vendor', 'fonts', 'Roboto-Regular.ttf')
-      font_bold = Rails.root.join('vendor', 'fonts', 'Roboto-Bold.ttf')
       
       begin
-        if File.exist?(font_regular) && File.exist?(font_bold)
+        if File.exist?(font_regular)
           size_reg = File.size(font_regular)
-          size_bold = File.size(font_bold)
-          Rails.logger.info "Loading fonts: Regular=#{size_reg}b, Bold=#{size_bold}b"
+          Rails.logger.info "Loading fonts: Regular=#{size_reg}b (Used for Bold too)"
           
-          if size_reg > 0 && size_bold > 0
+          if size_reg > 0
             @document.font_families.update("Roboto" => {
               normal: font_regular.to_s,
-              bold: font_bold.to_s
+              bold: font_regular.to_s,
+              italic: font_regular.to_s,
+              bold_italic: font_regular.to_s
             })
             @document.font "Roboto"
           else
-             Rails.logger.warn "One of the font files is empty. Fallback to Helvetica."
+             Rails.logger.warn "Font file is empty. Fallback to Helvetica."
              @document.font "Helvetica"
           end
         else
-          Rails.logger.warn "Font files missing (#{font_regular}, #{font_bold}). Using Helvetica."
+          Rails.logger.warn "Font file missing (#{font_regular}). Using Helvetica."
           @document.font "Helvetica"
         end
 
