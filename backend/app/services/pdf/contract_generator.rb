@@ -173,13 +173,16 @@ module Pdf
       move_down 10
 
       items = @order.order_items.map.with_index(1) do |item, index|
+        # Fallback to product price if item price is missing or zero (matches frontend behavior)
+        effective_price = item.price.to_f > 0 ? item.price : (item.product&.price || 0)
+        
         [
           index.to_s,
           item.product&.name,
           "шт.",
           item.quantity.to_s,
-          ActionController::Base.helpers.number_to_currency(item.price, unit: "", separator: ",", delimiter: " ", precision: 2).strip,
-          ActionController::Base.helpers.number_to_currency(item.quantity * item.price, unit: "", separator: ",", delimiter: " ", precision: 2).strip
+          ActionController::Base.helpers.number_to_currency(effective_price, unit: "", separator: ",", delimiter: " ", precision: 2).strip,
+          ActionController::Base.helpers.number_to_currency(item.quantity * effective_price, unit: "", separator: ",", delimiter: " ", precision: 2).strip
         ]
       end
 
