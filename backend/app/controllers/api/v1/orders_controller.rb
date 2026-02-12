@@ -79,6 +79,7 @@ class Api::V1::OrdersController < ApplicationController
     send_data pdf, filename: "invoice_#{@order.id}.pdf", type: "application/pdf"
   end
 
+  def download_contract
     # ALWAYS GENERATE FOR DEBUGGING
     # Purge old file to ensure fresh generation
     authorize @order, :show?
