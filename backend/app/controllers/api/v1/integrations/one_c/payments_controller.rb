@@ -84,11 +84,18 @@ module Api
                   invoice_code = data['image'] || data['base64'] || data['invoice_base64'] || data['file']
                   
                   if invoice_code.present?
-                     # Update Order #1 as per user's hardcoded test scenario
-                     test_order = Order.find_by(id: 1)
+                     # Update Order matching the ID in the payload
+                     target_order_id = payload["ID"]
+                     test_order = Order.find_by(id: target_order_id)
+
                      if test_order
-                        test_order.update(invoice_base64: invoice_code)
-                        Rails.logger.info "Saved invoice_base64 (image) to Order #1"
+                        if test_order.update(invoice_base64: invoice_code)
+                          Rails.logger.info "Successfully saved invoice_base64 to Order ##{test_order.id}"
+                        else
+                          Rails.logger.error "Failed to save invoice to Order ##{test_order.id}: #{test_order.errors.full_messages.join(', ')}"
+                        end
+                     else
+                        Rails.logger.warn "Order matching payload ID #{target_order_id} not found"
                      end
                   end
                   
@@ -97,7 +104,7 @@ module Api
                     message: "Request sent to 1C successfully", 
                     "1c_status" => data['status'],
                     image_length: invoice_code&.length,
-                    note: "Base64 saved to Order #1"
+                    note: "Attempted to save to Order ##{payload["ID"]}"
                   }, status: :ok
                 rescue => e
                   Rails.logger.error "Failed to parse 1C response: #{e.message}"
