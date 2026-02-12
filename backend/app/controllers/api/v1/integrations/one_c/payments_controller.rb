@@ -4,6 +4,7 @@ module Api
       module OneC
         class PaymentsController < ApplicationController
           skip_before_action :authenticate_user!, only: [:verified]
+          skip_before_action :verify_authenticity_token, only: [:verified], raise: false
           
           # POST /api/v1/integrations/one_c/payment_verified
           # Payload: { "Id": 1, "status": true }

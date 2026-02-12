@@ -83,4 +83,6 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root to: proc { [200, {}, ['API is online']] }
+  # 1C Integration Alias
+  post '/PaymentVerified', to: 'api/v1/integrations/one_c/payments#verified'
 end
