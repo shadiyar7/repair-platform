@@ -31,10 +31,7 @@ module Pdf
           Rails.logger.warn "Font files missing (#{font_regular}, #{font_bold}). Using Helvetica."
           @document.font "Helvetica"
         end
-        else
-          Rails.logger.warn "Font file missing at #{font_path}. Using Helvetica (No Cyrillic)."
-          @document.font "Helvetica"
-        end
+
       rescue => e
         Rails.logger.error "Failed to load Roboto font: #{e.message}. Fallback to Helvetica."
         @document.font "Helvetica"
