@@ -40,10 +40,24 @@ module Api
             username = "администратор"
             password = "" # Empty password
 
-            # Sample payload structure as requested
+            Rails.logger.info "Test Trigger Params: #{params.inspect}"
+
+            # Get order_id from params (sent from frontend) or default to 2 as fallback
+            # Handle string "null", "undefined", etc just in case
+            incoming_id = params[:order_id]
+            target_order_id = incoming_id.presence
+            
+            # If it's validish ID, use it, otherwise default to 2
+            if target_order_id.to_i <= 0
+                 target_order_id = 2
+            end
+
+            Rails.logger.info "Using Target Order ID: #{target_order_id} (from '#{incoming_id}')"
+
+            # Sample payload structure as requested, using dynamic ID
             payload = {
               "binn": "881204301044",
-              "ID": 2,
+              "ID": target_order_id.to_i,
               "companyName": "TEST",
               "warehouseId": "000000001",
               "totalPrice": 800,
@@ -84,8 +98,7 @@ module Api
                   invoice_code = data['image'] || data['base64'] || data['invoice_base64'] || data['file']
                   
                   if invoice_code.present?
-                     # Update Order matching the ID in the payload
-                     target_order_id = payload["ID"]
+                     # Update Order matching the ID we sent
                      test_order = Order.find_by(id: target_order_id)
 
                      if test_order
@@ -104,7 +117,7 @@ module Api
                     message: "Request sent to 1C successfully", 
                     "1c_status" => data['status'],
                     image_length: invoice_code&.length,
-                    note: "Attempted to save to Order ##{payload["ID"]}"
+                    note: "Attempted to save to Order ##{target_order_id}"
                   }, status: :ok
                 rescue => e
                   Rails.logger.error "Failed to parse 1C response: #{e.message}"
