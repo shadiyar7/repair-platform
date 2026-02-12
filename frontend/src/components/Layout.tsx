@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext';
 import { ShoppingCart } from 'lucide-react';
 import CartDrawer from '@/components/cart/CartDrawer';
 import LoginModal from '@/components/auth/LoginModal';
+import api from '@/lib/api';
 
 const Layout: React.FC = () => {
     const { user, logout } = useAuth();
@@ -61,6 +62,23 @@ const Layout: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
+                            {user && (
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            alert('Отправка тестового запроса в 1С...');
+                                            const response = await api.post('/api/v1/integrations/one_c/test_trigger');
+                                            alert(`Успех! Ответ от 1С: ${JSON.stringify(response.data)}`);
+                                        } catch (error: any) {
+                                            console.error(error);
+                                            alert(`Ошибка: ${error.response?.data?.error || error.message}`);
+                                        }
+                                    }}
+                                    className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-xs rounded text-gray-700 font-bold"
+                                >
+                                    Тест отправка 1С
+                                </button>
+                            )}
                             <button
                                 onClick={() => setIsCartOpen(true)}
                                 className="relative p-2 text-gray-400 hover:text-gray-500"
