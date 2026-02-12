@@ -39,5 +39,5 @@ yandex:
   secret_access_key: <%= ENV['YANDEX_SECRET_ACCESS_KEY'] %>
   region: ru-central1
   bucket: <%= ENV['YANDEX_BUCKET'] %>
-  endpoint: https://storage.yandexcloud.net
+  endpoint: https://storage.yandexcloud.kz
   force_path_style: true
