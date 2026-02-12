@@ -83,3 +83,5 @@ gem "prawn-table", "~> 0.2.2"
 gem "aws-sdk-s3", "~> 1.213"
 
 gem "image_processing", "~> 1.2"
+
+gem "docx", "~> 0.10.0"
