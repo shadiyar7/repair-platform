@@ -71,7 +71,7 @@ module Pdf
       # -----------------------------------------------------------------------
       # PREAMBLE
       # -----------------------------------------------------------------------
-      buyer_name = @order.company_requisite&.company_name || @order.user.company_name || '________________________________'
+      buyer_name = (@order.company_requisite&.company_name&.gsub(/\(Main\)/, '')&.strip || @order.user.company_name&.gsub(/\(Main\)/, '')&.strip || '________________________________')
       buyer_director = @order.company_requisite&.director_name || @order.user.director_name || '________________________'
       # Point 1: Director's Authority
       buyer_basis = @order.company_requisite&.acting_on_basis.presence || 'Устава'
