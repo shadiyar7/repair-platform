@@ -80,12 +80,12 @@ class Api::V1::OrdersController < ApplicationController
   end
 
   def download_contract
-    # ALWAYS GENERATE FOR DEBUGGING
-    # Purge old file to ensure fresh generation
     authorize @order, :show?
     
-    @order.document.purge if @order.document.attached?
-    generate_and_attach_contract(@order)
+    # Generate only if missing
+    unless @order.document.attached?
+      generate_and_attach_contract(@order)
+    end
     
     timestamp = Time.current.strftime('%H%M%S')
     
