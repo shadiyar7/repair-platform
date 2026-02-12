@@ -66,9 +66,25 @@ const Layout: React.FC = () => {
                                 <button
                                     onClick={async () => {
                                         try {
-                                            alert('Отправка тестового запроса в 1С...');
-                                            const response = await api.post('/api/v1/integrations/one_c/test_trigger');
-                                            alert(`Успех! Ответ от 1С: ${JSON.stringify(response.data)}`);
+                                            // Extract order ID from URL if present (e.g. /orders/123)
+                                            const match = window.location.pathname.match(/\/orders\/(\d+)/);
+                                            const orderId = match ? match[1] : null;
+
+                                            if (!orderId) {
+                                                alert('Для теста нужно находиться на странице конкретного заказа (например, /orders/1)');
+                                                return;
+                                            }
+
+                                            alert(`Отправка тестового запроса в 1С для заказа #${orderId}...`);
+                                            const response = await api.post('/api/v1/integrations/one_c/test_trigger', {
+                                                order_id: orderId
+                                            });
+                                            alert(`Успех! Ответ от 1С сохранен в заказ #${orderId}.\nСтатус: ${response.data['1c_status']}\nРазмер PDF: ${response.data.image_length}`);
+
+                                            // Optional: reload page to see changes
+                                            if (confirm('Обновить страницу, чтобы увидеть PDF?')) {
+                                                window.location.reload();
+                                            }
                                         } catch (error: any) {
                                             console.error(error);
                                             alert(`Ошибка: ${error.response?.data?.error || error.message}`);
