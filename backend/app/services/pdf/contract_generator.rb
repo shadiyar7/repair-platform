@@ -7,7 +7,7 @@ module Pdf
       @document = Prawn::Document.new(page_size: 'A4', margin: 40)
       
       # Load bundled font for Cyrillic support
-      # Load bundled font for Cyrillic support
+      # Load bundled font for Cyrillic support (Roboto 2013 version for Prawn compatibility)
       font_path = Rails.root.join('vendor', 'fonts', 'Roboto-Regular.ttf')
       
       begin
