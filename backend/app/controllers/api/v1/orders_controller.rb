@@ -82,13 +82,22 @@ class Api::V1::OrdersController < ApplicationController
   def download_contract
     authorize @order, :show?
     
+    # Allow forcing regeneration (e.g. if template changed or file is corrupted)
+    if params[:force] == 'true'
+      @order.document.purge if @order.document.attached?
+    end
+    
     unless @order.document.attached?
       # Generate on the fly if missing (fallback)
       generate_and_attach_contract(@order)
     end
     
-    # Redirect to Yandex S3 presigned URL
-    redirect_to @order.document.url(expires_in: 5.minutes), allow_other_host: true
+    # PROXY MODE: Download from S3 and send to client to avoid CORS issues
+    # and ensure correct filename/content type.
+    send_data @order.document.download,
+              filename: "Dogovor_#{@order.id}.pdf",
+              type: 'application/pdf',
+              disposition: 'inline'
   end
 
   private
