@@ -63,8 +63,7 @@ const OrderDetailPage: React.FC = () => {
     const attributes = order.attributes;
 
     const steps = [
-        { id: 'cart', label: 'Корзина', icon: ShoppingBag },
-        { id: 'requisites_selected', label: 'Реквизиты', icon: FileText },
+        // Hidden steps: cart, requisites_selected
         { id: 'pending_director_signature', label: 'Подпись Директора', icon: FileText },
         { id: 'pending_signature', label: 'Договор Клиента', icon: FileText },
         { id: 'pending_payment', label: 'Оплата', icon: CreditCard },
@@ -74,11 +73,17 @@ const OrderDetailPage: React.FC = () => {
         { id: 'at_warehouse', label: 'На складе', icon: Building },
         { id: 'in_transit', label: 'В пути', icon: MapPin },
         { id: 'delivered', label: 'Доставлен', icon: CheckCircle },
-        { id: 'documents_ready', label: 'Документы', icon: FileText },
-        { id: 'completed', label: 'Завершен', icon: CheckCircle },
+        // Hidden steps: documents_ready, completed
     ];
 
-    const currentStepIndex = steps.findIndex(s => s.id === attributes.status);
+    let currentStepIndex = steps.findIndex(s => s.id === attributes.status);
+
+    // Handle hidden statuses mapping to visible steps
+    if (attributes.status === 'documents_ready' || attributes.status === 'completed') {
+        currentStepIndex = steps.length - 1; // Show as fully completed (last step)
+    } else if (attributes.status === 'cart' || attributes.status === 'requisites_selected') {
+        currentStepIndex = -1; // Before first step
+    }
 
     const getStatusBadge = (status: string) => {
         const config: Record<string, string> = {
