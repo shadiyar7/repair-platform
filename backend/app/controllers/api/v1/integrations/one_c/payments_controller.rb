@@ -36,7 +36,7 @@ module Api
           # Triggered by frontend button "Test 1C"
           def test_trigger
             # Hardcoded 1C Endpoint and Credentials as requested
-            url = "https://f577a0f8677a.ngrok-free.app/Integration/hs/int/POST_payments"
+            url = "https://f577a0f8677a.ngrok-free.app/Integration/hs/int/post_payments"
             username = "администратор"
             password = "" # Empty password
 
@@ -78,29 +78,29 @@ module Api
               if response.code.to_i >= 200 && response.code.to_i < 300
                 begin
                   # Parse 1C response
-                  # Assuming JSON format: { "invoice_base64": "..." } or similar
-                  # User asked to save it to the field directly.
-                  # Since we don't know the exact key, let's look for likely candidates or just save the first large string.
-                  # But typically 1C returns a structured JSON.
-                  # Let's try to parse and find a field "invoice_base64" or "base64" or "file".
-                  # If not found, we might need to debug. For now, let's try to grab 'invoice_base64'.
-                  
                   data = JSON.parse(response.body)
-                  # Try to find the base64 string. 
-                  # ADJUST THIS KEY based on actual 1C response structure.
-                  # For now, I will look for 'base64' or 'invoice' or 'data'.
-                  invoice_code = data['base64'] || data['invoice_base64'] || data['file'] || data['data']
+                  
+                  # User confirmed response structure: { "status": 200, "image": "BASE64..." }
+                  invoice_code = data['image'] || data['base64'] || data['invoice_base64']
                   
                   if invoice_code.present?
                      # Update Order #1 as per user's hardcoded test scenario
                      test_order = Order.find_by(id: 1)
                      if test_order
+                        # Clean up Base64 if needed (remove line breaks if 1C adds them)
+                        # But user asked to store "as is" to avoid errors.
                         test_order.update(invoice_base64: invoice_code)
-                        Rails.logger.info "Saved invoice_base64 to Order #1"
+                        Rails.logger.info "Saved invoice_base64 (image) to Order #1"
                      end
                   end
                   
-                  render json: { message: "Request sent to 1C successfully", response: data }, status: :ok
+                  # Respond to frontend with success and snippet of data
+                  render json: { 
+                    message: "Request sent to 1C successfully", 
+                    1c_status: data['status'],
+                    image_length: invoice_code&.length,
+                    note: "Base64 saved to Order #1"
+                  }, status: :ok
                 rescue => e
                   Rails.logger.error "Failed to parse 1C response: #{e.message}"
                   render json: { message: "Request sent to 1C, but failed to parse response", response: response.body }, status: :ok
