@@ -58,6 +58,10 @@ Rails.application.routes.draw do
         namespace :one_c do
           get 'stocks', to: 'stocks#index'
           post 'stocks', to: 'stocks#update'
+          
+          # Payment Integration
+          post 'payment_verified', to: 'payments#verified'
+          post 'test_trigger', to: 'payments#test_trigger'
         end
       end
     end
