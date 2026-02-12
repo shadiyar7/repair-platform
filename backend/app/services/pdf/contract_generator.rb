@@ -7,23 +7,30 @@ module Pdf
       @document = Prawn::Document.new(page_size: 'A4', margin: 40)
       
       # Load bundled font for Cyrillic support
-      # Load bundled font for Cyrillic support (Roboto 2013 version for Prawn compatibility)
-      font_path = Rails.root.join('vendor', 'fonts', 'Roboto-Regular.ttf')
+      # Load bundled fonts for Cyrillic support (Roboto 2013 version for Prawn compatibility)
+      font_regular = Rails.root.join('vendor', 'fonts', 'Roboto-Regular.ttf')
+      font_bold = Rails.root.join('vendor', 'fonts', 'Roboto-Bold.ttf')
       
       begin
-        if File.exist?(font_path)
-          size = File.size(font_path)
-          Rails.logger.info "Loading font from #{font_path} (Size: #{size} bytes)"
+        if File.exist?(font_regular) && File.exist?(font_bold)
+          size_reg = File.size(font_regular)
+          size_bold = File.size(font_bold)
+          Rails.logger.info "Loading fonts: Regular=#{size_reg}b, Bold=#{size_bold}b"
           
-          if size > 0
+          if size_reg > 0 && size_bold > 0
             @document.font_families.update("Roboto" => {
-              normal: font_path.to_s
+              normal: font_regular.to_s,
+              bold: font_bold.to_s
             })
             @document.font "Roboto"
           else
-             Rails.logger.warn "Font file is empty. Fallback to Helvetica."
+             Rails.logger.warn "One of the font files is empty. Fallback to Helvetica."
              @document.font "Helvetica"
           end
+        else
+          Rails.logger.warn "Font files missing (#{font_regular}, #{font_bold}). Using Helvetica."
+          @document.font "Helvetica"
+        end
         else
           Rails.logger.warn "Font file missing at #{font_path}. Using Helvetica (No Cyrillic)."
           @document.font "Helvetica"
