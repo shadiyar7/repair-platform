@@ -42,9 +42,9 @@ module Api
 
             # Sample payload structure as requested
             payload = {
-              "binn": "881204301051",
-              "ID": "00001",
-              "companyName": "MOTIVE",
+              "binn": "881204301044",
+              "ID": 2,
+              "companyName": "TEST",
               "warehouseId": "000000001",
               "totalPrice": 800,
               "items": [
