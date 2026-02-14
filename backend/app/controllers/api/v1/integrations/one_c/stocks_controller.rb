@@ -22,12 +22,12 @@ module Api
               return
             end
             
-            # Check if sync is needed (stale data > 30 minutes OR never synced)
-            if warehouse.last_synced_at.nil? || warehouse.last_synced_at < 30.minutes.ago
+            # Check if sync is needed (ALWAYS sync for debug as requested by user)
+            # if warehouse.last_synced_at.nil? || warehouse.last_synced_at < 30.minutes.ago
                # Enqueue sync job
                SyncStocksJob.perform_later(warehouse.id)
-               Rails.logger.info "Enqueued SyncStocksJob for warehouse #{warehouse.name} (#{warehouse.external_id_1c}) - Stale data"
-            end
+               Rails.logger.info "Enqueued SyncStocksJob for warehouse #{warehouse.name} (#{warehouse.external_id_1c}) - Force Sync"
+            # end
 
             # Get stocks for this specific warehouse
             stocks = warehouse.warehouse_stocks.where("quantity > 0")
