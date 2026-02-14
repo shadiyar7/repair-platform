@@ -52,17 +52,19 @@ const AdminProductsPage: React.FC = () => {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductData | null>(null);
 
+
     // Form State
     const [formData, setFormData] = useState({
         name: '',
         sku: '',
+        nomenclature_code: '', // New field for 1C Code
         price: '',
         category: CATEGORIES.WHEELSETS,
         is_active: true,
         // Dynamic Characteristics
         thickness: '',
         age: '',
-        other_details: '' // Fallback for 'Other' or raw JSON
+        other_details: ''
     });
 
     useEffect(() => {
@@ -99,7 +101,8 @@ const AdminProductsPage: React.FC = () => {
         setEditingProduct(null);
         setFormData({
             name: '',
-            sku: '', // User wants next available ID ideally, but manual input for now
+            sku: '',
+            nomenclature_code: '',
             price: '',
             category: CATEGORIES.WHEELSETS,
             is_active: true,
@@ -117,12 +120,13 @@ const AdminProductsPage: React.FC = () => {
         setFormData({
             name: product.attributes.name,
             sku: product.attributes.sku,
+            nomenclature_code: (product.attributes as any).nomenclature_code || '', // Cast to any if type definition missing
             price: product.attributes.price.toString(),
             category: product.attributes.category || CATEGORIES.WHEELSETS,
             is_active: product.attributes.is_active,
             thickness: chars.thickness || THICKNESS_RANGES[0],
             age: chars.age || AGE_RANGES[0],
-            other_details: JSON.stringify(chars) // keep original if needed
+            other_details: JSON.stringify(chars)
         });
         setIsEditOpen(true);
     };
@@ -130,8 +134,9 @@ const AdminProductsPage: React.FC = () => {
     const createFromUnlinked = (item: any) => {
         setEditingProduct(null);
         setFormData({
-            name: `Товар ${item.sku}`,
-            sku: item.sku,
+            name: `Товар ${item.nomenclature_code}`, // Use nomenclature_code for suggestion
+            sku: `WS-${item.nomenclature_code}`, // Suggest a default internal SKU? Or leave blank?
+            nomenclature_code: item.nomenclature_code,
             price: '',
             category: CATEGORIES.WHEELSETS,
             is_active: true,
@@ -151,7 +156,6 @@ const AdminProductsPage: React.FC = () => {
             } else if (formData.category === CATEGORIES.CASTING) {
                 characteristics = { age: formData.age };
             } else {
-                // For "Other", likely empty or custom.
                 characteristics = {};
             }
 
@@ -159,12 +163,13 @@ const AdminProductsPage: React.FC = () => {
                 product: {
                     name: formData.name,
                     sku: formData.sku,
+                    nomenclature_code: formData.nomenclature_code,
                     price: parseFloat(formData.price),
                     category: formData.category,
                     is_active: formData.is_active,
                     characteristics: characteristics
                 },
-                warehouse_id: warehouseId // Context for linking
+                warehouse_id: warehouseId
             };
 
             if (editingProduct) {
@@ -226,7 +231,7 @@ const AdminProductsPage: React.FC = () => {
                                 {unlinkedItems.map((item, idx) => (
                                     <div key={idx} className="bg-white p-4 rounded border border-orange-100 shadow-sm flex justify-between items-center">
                                         <div>
-                                            <div className="font-mono font-medium text-gray-900">{item.sku}</div>
+                                            <div className="font-mono font-medium text-gray-900">{item.nomenclature_code}</div>
                                             <div className="text-sm text-gray-500">Кол-во: {item.quantity}</div>
                                         </div>
                                         <Button size="sm" variant="outline" className="border-orange-200 text-orange-700 hover:bg-orange-50" onClick={() => createFromUnlinked(item)}>
@@ -242,7 +247,8 @@ const AdminProductsPage: React.FC = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-gray-50/50">
-                                    <TableHead>1C ID (SKU)</TableHead>
+                                    <TableHead>Артикул (Internal SKU)</TableHead>
+                                    <TableHead>Код 1C (Nomenclature)</TableHead>
                                     <TableHead>Название</TableHead>
                                     <TableHead>Цена</TableHead>
                                     <TableHead>Категория</TableHead>
@@ -253,10 +259,10 @@ const AdminProductsPage: React.FC = () => {
                             <TableBody>
                                 {products.map((product) => (
                                     <TableRow key={product.id}>
-                                        <TableCell className="font-mono font-medium">{product.attributes.sku}</TableCell>
+                                        <TableCell className="font-mono font-medium text-gray-900">{product.attributes.sku}</TableCell>
+                                        <TableCell className="font-mono text-xs text-gray-500">{(product.attributes as any).nomenclature_code || '-'}</TableCell>
                                         <TableCell>
                                             <div>{product.attributes.name}</div>
-                                            {/* Display characteristics preview */}
                                             <div className="text-xs text-gray-400">
                                                 {product.attributes.category === CATEGORIES.WHEELSETS && `Толщина: ${product.attributes.characteristics?.thickness}`}
                                                 {product.attributes.category === CATEGORIES.CASTING && `Год: ${product.attributes.characteristics?.age}`}
@@ -284,7 +290,7 @@ const AdminProductsPage: React.FC = () => {
                                 ))}
                                 {products.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                                             Товары не найдены на этом складе.
                                         </TableCell>
                                     </TableRow>
@@ -304,13 +310,25 @@ const AdminProductsPage: React.FC = () => {
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>ID из 1С (SKU)</Label>
+                                <Label>Код 1С (Nomenclature Code)</Label>
+                                <Input
+                                    value={formData.nomenclature_code}
+                                    onChange={(e) => setFormData({ ...formData, nomenclature_code: e.target.value })}
+                                    placeholder="000000001"
+                                    className="font-mono bg-gray-50"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Артикул (Internal SKU)</Label>
                                 <Input
                                     value={formData.sku}
                                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                                    placeholder="000123"
+                                    placeholder="WS-..."
                                 />
                             </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>Цена</Label>
                                 <Input
@@ -320,7 +338,24 @@ const AdminProductsPage: React.FC = () => {
                                     placeholder="50000"
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <Label>Категория</Label>
+                                <Select
+                                    value={formData.category}
+                                    onValueChange={(val) => setFormData({ ...formData, category: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Выберите категорию" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={CATEGORIES.WHEELSETS}>{CATEGORIES.WHEELSETS}</SelectItem>
+                                        <SelectItem value={CATEGORIES.CASTING}>{CATEGORIES.CASTING}</SelectItem>
+                                        <SelectItem value={CATEGORIES.OTHER}>{CATEGORIES.OTHER}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
+
                         <div className="space-y-2">
                             <Label>Название</Label>
                             <Input
@@ -328,23 +363,6 @@ const AdminProductsPage: React.FC = () => {
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 placeholder="Название товара..."
                             />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Категория</Label>
-                            <Select
-                                value={formData.category}
-                                onValueChange={(val) => setFormData({ ...formData, category: val })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Выберите категорию" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={CATEGORIES.WHEELSETS}>{CATEGORIES.WHEELSETS}</SelectItem>
-                                    <SelectItem value={CATEGORIES.CASTING}>{CATEGORIES.CASTING}</SelectItem>
-                                    <SelectItem value={CATEGORIES.OTHER}>{CATEGORIES.OTHER}</SelectItem>
-                                </SelectContent>
-                            </Select>
                         </div>
 
                         {/* Dynamic Characteristics */}
