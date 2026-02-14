@@ -31,10 +31,13 @@ class OneCPaymentTrigger
 
   def build_items
     order.order_items.map do |item|
+      price = item.price.to_f
+      price = item.product&.price.to_f if price.zero?
+
       {
-        "nomenclature_code" => item.product&.sku || "NO_SKU",
+        "nomenclature_code" => item.product&.nomenclature_code.presence || item.product&.sku || "NO_SKU",
         "quantity" => item.quantity,
-        "price" => item.price.to_f
+        "price" => price
       }
     end
   end
