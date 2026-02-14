@@ -24,23 +24,25 @@ module Api
         end
 
         # GET /api/v1/admin/products/unlinked
-        # Returns stocks that do NOT have a corresponding Product record (orphan SKUs from 1C)
+        # Returns stocks that do NOT have a corresponding Product record (orphan 1C codes)
         def unlinked
           warehouse_id = params[:warehouse_id]
           
-          # Find all SKUs in WarehouseStock
-          scope = WarehouseStock.select(:product_sku, :quantity, :synced_at, :warehouse_id)
+          # Find all entries in WarehouseStock
+          scope = WarehouseStock.select(:nomenclature_code, :quantity, :synced_at, :warehouse_id)
           scope = scope.where(warehouse_id: warehouse_id) if warehouse_id.present?
+          scope = scope.where.not(nomenclature_code: nil)
+
+          # Find all existing Product nomenclature_codes
+          existing_codes = Product.where.not(nomenclature_code: nil).pluck(:nomenclature_code)
           
-          # Find all existing Product SKUs
-          existing_skus = Product.pluck(:sku)
-          
-          # Filter stocks where SKU is NOT in existing_skus
-          unlinked_stocks = scope.where.not(product_sku: existing_skus)
+          # Filter stocks where nomenclature_code is NOT in existing_codes
+          unlinked_stocks = scope.where.not(nomenclature_code: existing_codes)
           
           render json: unlinked_stocks.map { |stock|
             {
-              sku: stock.product_sku,
+              sku: stock.nomenclature_code, # Front expects "sku" key for the ID in the table? 
+              nomenclature_code: stock.nomenclature_code,
               quantity: stock.quantity,
               synced_at: stock.synced_at,
               warehouse_id: stock.warehouse_id
@@ -50,19 +52,23 @@ module Api
 
         # POST /api/v1/admin/products
         def create
-          @product = Product.new(product_params)
+          # Use specific params permitting to include nomenclature_code
+          permitted = product_params
+          
+          @product = Product.new(permitted)
           
           if @product.save
-            # If warehouse_id is passed (e.g., from admin UI context), create initial stock entry
+            # If warehouse_id is passed, try to link/create stock
             if params[:warehouse_id].present?
               warehouse = Warehouse.find_by(id: params[:warehouse_id])
-              if warehouse
-                WarehouseStock.create!(
-                  warehouse: warehouse,
-                  product_sku: @product.sku,
-                  quantity: 0, # Initial stock 0, manager updates it
-                  synced_at: Time.now
-                )
+              if warehouse && @product.nomenclature_code.present?
+                 # Try to find existing stock by nomenclature_code (from 1C sync) and link it?
+                 # Or create new one?
+                 stock = warehouse.warehouse_stocks.find_or_initialize_by(nomenclature_code: @product.nomenclature_code)
+                 # Don't overwrite quantity if it exists, just ensure it exists
+                 stock.synced_at ||= Time.now
+                 stock.quantity ||= 0
+                 stock.save!
               end
             end
 
@@ -70,7 +76,10 @@ module Api
           else
             render json: { errors: @product.errors }, status: :unprocessable_entity
           end
-        end
+        rescue => e
+            Rails.logger.error "Product Create Error: #{e.message}"
+            render json: { error: e.message }, status: :internal_server_error
+        end # Added rescue block for 500 debugging
 
         # PATCH/PUT /api/v1/admin/products/:id
         def update
@@ -93,17 +102,29 @@ module Api
         end
 
         def product_params
-          # Map 1cId to sku if passed in specific JSON format, otherwise strict permit
-          # The simplified user requirement keys: Name, Characteristics, Type, Price, isActive, 1cId
-          
-          # If frontend sends "1cId", we should map it to "sku".
-          # But better to just standardise on frontend sending "sku".
-          
-          params.require(:product).permit(
+          # Map 1cId to nomenclature_code if passed
+          p = params.require(:product).permit(
             :name, :sku, :price, :category, :is_active, 
-            :description, :image_url, :warehouse_location, # Legacy fields
+            :description, :image_url, :warehouse_location,
+            :nomenclature_code,
             characteristics: {} # Allow any JSON
           )
+          
+          # Compatibility: if frontend sends '1cId' or maps sku to nomenclature_code in a confusing way
+          # User payload showed: product: {name: "...", sku: "00000000016", ...}
+          # If the user put the 000016 in the "sku" field in the form, but meant it to be nomenclature_code...
+          # We might need to swap them if sku looks like 1C code?
+          # For now, let's assume the frontend will be updated or user enters data correctly.
+          # BUT, for the "New Arrivals" feature, the frontend sends the "sku" (which IS the nomenclature code from the unlinked list) as "sku" param.
+          
+          # If creating from "New Arrivals", we might want to prioritize using that value as nomenclature_code
+          if p[:sku] && p[:sku].match?(/^\d+$/) && p[:nomenclature_code].blank?
+             # Auto-detect: if SKU looks like 1C ID (digits) and nomenclature_code is blank, treat as nomenclature_code?
+             # User said: "edit ... sku". So they probably want to assign a REAL SKU (WS-...) and keep 000016 as nomenclature_code.
+             # So we should trust the params.
+          end
+
+          p
         end
       end
     end

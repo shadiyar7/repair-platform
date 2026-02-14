@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_12_165247) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_14_211931) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -104,6 +104,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_12_165247) do
     t.string "warehouse_location"
     t.text "characteristics", default: "{}"
     t.boolean "is_active", default: true
+    t.string "nomenclature_code"
     t.index ["sku"], name: "index_products_on_sku"
   end
 
@@ -148,6 +149,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_12_165247) do
     t.datetime "synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "nomenclature_code"
     t.index ["product_sku"], name: "index_warehouse_stocks_on_product_sku"
     t.index ["warehouse_id", "product_sku"], name: "index_warehouse_stocks_on_warehouse_id_and_product_sku", unique: true
     t.index ["warehouse_id"], name: "index_warehouse_stocks_on_warehouse_id"

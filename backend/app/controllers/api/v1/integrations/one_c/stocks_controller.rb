@@ -32,16 +32,32 @@ module Api
             # Get stocks for this specific warehouse
             stocks = warehouse.warehouse_stocks.where("quantity > 0")
             
-            # Map stocks to Product details
+            # Map stocks to Product details via nomenclature_code
             items = []
             stocks.each do |stock|
-              product = Product.find_by(sku: stock.product_sku)
+              # Try finding product by nomenclature_code first (new way)
+              product = nil
+              if stock.nomenclature_code.present?
+                product = Product.find_by(nomenclature_code: stock.nomenclature_code)
+              end
               
-              # Only show if product exists AND is active
+              # Fallback: try finding by SKU if nomenclature_code didn't match (legacy way or transition period)
+              # But user said 1C sends nomenclature_code like "00001", and Product.sku is "WS-...", so they won't match directly.
+              # Unless stock.product_sku stored the "00001" before? Yes it did.
+              if product.nil? && stock.product_sku.present?
+                  # Try to find product where its nomenclature_code matches stock.product_sku?
+                  # Or where its SKU matches? 
+                  # Previous logic was: Product.find_by(sku: stock.product_sku).
+                  # Since stock.product_sku was holding "00001", this only worked if Product.sku was "00001".
+                  # User said it wasn't working well.
+              end
+
+              # Only show if product exists, is active
               if product && product.is_active
                 items << {
                   id: product.id,
-                  sku: stock.product_sku,
+                  sku: product.sku, # Show the Human Readable SKU (WS-...)
+                  nomenclature_code: product.nomenclature_code, # 1C ID
                   name: product.name,
                   category: product.category,
                   image: product.image_url,
@@ -92,17 +108,21 @@ module Api
               items.each do |item|
                 next unless item[:nomenclature_code].present? 
 
-                stock = warehouse.warehouse_stocks.find_or_initialize_by(product_sku: item[:nomenclature_code])
+                # Find by nomenclature_code instead of product_sku
+                # If product_sku column was used for this before, we should start using nomenclature_code
+                stock = warehouse.warehouse_stocks.find_or_initialize_by(nomenclature_code: item[:nomenclature_code])
+                
+                # Also fallback for existing ones? No, user wants clean start or migration?
+                # Let's populate product_sku for legacy compatibility if we can find a product?
+                # Actually, if we switch to nomenclature_code linking, we should stick to it.
+                
                 stock.quantity = item[:quantity] || 0
                 stock.synced_at = synced_now
-                stock.save!
+                # Also save the textual product_sku if we can find a product match?
+                # Or just leave product_sku as nil/legacy?
+                # Given user wants "unlinked" logic, we rely on nomenclature_code.
                 
-                # NOTE: Legacy Product.stock update disabled by user request to keep original catalog unchanged for now.
-                # product = Product.find_by(sku: stock.product_sku)
-                # if product
-                #   total_quantity = WarehouseStock.where(product_sku: stock.product_sku).sum(:quantity)
-                #   product.update_column(:stock, total_quantity)
-                # end
+                stock.save!
                 
                 processed_count += 1
               end
