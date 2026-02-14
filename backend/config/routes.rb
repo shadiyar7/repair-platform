@@ -62,6 +62,7 @@ Rails.application.routes.draw do
           # Payment Integration
           post 'payment_verified', to: 'payments#verified'
           post 'test_trigger', to: 'payments#test_trigger'
+          post 'debug_trigger', to: 'payments#debug_trigger'
         end
       end
     end

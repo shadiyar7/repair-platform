@@ -201,6 +201,7 @@ GEM
     mini_mime (1.1.5)
     minitest (6.0.0)
       prism (~> 1.5)
+    minitest-mock (5.27.0)
     msgpack (1.8.0)
     multi_xml (0.8.1)
       bigdecimal (>= 3.1, < 5)
@@ -387,6 +388,7 @@ DEPENDENCIES
   image_processing (~> 1.2)
   jsonapi-serializer (~> 2.2)
   matrix
+  minitest-mock (~> 5.27)
   pg (~> 1.1)
   prawn (~> 2.4)
   prawn-table (~> 0.2.2)

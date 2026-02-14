@@ -130,6 +130,17 @@ module Api
               Rails.logger.error "1C Test Trigger Error: #{e.message}"
               render json: { error: e.message }, status: :internal_server_error
             end
+            end
+          end
+
+          # POST /api/v1/integrations/one_c/debug_trigger
+          # Internal endpoint to verify payload structure before sending to real 1C
+          def debug_trigger
+            Rails.logger.info "---------------------------------------------------"
+            Rails.logger.info "1C DEBUG TRIGGER ENDPOINT RECEIVED:"
+            Rails.logger.info JSON.pretty_generate(params.as_json)
+            Rails.logger.info "---------------------------------------------------"
+            render json: { message: "Payload received and logged", payload: params }, status: :ok
           end
         end
       end

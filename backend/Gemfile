@@ -85,3 +85,5 @@ gem "aws-sdk-s3", "~> 1.213"
 gem "image_processing", "~> 1.2"
 
 gem "docx", "~> 0.10.0"
+
+gem "minitest-mock", "~> 5.27", :group => :test

@@ -70,6 +70,18 @@ class Api::V1::OrdersController < ApplicationController
     authorize @order, :update?
     service = IDocs::ContractSigner.new(@order)
     result = service.call
+    
+    if result[:success]
+      # Trigger 1C Integration (Debug or Real)
+      # Using verify/debug mode as requested by user ("internal method")
+      begin
+        OneC::PaymentTrigger.new(@order).call
+        Rails.logger.info "1C Payment Trigger fired for Order ##{@order.id}"
+      rescue => e
+        Rails.logger.error "Failed to fire 1C Payment Trigger: #{e.message}"
+      end
+    end
+
     render json: result
   end
 

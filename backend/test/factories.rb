@@ -3,6 +3,7 @@ FactoryBot.define do
     sequence(:email) { |n| "user#{n}@example.com" }
     password { "password123" }
     role { "client" }
+    confirmed_at { Time.current } # Auto-confirm all test users
 
     trait :admin do
       role { "admin" }
@@ -21,6 +22,7 @@ FactoryBot.define do
     sequence(:name) { |n| "Product #{n}" }
     price { 1000.0 }
     description { "Test Product Description" }
+    sku { "SKU-#{SecureRandom.hex(4).upcase}" }
   end
 
   factory :order do
@@ -55,5 +57,13 @@ FactoryBot.define do
     association :warehouse
     product_sku { "A-123" }
     quantity { 10.0 }
+  end
+
+  factory :company_requisite do
+    association :user
+    company_name { "Default Company" }
+    bin { "123456789012" }
+    legal_address { "Legal Addr" }
+    actual_address { "Actual Addr" }
   end
 end
