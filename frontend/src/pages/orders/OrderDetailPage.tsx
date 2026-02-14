@@ -67,7 +67,8 @@ const OrderDetailPage: React.FC = () => {
         { id: 'pending_director_signature', label: 'Подпись Директора', icon: FileText },
         { id: 'pending_signature', label: 'Договор Клиента', icon: FileText },
         { id: 'pending_payment', label: 'Оплата', icon: CreditCard },
-        { id: 'paid', label: 'Лист ожидания', icon: Clock },
+        { id: 'payment_review', label: 'Проверка оплаты', icon: Clock },
+        { id: 'paid', label: 'Лист ожидания', icon: Clock }, // Can be merged visually or kept
         { id: 'searching_driver', label: 'Поиск водителя', icon: User },
         { id: 'driver_assigned', label: 'Водитель назначен', icon: Truck },
         { id: 'at_warehouse', label: 'На складе', icon: Building },
@@ -91,6 +92,7 @@ const OrderDetailPage: React.FC = () => {
             pending_director_signature: 'bg-orange-600 text-white',
             pending_signature: 'bg-red-600 text-white',
             pending_payment: 'bg-indigo-600 text-white',
+            payment_review: 'bg-yellow-500 text-white',
             paid: 'bg-green-100 text-green-800',
             searching_driver: 'bg-purple-100 text-purple-800',
             driver_assigned: 'bg-indigo-100 text-indigo-800',
@@ -433,20 +435,90 @@ const OrderDetailPage: React.FC = () => {
                                 <div className="space-y-4">
                                     <div className="p-4 bg-blue-50 border border-blue-100 rounded-md flex items-start space-x-3">
                                         <CreditCard className="h-5 w-5 text-blue-600 mt-0.5" />
-                                        <p className="text-sm text-blue-700">Ожидается оплата. Скачайте счет и оплатите его.</p>
+                                        <p className="text-sm text-blue-700">Ожидается оплата. Скачайте счет, оплатите его в банке и прикрепите чек.</p>
                                     </div>
                                     <Button
                                         variant="outline"
                                         className="w-full"
                                         onClick={() => downloadFile('invoice')}
-                                        disabled={!attributes.invoice_base64} // Disable until 1C returns the invoice
+                                        disabled={!attributes.invoice_base64}
                                     >
                                         <Download className="mr-2 h-4 w-4" />
                                         {attributes.invoice_base64 ? "Скачать счет (1C)" : "Ожидание счета от 1С..."}
                                     </Button>
-                                    <Button className="w-full bg-red-600 hover:bg-red-700" onClick={() => payMutation.mutate()} disabled={payMutation.isPending}>
-                                        <CreditCard className="mr-2 h-4 w-4" /> Оплатить (Демо)
-                                    </Button>
+
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                                                <FileText className="mr-2 h-4 w-4" /> Прикрепить чек об оплате
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Подтверждение оплаты</DialogTitle>
+                                            </DialogHeader>
+                                            <div className="space-y-4 py-4">
+                                                <p className="text-sm text-gray-500">
+                                                    Пожалуйста, введите сумму, которую вы оплатили, и прикрепите файл чека (PDF или фото).
+                                                    Сумма должна совпадать с итогом заказа: <b>{attributes.total_amount}</b>
+                                                </p>
+                                                <form onSubmit={async (e) => {
+                                                    e.preventDefault();
+                                                    const formData = new FormData();
+                                                    const form = e.target as HTMLFormElement;
+                                                    const fileInput = form.elements.namedItem('receipt') as HTMLInputElement;
+                                                    const amountInput = form.elements.namedItem('amount') as HTMLInputElement;
+
+                                                    if (!fileInput.files?.[0]) {
+                                                        alert("Выберите файл");
+                                                        return;
+                                                    }
+
+                                                    formData.append('file', fileInput.files[0]);
+                                                    formData.append('amount', amountInput.value);
+
+                                                    try {
+                                                        await api.post(`/api/v1/orders/${id}/upload_receipt`, formData, {
+                                                            headers: { 'Content-Type': 'multipart/form-data' }
+                                                        });
+                                                        queryClient.invalidateQueries({ queryKey: ['order', id] });
+                                                        // Close dialog logic? Using unmanaged dialog for now or need state
+                                                        // A simple reload or close hint
+                                                        document.getElementById('close-dialog')?.click();
+                                                    } catch (err: any) {
+                                                        console.error(err);
+                                                        alert(err.response?.data?.error || "Ошибка загрузки чека");
+                                                    }
+                                                }}>
+                                                    <div className="space-y-2">
+                                                        <Label>Сумма оплаты</Label>
+                                                        <Input name="amount" type="number" step="0.01" defaultValue={attributes.total_amount} required />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Файл чека</Label>
+                                                        <Input name="receipt" type="file" accept="application/pdf,image/*" required />
+                                                    </div>
+                                                    <Button type="submit" className="w-full mt-4">
+                                                        Отправить на проверку
+                                                    </Button>
+                                                </form>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
+                            )}
+
+                            {attributes.status === 'payment_review' && (
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-md flex items-start space-x-3">
+                                        <Clock className="h-5 w-5 text-yellow-600 mt-0.5" />
+                                        <p className="text-sm text-yellow-700">Чек загружен. Ожидается подтверждение бухгалтером, но поиск машины уже начат.</p>
+                                    </div>
+                                    {attributes.payment_receipt_url && (
+                                        <Button variant="outline" className="w-full" onClick={() => window.open(attributes.payment_receipt_url, '_blank')}>
+                                            <FileText className="mr-2 h-4 w-4" /> Просмотреть чек
+                                        </Button>
+                                    )}
                                 </div>
                             )}
 
