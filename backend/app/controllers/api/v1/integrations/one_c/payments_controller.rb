@@ -131,7 +131,6 @@ module Api
               render json: { error: e.message }, status: :internal_server_error
             end
             end
-          end
 
           # POST /api/v1/integrations/one_c/debug_trigger
           # Internal endpoint to verify payload structure before sending to real 1C
