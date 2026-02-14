@@ -627,6 +627,22 @@ const OrderDetailPage: React.FC = () => {
                             >
                                 Real Test 1C (Current Order Data)
                             </Button>
+
+                            <Button
+                                variant="outline"
+                                className="w-full border-purple-200 text-purple-700 hover:bg-purple-50"
+                                onClick={async () => {
+                                    try {
+                                        const res = await api.get('/api/v1/integrations/one_c/test_stocks?warehouse_id=000000001');
+                                        console.log("Warehouse Test Result:", res.data);
+                                        alert("Warehouse Test (000000001):\n\nResponse:\n" + res.data.response_body);
+                                    } catch (e) {
+                                        alert("Error: " + e);
+                                    }
+                                }}
+                            >
+                                Тест склада (000000001)
+                            </Button>
                         </CardContent>
                     </Card>
                 </div>
