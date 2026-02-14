@@ -132,6 +132,30 @@ module Api
             end
             end
 
+          # POST /api/v1/integrations/one_c/real_trigger
+          # Triggered by frontend "Real Test 1C" button
+          # Executes the ACTUAL logic used in production (sign_contract) but returns debug info
+          def real_trigger
+            order_id = params[:order_id]
+            order = Order.find_by(id: order_id)
+
+            if order
+              # Execute the service
+              result = OneCPaymentTrigger.new(order).call
+              
+              render json: { 
+                message: "Real 1C Trigger executed", 
+                order_id: order.id,
+                payload_sent: result[:payload],
+                response_code: result[:response_code],
+                response_body: result[:response_body],
+                success: result[:success]
+              }, status: :ok
+            else
+              render json: { error: "Order not found" }, status: :not_found
+            end
+          end
+
           # POST /api/v1/integrations/one_c/debug_trigger
           # Internal endpoint to verify payload structure before sending to real 1C
           def debug_trigger

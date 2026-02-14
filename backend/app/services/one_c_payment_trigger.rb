@@ -8,7 +8,8 @@ class OneCPaymentTrigger
 
   def call
     payload = build_payload
-    send_to_debug_endpoint(payload)
+    result = send_to_debug_endpoint(payload)
+    result
   end
 
   private
@@ -45,6 +46,8 @@ class OneCPaymentTrigger
 
     Rails.logger.info "1C Integration: Sending Order ##{order.id} to #{url}"
     
+    result = { payload: payload, success: false, response_code: nil, response_body: nil }
+
     begin
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
@@ -58,17 +61,22 @@ class OneCPaymentTrigger
       response = http.request(request)
 
       Rails.logger.info "1C Response: #{response.code} - #{response.body}"
+      
+      result[:response_code] = response.code
+      result[:response_body] = response.body
 
       if response.code.to_i >= 200 && response.code.to_i < 300
+        result[:success] = true
         handle_success_response(response.body)
       else
         Rails.logger.error "1C Request Failed: #{response.code} #{response.body}"
       end
     rescue => e
       Rails.logger.error "1C Integration Error: #{e.message}"
+      result[:error] = e.message
     end
     
-    payload
+    result
   end
 
   def handle_success_response(body)
