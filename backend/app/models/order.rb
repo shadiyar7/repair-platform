@@ -2,6 +2,7 @@ class Order < ApplicationRecord
   include AASM
   
   has_one_attached :document
+  has_one_attached :payment_receipt
 
   belongs_to :user
   belongs_to :company_requisite, optional: true    
@@ -33,6 +34,7 @@ class Order < ApplicationRecord
       state :pending_director_signature
       state :pending_signature
       state :pending_payment
+      state :payment_review # Paid by client, receipt uploaded, waiting accountant confirmation
       state :paid # Optional now, but maybe good to keep as transient or historic
       state :searching_driver
       state :driver_assigned
@@ -62,12 +64,21 @@ class Order < ApplicationRecord
         transitions from: :pending_signature, to: :pending_payment
       end
 
+      event :upload_receipt do
+        transitions from: :pending_payment, to: :payment_review
+      end
+
+      # Admin confirms payment manually or system auto-confirms
+      event :confirm_payment do
+        transitions from: :payment_review, to: :searching_driver
+      end
+
       event :pay do
-        transitions from: :pending_payment, to: :searching_driver
+        transitions from: [:pending_payment, :payment_review], to: :searching_driver
       end
 
       event :find_driver do
-        transitions from: :paid, to: :searching_driver
+        transitions from: [:paid, :payment_review], to: :searching_driver
       end
 
       event :assign_driver do

@@ -7,7 +7,8 @@ class Api::V1::OrdersController < ApplicationController
              when 'admin', 'warehouse'
                Order.all
              when 'driver'
-               Order.where(driver: current_user).or(Order.where(status: 'at_warehouse'))
+               # Drivers see orders that are either explicitly 'searching_driver' OR 'payment_review' (Pre-search)
+               Order.where(driver: current_user).or(Order.where(status: ['at_warehouse', 'searching_driver', 'payment_review']))
              when nil
                []
              else
@@ -58,6 +59,55 @@ class Api::V1::OrdersController < ApplicationController
     @order.checkout! if @order.cart?
     # Simulate contract generation
     render json: { message: "Contract generated", contract_url: "..." }
+  end
+
+  def upload_receipt
+    authorize @order, :update?
+    
+    amount = params[:amount].to_f
+    file = params[:file]
+
+    if file.nil?
+      render json: { error: "Файл чека обязателен" }, status: :unprocessable_entity
+      return
+    end
+
+    # Verify Amount (Allowing small float difference)
+    if (amount - @order.total_amount.to_f).abs > 1.0
+       render json: { error: "Сумма оплаты (#{amount}) не совпадает с итогом заказа (#{@order.total_amount})" }, status: :unprocessable_entity
+       return
+    end
+
+    @order.payment_receipt.attach(file)
+    
+    if @order.pending_payment?
+      @order.upload_receipt!
+    end
+
+    render json: OrderSerializer.new(@order).serializable_hash
+  end
+
+  def upload_receipt
+    authorize @order, :update?
+    
+    amount = params[:amount].to_f
+    file = params[:file]
+
+    if file.nil?
+      render json: { error: "File is required" }, status: :unprocessable_entity
+      return
+    end
+
+    # Verify Amount (Allowing small float difference?)
+    if (amount - @order.total_amount.to_f).abs > 1.0
+       render json: { error: "Сумма не совпадает с итогом заказа (#{@order.total_amount})" }, status: :unprocessable_entity
+       return
+    end
+
+    @order.payment_receipt.attach(file)
+    @order.upload_receipt! if @order.pending_payment?
+
+    render json: OrderSerializer.new(@order).serializable_hash
   end
 
   def director_sign

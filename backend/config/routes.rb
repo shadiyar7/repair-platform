@@ -6,7 +6,9 @@ Rails.application.routes.draw do
           post :checkout
           post :director_sign
           post :sign_contract
+          post :sign_contract
           post :pay
+          post :upload_receipt
           post :find_driver
           post :assign_driver
           post :driver_arrived
