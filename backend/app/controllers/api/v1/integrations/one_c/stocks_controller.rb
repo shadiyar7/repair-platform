@@ -22,8 +22,8 @@ module Api
               return
             end
             
-            # Check if sync is needed (stale data > 1 hour OR never synced)
-            if warehouse.last_synced_at.nil? || warehouse.last_synced_at < 1.hour.ago
+            # Check if sync is needed (stale data > 30 minutes OR never synced)
+            if warehouse.last_synced_at.nil? || warehouse.last_synced_at < 30.minutes.ago
                # Enqueue sync job
                SyncStocksJob.perform_later(warehouse.id)
                Rails.logger.info "Enqueued SyncStocksJob for warehouse #{warehouse.name} (#{warehouse.external_id_1c}) - Stale data"
