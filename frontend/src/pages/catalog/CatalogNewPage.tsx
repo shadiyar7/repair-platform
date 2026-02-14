@@ -201,9 +201,19 @@ const CatalogNewPage: React.FC = () => {
                 <>
                     {/* Status Banner */}
                     <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex items-center justify-between text-xs text-blue-600">
-                        <div className="flex items-center">
-                            <RefreshCw className="w-3 h-3 mr-2" />
-                            Обновлено: {warehouseData?.last_synced_at ? new Date(warehouseData.last_synced_at).toLocaleString() : 'Только что'}
+                        <div className="flex items-center space-x-4">
+                            <span className="flex items-center">
+                                <RefreshCw className="w-3 h-3 mr-2" />
+                                Обновлено: {warehouseData?.last_synced_at ? new Date(warehouseData.last_synced_at).toLocaleString() : 'Только что'}
+                            </span>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                                onClick={() => fetchStocks(selectedWarehouseId)}
+                            >
+                                <RefreshCw className="w-3 h-3 mr-1" /> Обновить данные
+                            </Button>
                         </div>
                         <div>
                             Склад: <b>{warehouseData?.warehouse?.name || currentWarehouseName}</b>
