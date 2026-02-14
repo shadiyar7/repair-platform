@@ -1,6 +1,6 @@
 require "test_helper"
 
-class OneC::PaymentTriggerTest < ActiveSupport::TestCase
+class OneCPaymentTriggerTest < ActiveSupport::TestCase
   def setup
     @client = create(:user, :client)
     @company_requisite = create(:company_requisite, user: @client, bin: "123456789012", company_name: "Test Company")
@@ -14,7 +14,7 @@ class OneC::PaymentTriggerTest < ActiveSupport::TestCase
     # we can verify the payload construction.
     # The service returns the payload in our implementation (debug mode).
     
-    service = OneC::PaymentTrigger.new(@order)
+    service = OneCPaymentTrigger.new(@order)
     payload = service.call
 
     assert_equal "123456789012", payload["binn"]
@@ -41,7 +41,7 @@ class OneC::PaymentTriggerTest < ActiveSupport::TestCase
     # Reload to ensure changes are picked up and we get all items
     @order.reload
     
-    service = OneC::PaymentTrigger.new(@order)
+    service = OneCPaymentTrigger.new(@order)
     payload = service.call
     
     # We expected "NO_SKU" for the item with missing SKU

@@ -66,11 +66,11 @@ class Api::V1::OrdersControllerTest < ActionDispatch::IntegrationTest
     # Our controller action `sign_contract` calls `IDocs::ContractSigner`.
     # `IDocs::ContractSigner` updates status to `pending_payment` and returns success: true.
     
-    # Mock OneC::PaymentTrigger to verify it is called
+    # Mock OneCPaymentTrigger to verify it is called
     mock_trigger = Minitest::Mock.new
     mock_trigger.expect :call, true
     
-    OneC::PaymentTrigger.stub :new, mock_trigger do
+    OneCPaymentTrigger.stub :new, mock_trigger do
       post sign_contract_api_v1_order_url(order), headers: @headers, as: :json
       assert_response :success
       

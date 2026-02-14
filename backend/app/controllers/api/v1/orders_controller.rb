@@ -75,7 +75,7 @@ class Api::V1::OrdersController < ApplicationController
       # Trigger 1C Integration (Debug or Real)
       # Using verify/debug mode as requested by user ("internal method")
       begin
-        OneC::PaymentTrigger.new(@order).call
+        OneCPaymentTrigger.new(@order).call
         Rails.logger.info "1C Payment Trigger fired for Order ##{@order.id}"
       rescue => e
         Rails.logger.error "Failed to fire 1C Payment Trigger: #{e.message}"
