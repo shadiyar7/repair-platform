@@ -9,8 +9,7 @@ module IDocs
       sleep 2.0
 
       # Simulate signing process
-      # TEMPORARY: Commented out to allow repeated 1C integration testing without moving status
-      # @order.update(status: 'pending_payment')
+      @order.update(status: 'pending_payment')
 
       {
         success: true,

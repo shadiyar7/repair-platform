@@ -105,6 +105,25 @@ const OrderDetailPage: React.FC = () => {
     };
 
     const downloadFile = async (type: 'invoice' | 'contract') => {
+        // Use Base64 Invoice from 1C if available and type is invoice
+        if (type === 'invoice' && attributes.invoice_base64) {
+            try {
+                const byteCharacters = atob(attributes.invoice_base64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            } catch (e) {
+                console.error("Failed to parse Base64 invoice", e);
+                alert("Ошибка при открытии счета от 1С.");
+            }
+            return;
+        }
+
         try {
             const response = await api.get(`/api/v1/orders/${id}/download_${type}`, {
                 responseType: 'blob'
@@ -397,8 +416,14 @@ const OrderDetailPage: React.FC = () => {
                                         <CreditCard className="h-5 w-5 text-blue-600 mt-0.5" />
                                         <p className="text-sm text-blue-700">Ожидается оплата. Скачайте счет и оплатите его.</p>
                                     </div>
-                                    <Button variant="outline" className="w-full" onClick={() => downloadFile('invoice')}>
-                                        <Download className="mr-2 h-4 w-4" /> Скачать счет
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={() => downloadFile('invoice')}
+                                        disabled={!attributes.invoice_base64} // Disable until 1C returns the invoice
+                                    >
+                                        <Download className="mr-2 h-4 w-4" />
+                                        {attributes.invoice_base64 ? "Скачать счет (1C)" : "Ожидание счета от 1С..."}
                                     </Button>
                                     <Button className="w-full bg-red-600 hover:bg-red-700" onClick={() => payMutation.mutate()} disabled={payMutation.isPending}>
                                         <CreditCard className="mr-2 h-4 w-4" /> Оплатить (Демо)
@@ -551,53 +576,7 @@ const OrderDetailPage: React.FC = () => {
 
             {/* 1C Invoice Debug Section */}
             {/* 1C Invoice Debug Section */}
-            <Card className="mt-8 border-dashed border-2 border-gray-300">
-                <CardHeader>
-                    <CardTitle className="text-gray-500 text-lg">1C Integration Debug: Invoice Data</CardTitle>
-                    <CardDescription>Raw Base64 data received from 1C (Testing Purpose)</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {attributes.invoice_base64 ? (
-                        <>
-                            <div>
-                                <Label>Stored Type:</Label>
-                                <span className="ml-2 text-sm font-mono bg-green-100 text-green-800 px-2 py-1 rounded">Base64 String Found</span>
-                            </div>
-                            <div>
-                                <Label>Preview (First 100 chars):</Label>
-                                <p className="text-xs font-mono bg-gray-100 p-2 rounded mt-1 break-all">
-                                    {attributes.invoice_base64.substring(0, 100)}...
-                                </p>
-                            </div>
-                            <div className="flex gap-4">
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => {
-                                        const byteCharacters = atob(attributes.invoice_base64);
-                                        const byteNumbers = new Array(byteCharacters.length);
-                                        for (let i = 0; i < byteCharacters.length; i++) {
-                                            byteNumbers[i] = byteCharacters.charCodeAt(i);
-                                        }
-                                        const byteArray = new Uint8Array(byteNumbers);
-                                        const blob = new Blob([byteArray], { type: 'application/pdf' });
-                                        const url = URL.createObjectURL(blob);
-                                        window.open(url, '_blank');
-                                    }}
-                                >
-                                    <FileText className="mr-2 h-4 w-4" />
-                                    Распарсить и открыть (PDF)
-                                </Button>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-6 text-gray-400">
-                            <AlertCircle className="h-10 w-10 mb-2" />
-                            <p>Данные счета (pdf base64) отсутствуют.</p>
-                            <p className="text-xs">Нажмите "Тест 1С", чтобы запросить данные.</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            {/* 1C Invoice Debug Section Removed */}
         </div>
     );
 };
