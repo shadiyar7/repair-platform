@@ -1,0 +1,19 @@
+<h1>New Payment Receipt Uploaded</h1>
+<p>Order #<%= @order.id %></p>
+<p>Customer: <%= @order.user.email %></p>
+<p>City: <%= @order.city %></p>
+<p>Address: <%= @order.delivery_address %></p>
+<p>Total Amount: <%= @order.total_amount %></p>
+
+<p>
+  <strong>Action Required:</strong> 
+  Review the receipt and find a driver.
+</p>
+
+<p>
+  <%= link_to "View Receipt", @receipt_url %>
+</p>
+
+<p>
+  <em>Della.kz search has been technically initiated.</em>
+</p>

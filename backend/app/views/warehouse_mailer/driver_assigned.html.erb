@@ -1,0 +1,15 @@
+<h1>Driver Assigned for Order #<%= @order.id %></h1>
+<p><strong>Driver:</strong> <%= @order.driver_name %></p>
+<p><strong>Phone:</strong> <%= @order.driver_phone %></p>
+<p><strong>Car:</strong> <%= @order.driver_car_number %></p>
+<p><strong>Arrival Time:</strong> <%= @order.driver_arrival_time %></p>
+<p><strong>Comment:</strong> <%= @order.driver_comment %></p>
+
+<p>
+  Please prepare the cargo for loading.
+  Start loading process when driver arrives.
+</p>
+
+<p>
+  <%= link_to "Open Order", "https://repair-platform.onrender.com/orders/#{@order.id}" %>
+</p>

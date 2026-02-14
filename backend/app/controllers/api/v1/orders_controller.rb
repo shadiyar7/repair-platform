@@ -105,7 +105,46 @@ class Api::V1::OrdersController < ApplicationController
     end
 
     @order.payment_receipt.attach(file)
-    @order.upload_receipt! if @order.pending_payment?
+    
+    if @order.pending_payment?
+      @order.upload_receipt!
+      
+      # Notify Supervisor
+      begin
+        SupervisorMailer.new_payment_receipt(@order).deliver_later
+      rescue => e
+        Rails.logger.error "Failed to send email: #{e.message}"
+      end
+
+      # Simulate Della.kz Order Creation
+      begin
+        DellaService.create_order(@order)
+      rescue => e
+        Rails.logger.error "Della Simulation Failed: #{e.message}"
+      end
+    end
+
+    render json: OrderSerializer.new(@order).serializable_hash
+  end
+
+  def assign_driver
+    authorize @order, :update?
+    
+    @order.assign_driver!
+    @order.update(
+      driver_name: params[:driver_name],
+      driver_phone: params[:driver_phone],
+      driver_car_number: params[:driver_car_number],
+      driver_arrival_time: params[:driver_arrival_time],
+      driver_comment: params[:driver_comment]
+    )
+
+    # Notify Warehouse Manager
+    begin
+      WarehouseMailer.driver_assigned(@order).deliver_later
+    rescue => e
+      Rails.logger.error "Failed to notify Warehouse: #{e.message}"
+    end
 
     render json: OrderSerializer.new(@order).serializable_hash
   end
@@ -201,6 +240,6 @@ class Api::V1::OrdersController < ApplicationController
   end
 
   def order_params
-    params.require(:order).permit(:delivery_address, :delivery_notes, :company_requisite_id, order_items_attributes: [:product_id, :quantity])
+    params.require(:order).permit(:city, :delivery_address, :delivery_notes, :company_requisite_id, order_items_attributes: [:product_id, :quantity])
   end
 end

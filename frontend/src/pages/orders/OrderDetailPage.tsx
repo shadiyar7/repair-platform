@@ -14,7 +14,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building } from 'lucide-react';
+import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const OrderDetailPage: React.FC = () => {
@@ -22,7 +22,7 @@ const OrderDetailPage: React.FC = () => {
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
-    const [driverForm, setDriverForm] = useState({ name: '', phone: '', car: '', time: '' });
+    const [driverForm, setDriverForm] = useState({ name: '', phone: '', car: '', time: '', comment: '' });
 
     const { data: order, isLoading, error } = useQuery({
         queryKey: ['order', id],
@@ -38,7 +38,7 @@ const OrderDetailPage: React.FC = () => {
 
     const signContractMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/sign_contract`), ...mutationOptions });
     const directorSignMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/director_sign`), ...mutationOptions });
-    const payMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/pay`), ...mutationOptions });
+    // const payMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/pay`), ...mutationOptions });
     const findDriverMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/find_driver`), ...mutationOptions });
 
     // Real driver assignment
@@ -583,13 +583,23 @@ const OrderDetailPage: React.FC = () => {
                                                         onChange={(e) => setDriverForm({ ...driverForm, time: e.target.value })}
                                                     />
                                                 </div>
+                                                <div className="space-y-2">
+                                                    <Label>Комментарий по машине</Label>
+                                                    <textarea
+                                                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        placeholder="Например: Большая фура, заезд с заднего двора"
+                                                        value={driverForm.comment}
+                                                        onChange={(e) => setDriverForm({ ...driverForm, comment: e.target.value })}
+                                                    />
+                                                </div>
                                                 <Button
                                                     className="w-full"
                                                     onClick={() => assignDriverMutation.mutate({
                                                         driver_name: driverForm.name,
                                                         driver_phone: driverForm.phone,
                                                         driver_car_number: driverForm.car,
-                                                        driver_arrival_time: driverForm.time
+                                                        driver_arrival_time: driverForm.time,
+                                                        driver_comment: driverForm.comment
                                                     })}
                                                     disabled={assignDriverMutation.isPending}
                                                 >
@@ -609,23 +619,30 @@ const OrderDetailPage: React.FC = () => {
                                         <p>{attributes.driver_name} ({attributes.driver_car_number})</p>
                                         <p>{attributes.driver_phone}</p>
                                         <p>Ожидается: {attributes.driver_arrival_time}</p>
+                                        {attributes.driver_comment && (
+                                            <p className="mt-2 text-xs italic border-t pt-1 border-indigo-200">
+                                                Примечание: {attributes.driver_comment}
+                                            </p>
+                                        )}
                                     </div>
                                     {(user?.role === 'warehouse' || user?.role === 'admin') && (
                                         <Button className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={() => arriveMutation.mutate()} disabled={arriveMutation.isPending}>
-                                            <Building className="mr-2 h-4 w-4" /> Водитель на складе
+                                            <Truck className="mr-2 h-4 w-4" /> Водитель прибыл на склад
                                         </Button>
                                     )}
                                 </div>
                             )}
 
-                            {attributes.status === 'at_warehouse' && (user?.role === 'warehouse' || user?.role === 'admin') && (
+                            {attributes.status === 'at_warehouse' && (
                                 <div className="space-y-4">
                                     <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-md">
                                         <p className="text-sm text-yellow-700">Машина на загрузке.</p>
                                     </div>
-                                    <Button className="w-full bg-yellow-600 hover:bg-yellow-700" onClick={() => transitMutation.mutate()} disabled={transitMutation.isPending}>
-                                        <Truck className="mr-2 h-4 w-4" /> Загрузка завершена (В путь)
-                                    </Button>
+                                    {(user?.role === 'warehouse' || user?.role === 'admin') && (
+                                        <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => transitMutation.mutate()} disabled={transitMutation.isPending}>
+                                            <Navigation className="mr-2 h-4 w-4" /> Начать поездку (Smart Link Active)
+                                        </Button>
+                                    )}
                                 </div>
                             )}
 

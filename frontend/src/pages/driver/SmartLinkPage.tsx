@@ -1,111 +1,150 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { Button } from '@/components/ui/button';
+import { MapPin, Navigation, User, Phone, Loader } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Truck, CheckCircle, Navigation } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
-const SmartLinkPage = () => {
+const SmartLinkPage: React.FC = () => {
     const { token } = useParams();
-    const queryClient = useQueryClient();
-    const [location, setLocation] = useState({ lat: 43.238949, lng: 76.889709 }); // Almaty Default
+    const [order, setOrder] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [status, setStatus] = useState('initializing');
 
-    // Fetch order by token (public endpoint)
-    const { data: order, isLoading, error } = useQuery({
-        queryKey: ['smart-link-order', token],
-        queryFn: async () => {
-            const response = await api.get(`/api/v1/orders/by_token/${token}`);
-            return response.data.data;
-        }
-    });
-
-    const deliverMutation = useMutation({
-        mutationFn: () => api.post(`/api/v1/orders/${order.id}/deliver`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['smart-link-order', token] });
-        }
-    });
-
-    // Simulate location updates
     useEffect(() => {
-        const interval = setInterval(() => {
-            setLocation(prev => ({
-                lat: prev.lat + (Math.random() - 0.5) * 0.001,
-                lng: prev.lng + (Math.random() - 0.5) * 0.001
-            }));
-        }, 3000);
-        return () => clearInterval(interval);
-    }, []);
+        const fetchOrder = async () => {
+            try {
+                // Ensure this endpoint exists and parses token correctly
+                const response = await api.get(`/api/v1/orders/by_token/${token}`);
+                setOrder(response.data.data.attributes);
+            } catch (err) {
+                console.error(err);
+                setError('Неверная ссылка или заказ не найден');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOrder();
+    }, [token]);
 
-    if (isLoading) return <div className="flex justify-center items-center h-screen">Загрузка данных...</div>;
-    if (error) return <div className="flex justify-center items-center h-screen text-red-500">Ссылка недействительна</div>;
+    useEffect(() => {
+        if (!navigator.geolocation) {
+            setStatus('geolocation_not_supported');
+            return;
+        }
 
-    const attributes = order.attributes;
+        const success = (position: GeolocationPosition) => {
+            const { latitude, longitude } = position.coords;
+            setLocation({ lat: latitude, lng: longitude });
+            setStatus('tracking');
+
+            // Send to backend
+            api.post(`/api/v1/smart_links/${token}/location`, {
+                lat: latitude,
+                lng: longitude
+            }).catch(e => console.error("Failed to update location", e));
+        };
+
+        const error = () => {
+            setStatus('permission_denied');
+        };
+
+        const watchId = navigator.geolocation.watchPosition(success, error, {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        });
+
+        return () => navigator.geolocation.clearWatch(watchId);
+    }, [token]);
+
+    if (loading) return <div className="flex h-screen items-center justify-center"><Loader className="animate-spin h-8 w-8 text-blue-600" /></div>;
+    if (error) return <div className="p-8 text-center text-red-600 font-bold">{error}</div>;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
+        <div className="min-h-screen bg-gray-50 p-4 font-sans">
             <div className="max-w-md mx-auto space-y-6">
-                <div className="text-center space-y-2">
-                    <h1 className="text-2xl font-bold text-gray-900">DYNAMIX Logistics</h1>
-                    <p className="text-sm text-gray-500">Отслеживание доставки</p>
+
+                {/* Header */}
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-900">DYNAMIX Driver</h1>
+                        <p className="text-xs text-gray-500">Система доставки</p>
+                    </div>
+                    <Badge variant={status === 'tracking' ? 'default' : 'destructive'} className={status === 'tracking' ? 'bg-green-500' : ''}>
+                        {status === 'tracking' ? 'GPS Активен' : 'Нет сигнала'}
+                    </Badge>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Truck className="h-5 w-5 text-red-600" />
-                            Статус: {attributes.status.toUpperCase()}
+                {/* Status Card */}
+                <Card className="border-blue-200 bg-blue-50">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-blue-900 text-lg flex items-center gap-2">
+                            <Navigation className="h-5 w-5" /> Текущий статус
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="p-4 bg-gray-100 rounded-lg h-64 flex items-center justify-center relative overflow-hidden">
-                            {/* Mock Map */}
-                            <div className="absolute inset-0 bg-blue-50 opacity-50" />
-                            <div className="z-10 text-center">
-                                <Navigation className="h-8 w-8 text-blue-600 mx-auto animate-bounce" />
-                                <p className="text-xs text-gray-600 mt-2 font-mono">
-                                    {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                                </p>
-                            </div>
-                        </div>
+                    <CardContent>
+                        <p className="font-medium text-blue-800 text-lg">В ПУТИ (In Transit)</p>
+                        <p className="text-sm text-blue-600 mt-1">Данные о местоположении передаются диспетчеру.</p>
 
-                        <div className="space-y-2">
-                            <div className="flex items-start gap-3">
-                                <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Адрес доставки</p>
-                                    <p className="text-gray-900">{attributes.delivery_address}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Truck className="h-5 w-5 text-gray-400 mt-0.5" />
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Водитель</p>
-                                    <p className="text-gray-900">{attributes.driver_name || 'Не назначен'}</p>
-                                    <p className="text-sm text-gray-500">{attributes.driver_car_number}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {attributes.status === 'in_transit' && (
-                            <Button
-                                className="w-full bg-green-600 hover:bg-green-700 h-12 text-lg"
-                                onClick={() => deliverMutation.mutate()}
-                                disabled={deliverMutation.isPending}
-                            >
-                                <CheckCircle className="mr-2 h-5 w-5" />
-                                Подтвердить доставку
-                            </Button>
-                        )}
-
-                        {attributes.status === 'delivered' && (
-                            <div className="bg-green-50 p-4 rounded-lg text-center text-green-800 font-medium">
-                                Груз успешно доставлен
+                        {location && (
+                            <div className="mt-3 text-xs font-mono bg-white/50 p-2 rounded text-blue-800">
+                                Lat: {location.lat.toFixed(6)} <br />
+                                Lng: {location.lng.toFixed(6)}
                             </div>
                         )}
                     </CardContent>
                 </Card>
+
+                {/* Order Details */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Детали заказа</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-start gap-3">
+                            <Navigation className="h-5 w-5 text-gray-400 mt-1" />
+                            <div>
+                                <p className="text-xs text-gray-500 font-bold uppercase">Пункт назначения</p>
+                                <p className="font-medium text-gray-900">{order.city}</p>
+                                <p className="text-sm text-gray-600">{order.delivery_address}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 pt-3 border-t">
+                            <User className="h-5 w-5 text-gray-400 mt-1" />
+                            <div>
+                                <p className="text-xs text-gray-500 font-bold uppercase">Получатель</p>
+                                {/* Assuming user name is not directly in attributes, falling back to delivery details or static */}
+                                <p className="font-medium text-gray-900">Клиент</p>
+                            </div>
+                        </div>
+
+                        {order.delivery_notes && (
+                            <div className="pt-3 border-t">
+                                <p className="text-xs text-gray-500 font-bold uppercase mb-1">Комментарий к доставке</p>
+                                <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">{order.delivery_notes}</p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Actions */}
+                <div className="grid grid-cols-2 gap-4">
+                    <Button variant="outline" className="w-full" onClick={() => window.open(`https://yandex.kz/maps/?text=${order.city} ${order.delivery_address}`, '_blank')}>
+                        <MapPin className="mr-2 h-4 w-4" /> Навигатор
+                    </Button>
+                    <Button className="w-full bg-green-600 hover:bg-green-700">
+                        <Phone className="mr-2 h-4 w-4" /> Позвонить
+                    </Button>
+                </div>
+
+                <p className="text-center text-xs text-gray-400 mt-8">
+                    Не закрывайте эту вкладку во время доставки.
+                </p>
             </div>
         </div>
     );

@@ -15,9 +15,11 @@ module Api
 
       # POST /api/v1/smart_links/:token/location
       def update_location
-        # Here we would update the driver's current location in Redis or DB
-        # For now, just logging it
-        Rails.logger.info "Driver location update: #{params[:lat]}, #{params[:lng]}"
+        @order.update(
+          current_lat: params[:lat],
+          current_lng: params[:lng]
+        )
+        Rails.logger.info "Driver location update (Order ##{@order.id}): #{params[:lat]}, #{params[:lng]}"
         render json: { status: 'success' }
       end
 

@@ -9,6 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingBag, ArrowLeft, Plus } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface CompanyRequisite {
     id: string;
@@ -26,9 +33,16 @@ const CheckoutPage: React.FC = () => {
     const [selectedRequisiteId, setSelectedRequisiteId] = useState<string>('');
 
     const [formData, setFormData] = useState({
+        city: '',
         delivery_address: '',
-        delivery_notes: ''
+        // delivery_notes removed as per request
     });
+
+    const CITIES = [
+        "Алматы", "Астана", "Шымкент", "Караганда", "Актобе", "Тараз", "Павлодар",
+        "Усть-Каменогорск", "Семей", "Атырау", "Костанай", "Кызылорда", "Уральск",
+        "Петропавловск", "Актау", "Темиртау", "Туркестан", "Кокшетау", "Тараз", "Талдыкорган"
+    ];
 
     useEffect(() => {
         if (user && user.role === 'client') {
@@ -71,10 +85,17 @@ const CheckoutPage: React.FC = () => {
             return;
         }
 
+        if (!formData.city) {
+            alert('Пожалуйста, выберите город');
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const orderData = {
                 order: {
-                    ...formData,
+                    city: formData.city,
+                    delivery_address: formData.delivery_address,
                     company_requisite_id: selectedRequisiteId,
                     order_items_attributes: items.map(item => ({
                         product_id: item.id,
@@ -155,23 +176,29 @@ const CheckoutPage: React.FC = () => {
                         <form id="checkout-form" onSubmit={handleSubmit}>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="delivery_address">Адрес доставки</Label>
+                                    <Label>Город</Label>
+                                    <Select
+                                        value={formData.city}
+                                        onValueChange={(value) => setFormData({ ...formData, city: value })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Выберите город" />
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-[300px]">
+                                            {CITIES.map(city => (
+                                                <SelectItem key={city} value={city}>{city}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="delivery_address">Адрес (Улица, дом, офис/квартира)</Label>
                                     <Input
                                         id="delivery_address"
-                                        placeholder="Полный адрес, включая город и почтовый индекс"
+                                        placeholder="ул. Казыбек би, д. 16, оф. 4"
                                         value={formData.delivery_address}
                                         onChange={(e) => setFormData({ ...formData, delivery_address: e.target.value })}
                                         required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="delivery_notes">Комментарии к доставке (Необязательно)</Label>
-                                    <textarea
-                                        id="delivery_notes"
-                                        className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                        placeholder="Любые особые инструкции для водителя"
-                                        value={formData.delivery_notes}
-                                        onChange={(e) => setFormData({ ...formData, delivery_notes: e.target.value })}
                                     />
                                 </div>
                             </CardContent>
