@@ -113,6 +113,41 @@ module Api
             Rails.logger.error("1C Sync Error: #{e.message}")
             render json: { error: 'Internal Server Error during sync' }, status: :internal_server_error
           end
+          # GET /api/v1/integrations/one_c/test_stocks
+          # Triggered by frontend "Тест склада" button
+          # Executes a raw request to 1C get_stocks to see what it returns
+          def test_stocks
+             warehouse_id = params[:warehouse_id] || "000000001"
+             
+             # Configuration
+             one_c_url = "https://f577a0f8677a.ngrok-free.app/Integration/hs/int/get_stocks"
+             url = URI(one_c_url)
+             
+             begin
+               https = Net::HTTP.new(url.host, url.port)
+               https.use_ssl = true
+               
+               request = Net::HTTP::Get.new(url)
+               request["Content-Type"] = "application/json"
+               request.basic_auth("администратор", "")
+               
+               request.body = JSON.dump({
+                 "warehouse_id_1c": warehouse_id
+               })
+               
+               response = https.request(request)
+               
+               render json: {
+                  message: "Request to 1C get_stocks executed",
+                  request_url: one_c_url,
+                  warehouse_id_requested: warehouse_id,
+                  response_code: response.code,
+                  response_body: response.body
+               }
+             rescue => e
+               render json: { error: e.message }
+             end
+          end
         end
       end
     end
