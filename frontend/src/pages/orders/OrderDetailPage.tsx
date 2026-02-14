@@ -387,7 +387,15 @@ const OrderDetailPage: React.FC = () => {
                                         <p className="text-sm text-orange-700">Договор готов. Скачайте для ознакомления или подпишите для продолжения.</p>
                                     </div>
                                     <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => directorSignMutation.mutate()} disabled={directorSignMutation.isPending}>
-                                        <CheckCircle className="mr-2 h-4 w-4" /> Подписать договор
+                                        {directorSignMutation.isPending ? (
+                                            <>
+                                                <Clock className="mr-2 h-4 w-4 animate-spin" /> Подписание...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle className="mr-2 h-4 w-4" /> Подписать договор
+                                            </>
+                                        )}
                                     </Button>
                                     <Button variant="outline" className="w-full" onClick={() => downloadFile('contract')}>
                                         <Download className="mr-2 h-4 w-4" /> Скачать договор
@@ -402,7 +410,18 @@ const OrderDetailPage: React.FC = () => {
                                         <p className="text-sm text-red-700">Директор подписал. Теперь ваша очередь.</p>
                                     </div>
                                     <Button className="w-full bg-red-600 hover:bg-red-700" onClick={() => signContractMutation.mutate()} disabled={signContractMutation.isPending}>
-                                        <CheckCircle className="mr-2 h-4 w-4" /> Подписать договор (Клиент)
+                                        {signContractMutation.isPending ? (
+                                            <>
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="h-4 w-4 animate-spin" />
+                                                    <span>Обработка 1С...</span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle className="mr-2 h-4 w-4" /> Подписать договор (Клиент)
+                                            </>
+                                        )}
                                     </Button>
                                     <Button variant="outline" className="w-full" onClick={() => downloadFile('contract')}>
                                         <Download className="mr-2 h-4 w-4" /> Просмотреть договор
