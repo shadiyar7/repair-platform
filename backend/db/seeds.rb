@@ -9,6 +9,7 @@ User.find_or_create_by!(email: 'admin@repair.com') do |u|
   u.role = 'admin'
   u.company_name = 'DYNAMIX HQ'
   u.phone = '+77010000000'
+  u.job_title = 'System Administrator'
 end
 
 # Warehouse Manager
@@ -17,6 +18,7 @@ User.find_or_create_by!(email: 'warehouse@repair.com') do |u|
   u.role = 'warehouse'
   u.company_name = 'Central Warehouse'
   u.phone = '+77020000000'
+  u.job_title = 'Chief Cluster Manager'
 end
 
 # Client
@@ -27,13 +29,7 @@ client = User.find_or_create_by!(email: 'client@repair.com') do |u|
   u.phone = '+77050000000'
 end
 
-# Driver
-User.find_or_create_by!(email: 'driver@repair.com') do |u|
-  u.password = 'password123'
-  u.role = 'driver'
-  u.company_name = 'Logistics Trans'
-  u.phone = '+77070000000'
-end
+
 
 # 2. Company Requisites
 CompanyRequisite.find_or_create_by!(user: client) do |cr|
