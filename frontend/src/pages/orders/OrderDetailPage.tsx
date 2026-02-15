@@ -840,60 +840,7 @@ const OrderDetailPage: React.FC = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Debug Actions Card - Visible to ALL */}
-                    <Card className="border-purple-200 bg-purple-50">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm text-purple-800">1C Integration Debug</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <Button
-                                variant="secondary"
-                                className="w-full bg-white text-purple-700 hover:bg-purple-100 border border-purple-200"
-                                onClick={async () => {
-                                    try {
-                                        const res = await api.post('/api/v1/integrations/one_c/test_trigger', { order_id: id });
-                                        alert("Test Trigger Sent! Check Logs.\n\nSimulated Response:\n" + JSON.stringify(res.data, null, 2));
-                                    } catch (e) {
-                                        alert("Error: " + e);
-                                    }
-                                }}
-                            >
-                                Test 1C (Hardcoded)
-                            </Button>
 
-                            <Button
-                                className="w-full bg-purple-600 hover:bg-purple-700"
-                                onClick={async () => {
-                                    try {
-                                        const res = await api.post('/api/v1/integrations/one_c/real_trigger', { order_id: id });
-                                        console.log("Real 1C Trigger Result:", res.data);
-                                        alert("REAL 1C Trigger Sent!\n\nPayload Sent:\n" + JSON.stringify(res.data.payload_sent, null, 2) + "\n\nResponse:\n" + res.data.response_body);
-                                    } catch (e) {
-                                        console.error(e);
-                                        alert("Error sending Real Trigger");
-                                    }
-                                }}
-                            >
-                                Real Test 1C (Current Order Data)
-                            </Button>
-
-                            <Button
-                                variant="outline"
-                                className="w-full border-purple-200 text-purple-700 hover:bg-purple-50"
-                                onClick={async () => {
-                                    try {
-                                        const res = await api.get('/api/v1/integrations/one_c/test_stocks?warehouse_id=000000001');
-                                        console.log("Warehouse Test Result:", res.data);
-                                        alert("Warehouse Test (000000001):\n\nResponse:\n" + res.data.response_body);
-                                    } catch (e) {
-                                        alert("Error: " + e);
-                                    }
-                                }}
-                            >
-                                Тест склада (000000001)
-                            </Button>
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
         </div>
