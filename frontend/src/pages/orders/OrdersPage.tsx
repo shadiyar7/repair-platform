@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { ChevronRight, Package } from 'lucide-react';
 
 const OrdersPage: React.FC = () => {
-    const { data: orders, isLoading, error } = useQuery({
+    const { data: orders = [], isLoading, error } = useQuery({
         queryKey: ['orders'],
         queryFn: async () => {
             const response = await api.get('/api/v1/orders');
-            return response.data.data;
+            // Safely return array whether it's wrapped in data or not
+            return Array.isArray(response.data.data) ? response.data.data : [];
         }
     });
 

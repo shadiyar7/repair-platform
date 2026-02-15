@@ -69,7 +69,10 @@ const SupervisorDashboard: React.FC = () => {
     };
 
     // Filter only orders waiting for driver
-    const activeOrders = ordersData?.data.filter((order: any) => order.attributes.status === 'searching_driver') || [];
+    // Filter orders waiting for driver (including legacy statuses to be safe)
+    const activeOrders = ordersData?.data.filter((order: any) =>
+        ['searching_driver', 'payment_review', 'paid'].includes(order.attributes.status)
+    ) || [];
 
     if (isLoading) return <div className="p-8 text-center">Загрузка заявок...</div>;
 
