@@ -145,10 +145,10 @@ module Api
                      test_order = Order.find_by(id: target_order_id)
 
                      if test_order
-                        if test_order.update(invoice_base64: invoice_code)
-                          Rails.logger.info "Successfully saved invoice_base64 to Order ##{test_order.id}"
+                        if test_order.update_column(:invoice_base64, invoice_code)
+                          Rails.logger.info "Successfully saved invoice_base64 to Order ##{test_order.id} (Bypassed validation)"
                         else
-                          Rails.logger.error "Failed to save invoice to Order ##{test_order.id}: #{test_order.errors.full_messages.join(', ')}"
+                          Rails.logger.error "Failed to save invoice to Order ##{test_order.id}"
                         end
                      else
                         Rails.logger.warn "Order matching payload ID #{target_order_id} not found"
