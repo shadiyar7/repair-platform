@@ -23,6 +23,7 @@ import AdminLoginPage from '@/pages/auth/AdminLoginPage';
 import SmartLinkPage from '@/pages/driver/SmartLinkPage';
 
 import SupervisorDashboard from '@/pages/supervisor/SupervisorDashboard';
+import DirectorDashboard from '@/pages/director/DirectorDashboard';
 
 const queryClient = new QueryClient();
 
@@ -106,12 +107,19 @@ function App() {
                 />
                 import SupervisorDashboard from '@/pages/supervisor/SupervisorDashboard';
 
-                // ... inside App component routes ...
                 <Route
                   path="supervisor"
                   element={
                     <ProtectedRoute allowedRoles={['supervisor', 'admin']}>
                       <SupervisorDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="director"
+                  element={
+                    <ProtectedRoute allowedRoles={['director', 'admin']}>
+                      <DirectorDashboard />
                     </ProtectedRoute>
                   }
                 />

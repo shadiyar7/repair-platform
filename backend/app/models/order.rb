@@ -111,4 +111,14 @@ class Order < ApplicationRecord
     def set_director_signed_at
       touch(:director_signed_at)
     end
+
+    after_commit do
+      if saved_change_to_status? && status == 'pending_director_signature'
+        begin
+          DirectorMailer.signature_request(self).deliver_later
+        rescue => e
+          Rails.logger.error "Failed to send Director email: #{e.message}"
+        end
+      end
+    end
 end

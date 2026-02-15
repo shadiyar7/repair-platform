@@ -56,6 +56,9 @@ Rails.application.routes.draw do
       end
       
       resources :commercial_proposals, only: [:create]
+      
+      # Analytics
+      get 'analytics/dashboard', to: 'analytics#dashboard'
 
       namespace :integrations do
         namespace :one_c do
