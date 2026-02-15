@@ -112,9 +112,9 @@ const SupervisorDashboard: React.FC = () => {
                                     <Badge variant="secondary" className="mb-2">#{order.id}</Badge>
                                     <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Поиск водителя</Badge>
                                 </div>
-                                <CardTitle className="text-lg">Заказ из {order.attributes.city || 'Алматы'}</CardTitle>
+                                <CardTitle className="text-lg">Заказ из: {order.attributes.origin_city}</CardTitle>
                                 <CardDescription className="line-clamp-2">
-                                    {order.attributes.delivery_address}
+                                    Куда: {order.attributes.city}, {order.attributes.delivery_address}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="pb-4 space-y-3 text-sm">
@@ -144,9 +144,9 @@ const SupervisorDashboard: React.FC = () => {
                                     <Truck className="mr-2 h-4 w-4" /> Найти водителя
                                 </Button>
                             </CardFooter>
-                        </Card>
+                        </Card >
                     ))}
-                </div>
+                </div >
             )}
 
             <Dialog open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen}>
@@ -252,7 +252,7 @@ const SupervisorDashboard: React.FC = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 };
 

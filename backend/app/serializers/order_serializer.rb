@@ -4,6 +4,12 @@ class OrderSerializer
              :driver_name, :driver_phone, :driver_car_number, :driver_arrival_time, :driver_comment, :delivery_price,
              :director_signed_at, :smart_link_token, :invoice_base64, :is_verified
 
+  attribute :origin_city do |object|
+    # Assuming all items in an order come from the same warehouse for now, or just taking the first one.
+    # In a real multi-warehouse scenario, this might need to be a list or primary warehouse.
+    object.order_items.first&.product&.warehouse_location || 'Основной склад'
+  end
+
   attribute :payment_receipt_url do |object|
     if object.payment_receipt.attached?
       Rails.application.routes.url_helpers.rails_blob_url(object.payment_receipt, host: 'repair-platform.onrender.com') # Or dynamic host
