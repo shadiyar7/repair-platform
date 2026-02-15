@@ -1,10 +1,10 @@
 class OrderPolicy < ApplicationPolicy
   def show?
-    user.admin? || record.user_id == user.id || user.warehouse? || user.driver?
+    user.admin? || record.user_id == user.id || user.warehouse? || user.driver? || user.director? || user.supervisor?
   end
 
   def update?
-    user.admin? || record.user_id == user.id || user.warehouse? || user.driver?
+    user.admin? || record.user_id == user.id || user.warehouse? || user.driver? || user.director? || user.supervisor?
   end
 
   class Scope < Scope
