@@ -78,24 +78,23 @@ namespace :one_c do
       
       if product.save
         # Ensure Warehouse Stock
-        # First try to find by nomenclature_code
-        stock = WarehouseStock.find_by(
-          warehouse: warehouse, 
-          nomenclature_code: code
-        )
-
-        # If not found, try to find by product_sku (to avoid unique constraint violation if it exists without nomenclature_code)
-        if stock.nil? && product.sku.present?
-           stock = WarehouseStock.find_by(
-             warehouse: warehouse, 
-             product_sku: product.sku
-           )
-        end
+      if product.save
+        # Ensure Warehouse Stock
+        # Find ANY existing stock record that matches either:
+        # 1. nomenclature_code: code (The new way)
+        # 2. product_sku: product.sku (Existing correct SKU)
+        # 3. product_sku: code (If stock stored raw 1C code instead of proper SKU)
+        
+        stock = WarehouseStock.where(warehouse: warehouse)
+                              .where("nomenclature_code = :code OR product_sku = :sku OR product_sku = :code", code: code, sku: product.sku)
+                              .first
 
         # If still not found, initialize new
-        stock ||= WarehouseStock.new(warehouse: warehouse, nomenclature_code: code)
+        stock ||= WarehouseStock.new(warehouse: warehouse)
         
-        # Update attributes
+        # Update attributes - Be careful not to create a NEW duplicate if we didn't find one but validation finds another?
+        # Unlikely with above query.
+        
         stock.nomenclature_code = code
         stock.product_sku = product.sku \
         
