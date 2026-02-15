@@ -24,7 +24,7 @@ class SyncStocksJob < ApplicationJob
     # Using the warehouse's external ID or the hardcoded "000000001" if requested for test?
     # User example: "000000001". Let's use the warehouse's stored external_id_1c.
     request.body = JSON.dump({
-      "warehouse_id_1c": warehouse.external_id_1c || "000000001"
+      "warehouse_id_1c": warehouse.external_id_1c.to_s.rjust(9, "0")
     })
     
     begin
