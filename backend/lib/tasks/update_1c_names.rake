@@ -78,8 +78,6 @@ namespace :one_c do
       
       if product.save
         # Ensure Warehouse Stock
-      if product.save
-        # Ensure Warehouse Stock
         # Find ANY existing stock record that matches either:
         # 1. nomenclature_code: code (The new way)
         # 2. product_sku: product.sku (Existing correct SKU)
@@ -96,7 +94,7 @@ namespace :one_c do
         # Unlikely with above query.
         
         stock.nomenclature_code = code
-        stock.product_sku = product.sku \
+        stock.product_sku = product.sku
         
         if stock.quantity.to_f <= 0
            stock.quantity = rand(10..200)
