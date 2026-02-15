@@ -36,8 +36,8 @@ class Order < ApplicationRecord
       state :pending_director_signature
       state :pending_signature
       state :pending_payment
-      state :payment_review # Paid by client, receipt uploaded, waiting accountant confirmation
-      state :paid # Optional now, but maybe good to keep as transient or historic
+      # state :payment_review # Deprecated: Auto-skip to searching_driver
+      # state :paid # Deprecated: Auto-skip to searching_driver
       state :searching_driver
       state :driver_assigned
       state :at_warehouse

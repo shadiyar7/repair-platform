@@ -8,7 +8,7 @@ import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
 import CatalogPage from '@/pages/catalog/CatalogPage';
-import CatalogNewPage from '@/pages/catalog/CatalogNewPage';
+
 import OrdersPage from '@/pages/orders/OrdersPage';
 import OrderDetailPage from '@/pages/orders/OrderDetailPage';
 import CheckoutPage from '@/pages/orders/CheckoutPage';
@@ -25,6 +25,23 @@ import SmartLinkPage from '@/pages/driver/SmartLinkPage';
 import SupervisorDashboard from '@/pages/supervisor/SupervisorDashboard';
 import DirectorDashboard from '@/pages/director/DirectorDashboard';
 
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+
+const RoleBasedRedirect = () => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  if (user?.role === 'supervisor') return <Navigate to="/supervisor" replace />;
+  if (user?.role === 'director') return <Navigate to="/director" replace />;
+  if (user?.role === 'warehouse') return <Navigate to="/warehouse" replace />;
+  if (user?.role === 'driver') return <Navigate to="/driver" replace />;
+
+  // Default for Client/Admin (or unknown) -> Catalog
+  return <CatalogPage />;
+};
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -36,8 +53,13 @@ function App() {
             <Routes>
               <Route path="/smart-link/:token" element={<SmartLinkPage />} />
               <Route path="/" element={<Layout />}>
-                <Route index element={<CatalogPage />} />
-                <Route path="catalogNew" element={<CatalogNewPage />} />
+                <Route index element={
+                  <ProtectedRoute allowedRoles={['client', 'admin', 'supervisor', 'director']}>
+                    {/* Role-based Redirects */}
+                    <RoleBasedRedirect />
+                  </ProtectedRoute>
+                } />
+                <Route path="catalog" element={<CatalogPage />} />
                 <Route path="landing" element={<HomePage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegisterPage />} />
