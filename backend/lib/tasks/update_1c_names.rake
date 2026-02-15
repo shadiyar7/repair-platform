@@ -78,14 +78,26 @@ namespace :one_c do
       
       if product.save
         # Ensure Warehouse Stock
-        stock = WarehouseStock.find_or_initialize_by(
+        # First try to find by nomenclature_code
+        stock = WarehouseStock.find_by(
           warehouse: warehouse, 
           nomenclature_code: code
         )
+
+        # If not found, try to find by product_sku (to avoid unique constraint violation if it exists without nomenclature_code)
+        if stock.nil? && product.sku.present?
+           stock = WarehouseStock.find_by(
+             warehouse: warehouse, 
+             product_sku: product.sku
+           )
+        end
+
+        # If still not found, initialize new
+        stock ||= WarehouseStock.new(warehouse: warehouse, nomenclature_code: code)
         
-        # If product_sku is required by validation but we have nomenclature_code, it might be fine,
-        # but let's set product_sku just in case logic uses it.
-        stock.product_sku = product.sku
+        # Update attributes
+        stock.nomenclature_code = code
+        stock.product_sku = product.sku \
         
         if stock.quantity.to_f <= 0
            stock.quantity = rand(10..200)
