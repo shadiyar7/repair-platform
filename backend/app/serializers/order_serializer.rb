@@ -12,6 +12,26 @@ class OrderSerializer
     end
   end
 
+  attribute :company_requisite do |object|
+    if object.company_requisite
+      {
+        id: object.company_requisite.id,
+        company_name: object.company_requisite.company_name,
+        bin: object.company_requisite.bin
+      }
+    else
+      nil
+    end
+  end
+
+  attribute :contract_url do |object|
+    if object.document.attached?
+      Rails.application.routes.url_helpers.rails_blob_url(object.document, host: 'repair-platform.onrender.com')
+    else
+      nil
+    end
+  end
+
   attribute :order_items do |object|
     object.order_items.map do |item|
       {
@@ -19,7 +39,9 @@ class OrderSerializer
         product_id: item.product_id,
         product_name: item.product&.name,
         quantity: item.quantity,
-        price: item.price || item.product&.price
+        price: item.price || item.product&.price,
+        sku: item.product&.sku,
+        warehouse: item.product&.warehouse_location # Assuming simple string for now, or fetch warehouse object if needed
       }
     end
   end

@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import {
     TrendingUp, DollarSign, CheckCircle,
-    AlertCircle, Activity, PenTool
+    AlertCircle, Activity, PenTool, FileText
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,32 +72,71 @@ const SignaturesList = () => {
                     <p>Нет ожидающих заявок.</p>
                 </div>
             ) : (
-                orders.map((order: any) => (
-                    <Card key={order.id} className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">
-                        <CardContent className="p-6 flex justify-between items-center">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-bold text-gray-800">Заказ #{order.id}</h3>
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700">На подпись</Badge>
+                orders.map((order: any) => {
+                    const attrs = order.attributes;
+                    const companyName = attrs.company_requisite?.company_name || 'Частное лицо';
+                    const bin = attrs.company_requisite?.bin;
+
+                    return (
+                        <Card key={order.id} className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">
+                            <CardContent className="p-6">
+                                <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <h3 className="text-lg font-bold text-gray-800">Заказ #{order.id}</h3>
+                                            <Badge variant="outline" className="bg-blue-50 text-blue-700">На подпись</Badge>
+                                        </div>
+                                        <div className="text-sm text-gray-600 space-y-1">
+                                            <p><span className="font-medium">Клиент:</span> {companyName} {bin ? `(БИН: ${bin})` : ''}</p>
+                                            <p><span className="font-medium">Город:</span> {attrs.city || 'Не указан'}</p>
+                                            <p><span className="font-medium">Адрес доставки:</span> {attrs.delivery_address || 'Не указан'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm text-gray-500 mb-1">Сумма заказа</p>
+                                        <p className="text-2xl font-bold text-green-600">{formatCurrency(parseFloat(attrs.total_amount))}</p>
+                                    </div>
                                 </div>
-                                <p className="text-sm text-gray-600 mb-1">
-                                    <span className="font-medium">Клиент:</span> {order.attributes.company_requisite?.company_name || 'Частное лицо'}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                    Сумма: <span className="font-bold text-green-600">{formatCurrency(parseFloat(order.attributes.total_amount))}</span>
-                                </p>
-                            </div>
-                            <Button
-                                onClick={() => signMutation.mutate(order.id)}
-                                disabled={signMutation.isPending}
-                                className="bg-blue-600 hover:bg-blue-700"
-                            >
-                                <PenTool className="mr-2 h-4 w-4" />
-                                {signMutation.isPending ? 'Подписание...' : 'Подписать ЭЦП'}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ))
+
+                                {/* Items List */}
+                                <div className="bg-gray-50 p-4 rounded-lg mb-4 text-sm">
+                                    <h4 className="font-semibold mb-2 text-gray-700">Товары в заказе:</h4>
+                                    <ul className="space-y-2">
+                                        {attrs.order_items?.map((item: any) => (
+                                            <li key={item.id} className="flex justify-between border-b last:border-0 pb-2 last:pb-0 border-gray-200">
+                                                <span>{item.product_name} <span className="text-gray-500">({item.sku})</span></span>
+                                                <div className="text-right">
+                                                    <span className="font-medium">{item.quantity} шт.</span>
+                                                    {item.warehouse && <span className="block text-xs text-gray-500">Склад: {item.warehouse}</span>}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="flex flex-wrap justify-end gap-3">
+                                    {attrs.contract_url && (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => window.open(attrs.contract_url, '_blank')}
+                                        >
+                                            <FileText className="mr-2 h-4 w-4" />
+                                            Скачать договор
+                                        </Button>
+                                    )}
+                                    <Button
+                                        onClick={() => signMutation.mutate(order.id)}
+                                        disabled={signMutation.isPending}
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        <PenTool className="mr-2 h-4 w-4" />
+                                        {signMutation.isPending ? 'Подписание...' : 'Подписать ЭЦП'}
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })
             )}
         </div>
     );
