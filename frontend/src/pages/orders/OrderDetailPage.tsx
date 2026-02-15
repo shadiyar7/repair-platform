@@ -48,12 +48,14 @@ const OrderDetailPage: React.FC = () => {
     const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
     const [driverForm, setDriverForm] = useState(() => {
         const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const date = now.toISOString().split('T')[0];
+        const time = now.toTimeString().slice(0, 5); // HH:MM
         return {
             name: '',
             phone: '',
             car: '',
-            time: now.toISOString().slice(0, 16),
+            date,
+            time,
             comment: ''
         };
     });
@@ -690,17 +692,37 @@ const OrderDetailPage: React.FC = () => {
                                                             placeholder="123 ABC 02"
                                                         />
                                                     </div>
-                                                    <div className="space-y-2">
-                                                        <Label>Время прибытия</Label>
-                                                        <Input
-                                                            type="datetime-local"
-                                                            value={driverForm.time}
-                                                            onChange={(e) => setDriverForm({ ...driverForm, time: e.target.value })}
-                                                        // Default logic handled in onOpenChange or useEffect if needed, 
-                                                        // but user asked for "date default today".
-                                                        // We can set initial state for 'time' to current datetime formatted.
-                                                        />
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label>Дата прибытия</Label>
+                                                            <Input
+                                                                type="date"
+                                                                value={driverForm.date}
+                                                                onChange={(e) => setDriverForm({ ...driverForm, date: e.target.value })}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label>Время</Label>
+                                                            <Input
+                                                                type="time"
+                                                                value={driverForm.time}
+                                                                onChange={(e) => setDriverForm({ ...driverForm, time: e.target.value })}
+                                                            />
+                                                        </div>
                                                     </div>
+                                                    <Button
+                                                        className="w-full mt-4"
+                                                        onClick={() => assignDriverMutation.mutate({
+                                                            driver_name: driverForm.name,
+                                                            driver_phone: driverForm.phone,
+                                                            driver_car_number: driverForm.car,
+                                                            driver_arrival_time: `${driverForm.date} ${driverForm.time}`,
+                                                            driver_comment: driverForm.comment
+                                                        })}
+                                                        disabled={assignDriverMutation.isPending}
+                                                    >
+                                                        {assignDriverMutation.isPending ? 'Назначение...' : 'Назначить водителя'}
+                                                    </Button>
                                                     <div className="space-y-2">
                                                         <Label>Комментарий по машине</Label>
                                                         <textarea
