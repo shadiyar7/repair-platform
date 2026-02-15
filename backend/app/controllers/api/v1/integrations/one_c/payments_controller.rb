@@ -20,7 +20,20 @@ module Api
             
             if order
               if status.to_s == 'true' || status == true
-                order.update(is_verified: true)
+                # Asynchronously confirm payment (does not blocking logistics because they started on 'payment_review')
+                # If order is already searching_driver or further, this transition might fail if not handled, 
+                # but AASM guards usually prevent invalid transitions.
+                # We need to ensure we don't error out if already moved past.
+                
+                if order.may_confirm_payment?
+                   order.confirm_payment!
+                   Rails.logger.info "Order ##{order.id} payment confirmed by 1C"
+                else
+                   # Just mark as verified to be safe if status moved on
+                   order.update(is_verified: true)
+                   Rails.logger.info "Order ##{order.id} marked verified by 1C (Status was: #{order.status})"
+                end
+
                 render json: { code: 200, message: "Success" }
               else
                  # If status is false, do we unverify? Or just log? 
