@@ -641,6 +641,19 @@ const OrderDetailPage: React.FC = () => {
                                             </Button>
                                         )}
 
+                                        {/* Debug/Manual Invoice View */}
+                                        {attributes.invoice_base64 && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 text-xs text-blue-600 border-blue-200 bg-blue-50"
+                                                onClick={() => downloadFile('invoice')}
+                                            >
+                                                <FileText className="mr-1 h-3.5 w-3.5" />
+                                                DEBUG: Счет (Base64)
+                                            </Button>
+                                        )}
+
                                         {/* Admin Confirmation Button (Only if not verified yet) */}
                                         {!attributes.is_verified && (user?.role === 'admin' || user?.role === 'warehouse') && (
                                             <Button
