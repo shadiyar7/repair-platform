@@ -4,8 +4,21 @@ class Api::V1::OrdersController < ApplicationController
 
   def index
     orders = case current_user&.role
-             when 'admin', 'warehouse', 'supervisor', 'director'
-               Order.includes(:company_requisite, order_items: :product).all # Supervisors need to see all to find 'searching_driver'
+             when 'warehouse'
+               if current_user.warehouse
+                 # Filter orders that have items from this warehouse
+                 # Assuming warehouse_location string on Product matches Warehouse name
+                 # Or better: if we link Product to Warehouse later. For now, try name match.
+                 Order.includes(:company_requisite, order_items: :product)
+                      .joins(order_items: :product)
+                      .where(products: { warehouse_location: current_user.warehouse.name })
+                      .distinct
+               else
+                 # Fallback if no warehouse assigned (shouldn't happen if we enforce it)
+                 Order.where(status: ['at_warehouse', 'searching_driver', 'driver_assigned', 'paid'])
+               end
+             when 'admin', 'supervisor', 'director'
+               Order.includes(:company_requisite, order_items: :product).all
              when 'driver'
                # Drivers see orders that are either explicitly 'searching_driver' OR 'payment_review' (Pre-search)
                Order.where(driver: current_user).or(Order.where(status: ['at_warehouse', 'searching_driver', 'payment_review']))

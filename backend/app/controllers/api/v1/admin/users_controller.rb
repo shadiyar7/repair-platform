@@ -54,7 +54,7 @@ module Api
         end
 
         def user_params
-          params.require(:user).permit(:email, :phone, :role, :job_title, :password) # Password optional in update
+          params.require(:user).permit(:email, :phone, :role, :job_title, :password, :warehouse_id) # Password optional in update
         end
       end
     end

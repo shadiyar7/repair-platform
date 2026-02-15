@@ -50,7 +50,8 @@ const AdminUserManagementPage: React.FC = () => {
         password: '',
         phone: '',
         role: 'warehouse',
-        job_title: ''
+        job_title: '',
+        warehouse_id: ''
     });
 
     const { data: usersData, isLoading } = useQuery({
@@ -61,12 +62,22 @@ const AdminUserManagementPage: React.FC = () => {
         }
     });
 
+    const { data: warehousesData } = useQuery({
+        queryKey: ['warehouses'],
+        queryFn: async () => {
+            const res = await api.get('/api/v1/warehouses'); // Use public or admin route
+            return res.data;
+        }
+    });
+
+    const warehouses = Array.isArray(warehousesData?.data) ? warehousesData.data : [];
+
     const createMutation = useMutation({
         mutationFn: (data: any) => api.post('/api/v1/admin/users', { user: data }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
             setIsCreateOpen(false);
-            setFormData({ email: '', password: '', phone: '', role: 'warehouse', job_title: '' });
+            setFormData({ email: '', password: '', phone: '', role: 'warehouse', job_title: '', warehouse_id: '' });
             alert('Пользователь создан');
         },
         onError: (err: any) => {
@@ -125,6 +136,7 @@ const AdminUserManagementPage: React.FC = () => {
             phone: formData.phone,
             role: formData.role,
             job_title: formData.job_title,
+            warehouse_id: formData.role === 'warehouse' ? formData.warehouse_id : null,
             // Only send password if changed (not implementing password change here for simplicity yet, or handled by API if present)
             ...(formData.password ? { password: formData.password } : {})
         });
@@ -137,7 +149,8 @@ const AdminUserManagementPage: React.FC = () => {
             password: '', // Don't show password
             phone: user.phone || '',
             role: user.role,
-            job_title: user.job_title || ''
+            job_title: user.job_title || '',
+            warehouse_id: (user as any).warehouse_id?.toString() || ''
         });
         setIsEditOpen(true);
     };
@@ -186,6 +199,26 @@ const AdminUserManagementPage: React.FC = () => {
                                     </SelectContent>
                                 </Select>
                             </div>
+
+                            {formData.role === 'warehouse' && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="warehouse">Склад *</Label>
+                                    <Select
+                                        value={formData.warehouse_id}
+                                        onValueChange={(val) => setFormData({ ...formData, warehouse_id: val })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Выберите склад" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {warehouses.map((w: any) => (
+                                                <SelectItem key={w.id} value={w.id.toString()}>{w.attributes.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
                             <div className="grid gap-2">
                                 <Label htmlFor="job_title">Должность</Label>
                                 <Input id="job_title" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} placeholder="Например: Старший кладовщик" />
@@ -277,6 +310,25 @@ const AdminUserManagementPage: React.FC = () => {
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        {formData.role === 'warehouse' && (
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit-warehouse">Склад</Label>
+                                <Select
+                                    value={formData.warehouse_id}
+                                    onValueChange={(val) => setFormData({ ...formData, warehouse_id: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Выберите склад" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {warehouses.map((w: any) => (
+                                            <SelectItem key={w.id} value={w.id.toString()}>{w.attributes.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                         <div className="grid gap-2">
                             <Label htmlFor="edit-job">Должность</Label>
                             <Input id="edit-job" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} />

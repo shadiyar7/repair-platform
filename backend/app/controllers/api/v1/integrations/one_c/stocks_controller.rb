@@ -9,13 +9,16 @@ module Api
 
           # GET /api/v1/integrations/one_c/stocks
           def index
-            # Filter by warehouse_id (external_id_1c) from params, or default to "000000001" (Pavlodar)
-            warehouse_id = params[:warehouse_id] || "000000001"
-            
-            warehouse = Warehouse.find_by(external_id_1c: warehouse_id)
-            
-            # If not found (e.g. invalid ID), try first one or return empty
-            warehouse ||= Warehouse.first
+            # Filter by warehouse_id (external_id_1c)
+            # If user is warehouse manager, enforce their warehouse
+            if current_user&.warehouse
+               warehouse_id = current_user.warehouse.external_id_1c
+               warehouse = current_user.warehouse
+            else
+               warehouse_id = params[:warehouse_id] || "000000001"
+               warehouse = Warehouse.find_by(external_id_1c: warehouse_id)
+               warehouse ||= Warehouse.first
+            end
 
             unless warehouse
               render json: { items: [], last_synced_at: nil }

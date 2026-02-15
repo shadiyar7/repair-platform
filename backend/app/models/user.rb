@@ -21,6 +21,7 @@ class User < ApplicationRecord
   # Validate job_title for internal staff
   validates :job_title, presence: true, unless: :client?
 
+  belongs_to :warehouse, optional: true
   has_many :company_requisites, dependent: :destroy
   has_many :orders, dependent: :destroy
 
