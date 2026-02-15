@@ -1,6 +1,6 @@
 class Api::V1::OrdersController < ApplicationController
   before_action :authenticate_user!, except: [:by_token]
-  before_action :set_order, only: %i[show update checkout sign_contract director_sign pay find_driver assign_driver driver_arrived start_trip deliver complete download_invoice download_contract]
+  before_action :set_order, only: %i[show update checkout sign_contract director_sign pay find_driver assign_driver driver_arrived start_trip deliver complete download_invoice download_contract upload_receipt]
 
   def index
     orders = case current_user&.role
@@ -59,32 +59,6 @@ class Api::V1::OrdersController < ApplicationController
     @order.checkout! if @order.cart?
     # Simulate contract generation
     render json: { message: "Contract generated", contract_url: "..." }
-  end
-
-  def upload_receipt
-    authorize @order, :update?
-    
-    amount = params[:amount].to_f
-    file = params[:file]
-
-    if file.nil?
-      render json: { error: "Файл чека обязателен" }, status: :unprocessable_entity
-      return
-    end
-
-    # Verify Amount (Allowing small float difference)
-    if (amount - @order.total_amount.to_f).abs > 1.0
-       render json: { error: "Сумма оплаты (#{amount}) не совпадает с итогом заказа (#{@order.total_amount})" }, status: :unprocessable_entity
-       return
-    end
-
-    @order.payment_receipt.attach(file)
-    
-    if @order.pending_payment?
-      @order.upload_receipt!
-    end
-
-    render json: OrderSerializer.new(@order).serializable_hash
   end
 
   def upload_receipt
