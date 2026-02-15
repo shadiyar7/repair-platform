@@ -103,7 +103,11 @@ class Api::V1::OrdersController < ApplicationController
 
   def confirm_payment
     authorize @order, :update?
-    @order.confirm_payment!
+    @order.update(is_verified: true)
+    
+    # Try to transition if applicable, but don't error if already searching
+    @order.confirm_payment! if @order.may_confirm_payment?
+
     render json: OrderSerializer.new(@order).serializable_hash
   end
 

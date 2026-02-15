@@ -2,7 +2,7 @@ class OrderSerializer
   include JSONAPI::Serializer
   attributes :status, :total_amount, :city, :delivery_address, :delivery_notes, :created_at, :order_items,
              :driver_name, :driver_phone, :driver_car_number, :driver_arrival_time, :driver_comment,
-             :director_signed_at, :smart_link_token, :invoice_base64
+             :director_signed_at, :smart_link_token, :invoice_base64, :is_verified
 
   attribute :payment_receipt_url do |object|
     if object.payment_receipt.attached?

@@ -14,7 +14,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation } from 'lucide-react';
+import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const OrderDetailPage: React.FC = () => {
@@ -39,7 +39,7 @@ const OrderDetailPage: React.FC = () => {
     const signContractMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/sign_contract`), ...mutationOptions });
     const directorSignMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/director_sign`), ...mutationOptions });
     // const payMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/pay`), ...mutationOptions });
-    const findDriverMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/find_driver`), ...mutationOptions });
+    // const findDriverMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/find_driver`), ...mutationOptions });
     const confirmPaymentMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/confirm_payment`), ...mutationOptions });
 
     // Real driver assignment
@@ -509,114 +509,165 @@ const OrderDetailPage: React.FC = () => {
                                 </div>
                             )}
 
+                            {/* Logistics / Admin Actions - MOVED logic: Drivers search starts immediately after receipt upload */}
+                            {/* But we keep 'paid' status block just in case, though flow now skips it directly to searching_driver */}
+
+                            {attributes.status === 'searching_driver' && (
+                                <div className="space-y-6">
+                                    {/* Simulation UI: Searching Driver */}
+                                    <div className="relative p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                                            <Truck className="h-32 w-32 text-blue-600" />
+                                        </div>
+
+                                        <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-4">
+                                            <div className="relative">
+                                                <div className="absolute inset-0 bg-blue-400 rounded-full opacity-20 animate-ping"></div>
+                                                <div className="relative bg-white p-4 rounded-full shadow-md border-2 border-blue-100">
+                                                    <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-xl font-semibold text-blue-900 mb-2">Поиск водителя</h3>
+                                                <div className="h-6 overflow-hidden">
+                                                    <div className="animate-pulse text-blue-700 font-medium">
+                                                        {/* Simple cycling text effect could be added here state-wise, for now static animated text */}
+                                                        <span className="inline-block transition-opacity duration-500">
+                                                            Система подбирает оптимальный маршрут...
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-blue-500 mt-2 max-w-sm mx-auto">
+                                                    Мы уже уведомили доступных водителей через Della.kz. В среднем поиск занимает 15-30 минут.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Minimalistic Payment Status Sidebar/Badge */}
+                                    <div className="flex items-center justify-end space-x-2">
+                                        <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium border ${attributes.is_verified
+                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                            : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                            }`}>
+                                            {attributes.is_verified ? (
+                                                <>
+                                                    <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                                                    Оплата подтверждена
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Clock className="h-3.5 w-3.5 mr-1" />
+                                                    Оплата проверяется (Бухгалтерия)
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {/* View Check Button (Always available if receipt exists) */}
+                                        {attributes.payment_receipt_url && (
+                                            <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" onClick={() => window.open(attributes.payment_receipt_url, '_blank')}>
+                                                <FileText className="mr-1 h-3.5 w-3.5" /> Чек
+                                            </Button>
+                                        )}
+
+                                        {/* Admin Confirmation Button (Only if not verified yet) */}
+                                        {!attributes.is_verified && (user?.role === 'admin' || user?.role === 'warehouse') && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+                                                onClick={() => confirmPaymentMutation.mutate()}
+                                                disabled={confirmPaymentMutation.isPending}
+                                            >
+                                                Подтвердить
+                                            </Button>
+                                        )}
+                                    </div>
+
+                                    {/* Driver Assignment Block for Admin/Warehouse */}
+                                    {(user?.role === 'admin' || user?.role === 'warehouse') && (
+                                        <Dialog open={isDriverModalOpen} onOpenChange={setIsDriverModalOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                                                    <User className="mr-2 h-4 w-4" /> Водитель найден (Назначить вручную)
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Назначение водителя</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="space-y-4 py-4">
+                                                    <div className="space-y-2">
+                                                        <Label>Имя водителя</Label>
+                                                        <Input
+                                                            value={driverForm.name}
+                                                            onChange={(e) => setDriverForm({ ...driverForm, name: e.target.value })}
+                                                            placeholder="Иван Иванов"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Телефон</Label>
+                                                        <Input
+                                                            value={driverForm.phone}
+                                                            onChange={(e) => setDriverForm({ ...driverForm, phone: e.target.value })}
+                                                            placeholder="+7 777 123 4567"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Гос. номер</Label>
+                                                        <Input
+                                                            value={driverForm.car}
+                                                            onChange={(e) => setDriverForm({ ...driverForm, car: e.target.value })}
+                                                            placeholder="123 ABC 02"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Время прибытия</Label>
+                                                        <Input
+                                                            type="time"
+                                                            value={driverForm.time}
+                                                            onChange={(e) => setDriverForm({ ...driverForm, time: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Комментарий по машине</Label>
+                                                        <textarea
+                                                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            placeholder="Например: Большая фура, заезд с заднего двора"
+                                                            value={driverForm.comment}
+                                                            onChange={(e) => setDriverForm({ ...driverForm, comment: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <Button
+                                                        className="w-full"
+                                                        onClick={() => assignDriverMutation.mutate({
+                                                            driver_name: driverForm.name,
+                                                            driver_phone: driverForm.phone,
+                                                            driver_car_number: driverForm.car,
+                                                            driver_arrival_time: driverForm.time,
+                                                            driver_comment: driverForm.comment
+                                                        })}
+                                                        disabled={assignDriverMutation.isPending}
+                                                    >
+                                                        {assignDriverMutation.isPending ? 'Назначение...' : 'Назначить водителя'}
+                                                    </Button>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+
+                                </div>
+                            )}
+
+                            {/* Fallback for 'payment_review' if old orders exist, handle same as searching_driver but with warning or auto-transition hint */}
                             {attributes.status === 'payment_review' && (
                                 <div className="space-y-4">
-                                    <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-md flex items-start space-x-3">
-                                        <Clock className="h-5 w-5 text-yellow-600 mt-0.5" />
-                                        <p className="text-sm text-yellow-700">Чек загружен. Ожидается подтверждение бухгалтером, но поиск машины уже начат.</p>
+                                    <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-md">
+                                        <p className="text-sm text-yellow-700">Статус обновляется...</p>
                                     </div>
-                                    {attributes.payment_receipt_url && (
-                                        <Button variant="outline" className="w-full" onClick={() => window.open(attributes.payment_receipt_url, '_blank')}>
-                                            <FileText className="mr-2 h-4 w-4" /> Просмотреть чек
-                                        </Button>
-                                    )}
-                                    {(user?.role === 'admin' || user?.role === 'warehouse') && (
-                                        <Button className="w-full bg-green-600 hover:bg-green-700 mt-2" onClick={() => confirmPaymentMutation.mutate()} disabled={confirmPaymentMutation.isPending}>
-                                            <CheckCircle className="mr-2 h-4 w-4" /> Подтвердить оплату (Бухгалтерия)
-                                        </Button>
-                                    )}
                                 </div>
                             )}
-
-                            {/* Logistics / Admin Actions */}
-                            {attributes.status === 'paid' && (user?.role === 'admin' || user?.role === 'warehouse') && (
-                                <div className="space-y-4">
-                                    <div className="p-4 bg-green-50 border border-green-100 rounded-md">
-                                        <p className="text-sm text-green-700">Заказ оплачен. Необходимо найти водителя.</p>
-                                    </div>
-                                    <Button className="w-full" onClick={() => findDriverMutation.mutate()} disabled={findDriverMutation.isPending}>
-                                        <User className="mr-2 h-4 w-4" /> Начать поиск водителя
-                                    </Button>
-                                </div>
-                            )}
-
-                            {attributes.status === 'searching_driver' && (user?.role === 'admin' || user?.role === 'warehouse') && (
-                                <div className="space-y-4">
-                                    <div className="p-4 bg-purple-50 border border-purple-100 rounded-md">
-                                        <p className="text-sm text-purple-700 animate-pulse">Идет активный поиск водителя (Della.kz)...</p>
-                                    </div>
-
-                                    <Dialog open={isDriverModalOpen} onOpenChange={setIsDriverModalOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                                                <User className="mr-2 h-4 w-4" /> Водитель найден
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Назначение водителя</DialogTitle>
-                                            </DialogHeader>
-                                            <div className="space-y-4 py-4">
-                                                <div className="space-y-2">
-                                                    <Label>Имя водителя</Label>
-                                                    <Input
-                                                        value={driverForm.name}
-                                                        onChange={(e) => setDriverForm({ ...driverForm, name: e.target.value })}
-                                                        placeholder="Иван Иванов"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label>Телефон</Label>
-                                                    <Input
-                                                        value={driverForm.phone}
-                                                        onChange={(e) => setDriverForm({ ...driverForm, phone: e.target.value })}
-                                                        placeholder="+7 777 123 4567"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label>Гос. номер</Label>
-                                                    <Input
-                                                        value={driverForm.car}
-                                                        onChange={(e) => setDriverForm({ ...driverForm, car: e.target.value })}
-                                                        placeholder="123 ABC 02"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label>Время прибытия</Label>
-                                                    <Input
-                                                        type="time"
-                                                        value={driverForm.time}
-                                                        onChange={(e) => setDriverForm({ ...driverForm, time: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label>Комментарий по машине</Label>
-                                                    <textarea
-                                                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                                        placeholder="Например: Большая фура, заезд с заднего двора"
-                                                        value={driverForm.comment}
-                                                        onChange={(e) => setDriverForm({ ...driverForm, comment: e.target.value })}
-                                                    />
-                                                </div>
-                                                <Button
-                                                    className="w-full"
-                                                    onClick={() => assignDriverMutation.mutate({
-                                                        driver_name: driverForm.name,
-                                                        driver_phone: driverForm.phone,
-                                                        driver_car_number: driverForm.car,
-                                                        driver_arrival_time: driverForm.time,
-                                                        driver_comment: driverForm.comment
-                                                    })}
-                                                    disabled={assignDriverMutation.isPending}
-                                                >
-                                                    Назначить
-                                                </Button>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
-                                </div>
-                            )}
-
                             {/* Warehouse & Driver Logic */}
                             {attributes.status === 'driver_assigned' && (
                                 <div className="space-y-4">
