@@ -14,7 +14,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader } from 'lucide-react';
+import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, PenTool } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const SimulationText = () => {
@@ -88,27 +88,28 @@ const OrderDetailPage: React.FC = () => {
     const attributes = order.attributes;
 
     const steps = [
-        // Hidden steps: cart, requisites_selected
-        { id: 'pending_director_signature', label: 'Подпись Директора', icon: FileText },
-        { id: 'pending_signature', label: 'Договор Клиента', icon: FileText },
+        // Hidden steps: cart, requisites_selected, pending_director_signature (merged with contract)
+        { id: 'pending_signature', label: 'Подписание договора', icon: FileText },
         { id: 'pending_payment', label: 'Оплата', icon: CreditCard },
         { id: 'payment_review', label: 'Проверка оплаты', icon: Clock },
-        { id: 'paid', label: 'Лист ожидания', icon: Clock }, // Can be merged visually or kept
+        { id: 'paid', label: 'Лист ожидания', icon: Clock },
         { id: 'searching_driver', label: 'Поиск водителя', icon: User },
         { id: 'driver_assigned', label: 'Водитель назначен', icon: Truck },
         { id: 'at_warehouse', label: 'На складе', icon: Building },
         { id: 'in_transit', label: 'В пути', icon: MapPin },
         { id: 'delivered', label: 'Доставлен', icon: CheckCircle },
-        // Hidden steps: documents_ready, completed
     ];
 
     let currentStepIndex = steps.findIndex(s => s.id === attributes.status);
 
     // Handle hidden statuses mapping to visible steps
     if (attributes.status === 'documents_ready' || attributes.status === 'completed') {
-        currentStepIndex = steps.length - 1; // Show as fully completed (last step)
+        currentStepIndex = steps.length - 1;
     } else if (attributes.status === 'cart' || attributes.status === 'requisites_selected') {
-        currentStepIndex = -1; // Before first step
+        currentStepIndex = -1;
+    } else if (attributes.status === 'pending_director_signature') {
+        // Map "Director Signature" status to the "Contract" visible step
+        currentStepIndex = steps.findIndex(s => s.id === 'pending_signature');
     }
 
     const getStatusBadge = (status: string) => {
@@ -128,10 +129,17 @@ const OrderDetailPage: React.FC = () => {
             cancelled: 'bg-red-100 text-red-800'
         };
         const color = config[status] || 'bg-gray-100';
-        return <Badge className={color}>{status.toUpperCase()}</Badge>;
+
+        // Friendly Label Logic
+        let label = status.toUpperCase();
+        if (status === 'pending_director_signature') label = 'ПОДПИСАНИЕ КОМПАНИЕЙ';
+        if (status === 'pending_signature') label = 'ОЖИДАНИЕ ВАШЕЙ ПОДПИСИ';
+
+        return <Badge className={color}>{label}</Badge>;
     };
 
     const downloadFile = async (type: 'invoice' | 'contract') => {
+        // ... (Download logic remains the same)
         // Use Base64 Invoice from 1C if available and type is invoice
         if (type === 'invoice' && attributes.invoice_base64) {
             try {
@@ -180,20 +188,27 @@ const OrderDetailPage: React.FC = () => {
 
         switch (status) {
             case 'pending_director_signature':
-                if (role === 'client' || role === 'director' || role === 'admin') {
+                // Client sees passive message
+                if (role === 'client') {
+                    title = 'Ожидание подписи компании';
+                    description = 'Мы подписываем ваш договор. Обычно это занимает не более 15 минут.';
+                    type = 'info';
+                }
+                // Director/Admin see active action
+                else if (role === 'director' || role === 'admin') {
                     title = 'Требуется подписание договора';
                     description = 'Договор сформирован. Пожалуйста, проверьте и подпишите его.';
                     type = 'warning';
                 } else {
                     title = 'Ожидание подписания';
-                    description = 'Клиент должен подписать договор.';
+                    description = 'Руководство подписывает договор.';
                     type = 'info';
                 }
                 break;
             case 'pending_signature':
                 if (role === 'client') {
                     title = 'Требуется действие: Подписание договора';
-                    description = 'Для начала работы необходимо скачать и подписать договор.';
+                    description = 'Компания подписала договор. Теперь ваша очередь.';
                     type = 'warning';
                 } else {
                     title = 'Ожидание клиента';
@@ -201,6 +216,7 @@ const OrderDetailPage: React.FC = () => {
                     type = 'info';
                 }
                 break;
+            // ... (other cases remain the same)
             case 'pending_payment':
                 if (role === 'client') {
                     title = 'Требуется действие: Оплата заказа';
@@ -264,7 +280,7 @@ const OrderDetailPage: React.FC = () => {
             <p>Процесс выполнения заказа состоит из следующих этапов:</p>
             <ol className="list-decimal pl-4 space-y-2 text-gray-700">
                 <li><span className="font-semibold">Реквизиты:</span> Выбор компании плательщика.</li>
-                <li><span className="font-semibold">Договор:</span> Генерация и подписание договора поставки.</li>
+                <li><span className="font-semibold">Договор:</span> Генерация и двустороннее подписание.</li>
                 <li><span className="font-semibold">Оплата:</span> Выставление счета (Invoice) и ожидание оплаты.</li>
                 <li><span className="font-semibold">Поиск водителя:</span> Логисты ищут машину через интеграции (Della).</li>
                 <li><span className="font-semibold">Склад:</span> Водитель прибывает, загружается, получает накладные.</li>
@@ -406,12 +422,14 @@ const OrderDetailPage: React.FC = () => {
                             <CardDescription>Необходимые шаги для обработки заказа</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {/* Client Actions */}
-                            {attributes.status === 'pending_director_signature' && (user?.role === 'client' || user?.role === 'director' || user?.role === 'admin') && (
+                            {/* Actions Logic */}
+
+                            {/* Director Signature: Visible ONLY to Director/Admin */}
+                            {attributes.status === 'pending_director_signature' && (user?.role === 'director' || user?.role === 'admin') && (
                                 <div className="space-y-4">
                                     <div className="p-4 bg-orange-50 border border-orange-100 rounded-md flex items-start space-x-3">
                                         <FileText className="h-5 w-5 text-orange-600 mt-0.5" />
-                                        <p className="text-sm text-orange-700">Договор готов. Скачайте для ознакомления или подпишите для продолжения.</p>
+                                        <p className="text-sm text-orange-700">Договор готов. Пожалуйста, подпишите его (ЭЦП).</p>
                                     </div>
                                     <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => directorSignMutation.mutate()} disabled={directorSignMutation.isPending}>
                                         {directorSignMutation.isPending ? (
@@ -420,12 +438,28 @@ const OrderDetailPage: React.FC = () => {
                                             </>
                                         ) : (
                                             <>
-                                                <CheckCircle className="mr-2 h-4 w-4" /> Подписать договор
+                                                <PenTool className="mr-2 h-4 w-4" /> Подписать как Директор
                                             </>
                                         )}
                                     </Button>
                                     <Button variant="outline" className="w-full" onClick={() => downloadFile('contract')}>
                                         <Download className="mr-2 h-4 w-4" /> Скачать договор
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Client Message when waiting for Director */}
+                            {attributes.status === 'pending_director_signature' && user?.role === 'client' && (
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-blue-50 border border-blue-100 rounded-md flex items-start space-x-3">
+                                        <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm font-bold text-blue-800">Ожидание подписи компании</p>
+                                            <p className="text-sm text-blue-700 mt-1">Документ на проверке у руководства. Как только он будет подписан, вам придет уведомление.</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="outline" className="w-full" onClick={() => downloadFile('contract')}>
+                                        <Download className="mr-2 h-4 w-4" /> Предпросмотр договора
                                     </Button>
                                 </div>
                             )}
