@@ -8,6 +8,8 @@ import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
 import CatalogPage from '@/pages/catalog/CatalogPage';
+import CatalogNewPage from '@/pages/catalog/CatalogNewPage';
+
 
 import OrdersPage from '@/pages/orders/OrdersPage';
 import OrderDetailPage from '@/pages/orders/OrderDetailPage';
@@ -60,6 +62,7 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="catalog" element={<CatalogPage />} />
+                <Route path="catalogNew" element={<CatalogNewPage />} />
                 <Route path="landing" element={<HomePage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegisterPage />} />
