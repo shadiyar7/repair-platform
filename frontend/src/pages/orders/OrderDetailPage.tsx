@@ -442,36 +442,30 @@ const OrderDetailPage: React.FC = () => {
                             {/* Actions Logic */}
 
                             {/* DEBUG BUTTON - Global for Admin/Warehouse */}
-                            {(user?.role === 'admin' || user?.role === 'warehouse') && (
+                            {(user?.role === 'admin' || user?.role === 'warehouse') && attributes.invoice_base64 && (
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     className="w-full mb-4 text-xs text-blue-600 border-blue-200 bg-blue-50"
-                                    onClick={async () => {
+                                    onClick={() => {
                                         try {
-                                            const res = await api.get('/api/v1/orders/95');
-                                            const invoiceBase64 = res.data.data.attributes.invoice_base64;
-                                            if (invoiceBase64) {
-                                                const byteCharacters = atob(invoiceBase64);
-                                                const byteNumbers = new Array(byteCharacters.length);
-                                                for (let i = 0; i < byteCharacters.length; i++) {
-                                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                                                }
-                                                const byteArray = new Uint8Array(byteNumbers);
-                                                const blob = new Blob([byteArray], { type: 'application/pdf' });
-                                                const url = URL.createObjectURL(blob);
-                                                window.open(url, '_blank');
-                                            } else {
-                                                alert("В Заказе #95 еще нет счета от 1С.");
+                                            const byteCharacters = atob(attributes.invoice_base64);
+                                            const byteNumbers = new Array(byteCharacters.length);
+                                            for (let i = 0; i < byteCharacters.length; i++) {
+                                                byteNumbers[i] = byteCharacters.charCodeAt(i);
                                             }
+                                            const byteArray = new Uint8Array(byteNumbers);
+                                            const blob = new Blob([byteArray], { type: 'application/pdf' });
+                                            const url = URL.createObjectURL(blob);
+                                            window.open(url, '_blank');
                                         } catch (e) {
                                             console.error(e);
-                                            alert("Ошибка получения Заказа #95. Возможно, у вас нет доступа или он удален.");
+                                            alert("Ошибка при открытии счета (Base64).");
                                         }
                                     }}
                                 >
                                     <FileText className="mr-1 h-3.5 w-3.5" />
-                                    DEBUG: Счет (Заказ #95)
+                                    DEBUG: Открыть Счет (Текущий заказ)
                                 </Button>
                             )}
 
