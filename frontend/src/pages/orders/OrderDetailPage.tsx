@@ -88,11 +88,11 @@ const OrderDetailPage: React.FC = () => {
     const attributes = order.attributes;
 
     const steps = [
-        // Hidden steps: cart, requisites_selected, pending_director_signature (merged with contract)
+        // Hidden statuses: cart, requisites_selected
+        { id: 'pending_director_signature', label: 'Подпись Директора', icon: FileText },
         { id: 'pending_signature', label: 'Подписание договора', icon: FileText },
         { id: 'pending_payment', label: 'Оплата', icon: CreditCard },
-        { id: 'payment_review', label: 'Проверка оплаты', icon: Clock },
-        { id: 'paid', label: 'Лист ожидания', icon: Clock },
+        // Hidden visually: payment_review, paid (Merged into Payment or Driver Search flow)
         { id: 'searching_driver', label: 'Поиск водителя', icon: User },
         { id: 'driver_assigned', label: 'Водитель назначен', icon: Truck },
         { id: 'at_warehouse', label: 'На складе', icon: Building },
@@ -107,9 +107,14 @@ const OrderDetailPage: React.FC = () => {
         currentStepIndex = steps.length - 1;
     } else if (attributes.status === 'cart' || attributes.status === 'requisites_selected') {
         currentStepIndex = -1;
-    } else if (attributes.status === 'pending_director_signature') {
-        // Map "Director Signature" status to the "Contract" visible step
-        currentStepIndex = steps.findIndex(s => s.id === 'pending_signature');
+    } else if (attributes.status === 'payment_review' || attributes.status === 'paid') {
+        // If in review/paid, show as "Payment" completed (or transition to Search visually)
+        // Since user wants "immediate", these states shouldn't persist long, 
+        // but if they do, we map them to "Searching Driver" (as current pending step) 
+        // OR map them to "Payment" (as completed step). 
+        // Let's map to 'searching_driver' index so it shows Payment as Done and Search as Active?
+        // No, if status is 'paid', it means Payment is Done. Next is Search.
+        currentStepIndex = steps.findIndex(s => s.id === 'searching_driver');
     }
 
     const getStatusBadge = (status: string) => {
