@@ -1,6 +1,6 @@
 class Api::V1::OrdersController < ApplicationController
   before_action :authenticate_user!, except: [:by_token]
-  before_action :set_order, only: %i[show update checkout sign_contract director_sign pay find_driver assign_driver driver_arrived start_trip deliver complete download_invoice download_contract upload_receipt]
+  before_action :set_order, only: %i[show update checkout sign_contract director_sign pay find_driver assign_driver driver_arrived start_trip deliver complete download_invoice download_contract upload_receipt confirm_payment]
 
   def index
     orders = case current_user&.role
@@ -98,6 +98,12 @@ class Api::V1::OrdersController < ApplicationController
       end
     end
 
+    render json: OrderSerializer.new(@order).serializable_hash
+  end
+
+  def confirm_payment
+    authorize @order, :update?
+    @order.confirm_payment!
     render json: OrderSerializer.new(@order).serializable_hash
   end
 

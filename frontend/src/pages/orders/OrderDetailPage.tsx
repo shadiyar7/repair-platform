@@ -40,6 +40,7 @@ const OrderDetailPage: React.FC = () => {
     const directorSignMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/director_sign`), ...mutationOptions });
     // const payMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/pay`), ...mutationOptions });
     const findDriverMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/find_driver`), ...mutationOptions });
+    const confirmPaymentMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/confirm_payment`), ...mutationOptions });
 
     // Real driver assignment
     const assignDriverMutation = useMutation({
@@ -517,6 +518,11 @@ const OrderDetailPage: React.FC = () => {
                                     {attributes.payment_receipt_url && (
                                         <Button variant="outline" className="w-full" onClick={() => window.open(attributes.payment_receipt_url, '_blank')}>
                                             <FileText className="mr-2 h-4 w-4" /> Просмотреть чек
+                                        </Button>
+                                    )}
+                                    {(user?.role === 'admin' || user?.role === 'warehouse') && (
+                                        <Button className="w-full bg-green-600 hover:bg-green-700 mt-2" onClick={() => confirmPaymentMutation.mutate()} disabled={confirmPaymentMutation.isPending}>
+                                            <CheckCircle className="mr-2 h-4 w-4" /> Подтвердить оплату (Бухгалтерия)
                                         </Button>
                                     )}
                                 </div>
