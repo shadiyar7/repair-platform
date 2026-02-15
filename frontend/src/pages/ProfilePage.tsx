@@ -19,19 +19,27 @@ interface CompanyRequisite {
     kbe?: string;
 }
 
-interface UserCompanyProfile {
-    company_name: string;
-    bin: string;
-    inn: string;
+interface UserProfileData {
+    // Shared
     phone: string;
-    director_name: string;
-    acting_on_basis: string;
-    legal_address: string;
-    actual_address: string;
+
+    // Client specific
+    company_name?: string;
+    bin?: string;
+    inn?: string;
+    director_name?: string;
+    acting_on_basis?: string;
+    legal_address?: string;
+    actual_address?: string;
+
+    // Staff specific
+    first_name?: string;
+    last_name?: string;
+    job_title?: string;
 }
 
 const ProfilePage: React.FC = () => {
-    const { user, setUser } = useAuth(); // Assuming setUser updates context state
+    const { user, setUser } = useAuth();
     const [requisites, setRequisites] = useState<CompanyRequisite[]>([]);
     const [isLoadingRequisites, setIsLoadingRequisites] = useState(false);
 
@@ -41,23 +49,32 @@ const ProfilePage: React.FC = () => {
     const { register: registerReq, handleSubmit: handleSubmitReq, reset: resetReq, setValue: setReqValue } = useForm<CompanyRequisite>();
 
     // Profile Form State
-    const { register: registerProfile, handleSubmit: handleSubmitProfile, setValue: setProfileValue, formState: { isDirty: isProfileDirty, isSubmitting: isProfileSubmitting } } = useForm<UserCompanyProfile>();
+    const { register: registerProfile, handleSubmit: handleSubmitProfile, setValue: setProfileValue, formState: { isDirty: isProfileDirty, isSubmitting: isProfileSubmitting } } = useForm<UserProfileData>();
+
+    const isClient = user?.role === 'client';
 
     useEffect(() => {
         if (user) {
             // Populate Profile Form
-            setProfileValue('company_name', user.company_name || '');
-            setProfileValue('bin', (user as any).bin || ''); // Type assertion if types not updated
-            setProfileValue('inn', (user as any).inn || '');
             setProfileValue('phone', user.phone || '');
-            setProfileValue('director_name', (user as any).director_name || '');
-            setProfileValue('acting_on_basis', (user as any).acting_on_basis || '');
-            setProfileValue('legal_address', (user as any).legal_address || '');
-            setProfileValue('actual_address', (user as any).actual_address || '');
 
-            fetchRequisites();
+            if (isClient) {
+                setProfileValue('company_name', user.company_name || '');
+                setProfileValue('bin', (user as any).bin || '');
+                setProfileValue('inn', (user as any).inn || '');
+                setProfileValue('director_name', (user as any).director_name || '');
+                setProfileValue('acting_on_basis', (user as any).acting_on_basis || '');
+                setProfileValue('legal_address', (user as any).legal_address || '');
+                setProfileValue('actual_address', (user as any).actual_address || '');
+                fetchRequisites();
+            } else {
+                // Staff fields
+                setProfileValue('first_name', (user as any).first_name || '');
+                setProfileValue('last_name', (user as any).last_name || '');
+                setProfileValue('job_title', (user as any).job_title || '');
+            }
         }
-    }, [user, setProfileValue]);
+    }, [user, setProfileValue, isClient]);
 
     const fetchRequisites = async () => {
         setIsLoadingRequisites(true);
@@ -75,40 +92,27 @@ const ProfilePage: React.FC = () => {
         }
     };
 
-    const onSaveProfile = async (data: UserCompanyProfile) => {
+    const onSaveProfile = async (data: UserProfileData) => {
         try {
             const response = await api.put('/api/v1/auth/profile', data);
 
-            // Update local user context
-            // Assuming response returns updated user (user serializer structure)
-            // Strategy 1: User provided structure (status + data)
             let updatedUser = user;
+            // Handle different API response structures
             if (response.data.user && response.data.user.data && response.data.user.data.attributes) {
                 const attrs = response.data.user.data.attributes;
                 updatedUser = { ...user, ...attrs, id: response.data.user.data.id || user?.id };
-            } else if (response.data.data) { // Fallback if API changed
+            } else if (response.data.user) {
+                updatedUser = { ...user, ...response.data.user };
+            } else if (response.data.data) {
                 updatedUser = { ...user, ...response.data.data };
             }
 
-            // We need a way to update AuthContext user. Either add setUser to AuthContext or manually update localStorage
-            // Since we extracted setUser above (check if AuthContext exports it), IF NOT:
-            // We'll trust fetchRequisites might use it? No, fetchRequisites uses API.
-            // Let's assume AuthContext might need a reload or we update localStorage manually if setUser is not available.
-
-            // Note: I added setUser to AuthContext previously (check previous views). 
-            // Wait, I saw AuthContext view: `const [user, setUser] = useState` but `value={{ user ... }}`. 
-            // `setUser` is NOT exported in the value object in the previous view file code. 
-            // I should have checked. Let's assume for now I can't update context easily without reload or refactor.
-            // But let's try to update localStorage and reload if needed? 
-            // Ideally I should expose setUser in AuthContext. For now, alert success.
-
-            alert('Профиль компании обновлен');
-
-            // To ensure consistency
-            // To ensure consistency
             localStorage.setItem('user', JSON.stringify(updatedUser));
-            setUser(updatedUser); // Update context without reload
+            // Assuming setUser is available from context, otherwise reload might be needed
+            // But we can just rely on the alert for now if context doesn't update immediately
+            if (setUser) setUser(updatedUser);
 
+            alert('Профиль обновлен');
         } catch (error) {
             console.error('Error saving profile', error);
             alert('Ошибка при сохранении профиля');
@@ -166,49 +170,86 @@ const ProfilePage: React.FC = () => {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 py-8 px-4">
-            <h1 className="text-3xl font-bold tracking-tight">Профиль компании</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+                {isClient ? 'Профиль компании' : 'Личный профиль'}
+            </h1>
 
-            {/* SECTION 1: Company Profile (Single) */}
+            {/* SECTION: Main Profile Form */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Юридическое лицо</CardTitle>
-                    <CardDescription>Основная информация о вашей компании</CardDescription>
+                    <CardTitle>{isClient ? 'Юридическое лицо' : 'Персональные данные'}</CardTitle>
+                    <CardDescription>
+                        {isClient ? 'Основная информация о вашей компании' : `Информация сотрудника (${user.role})`}
+                    </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmitProfile(onSaveProfile)}>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="company_name">Название компании</Label>
-                                <Input id="company_name" {...registerProfile('company_name')} placeholder='ТОО "Ромашка"' />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="bin">БИН/ИИН</Label>
-                                <Input id="bin" {...registerProfile('bin')} placeholder="123456789012" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="director_name">ФИО Директора</Label>
-                                <Input id="director_name" {...registerProfile('director_name')} />
-                            </div>
+                            {/* SHARED FIELDS */}
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Телефон</Label>
                                 <Input id="phone" {...registerProfile('phone')} />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="legal_address">Юридический адрес</Label>
-                                <Input id="legal_address" {...registerProfile('legal_address')} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="actual_address">Фактический адрес</Label>
-                                <Input id="actual_address" {...registerProfile('actual_address')} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="acting_on_basis">Действует на основании</Label>
-                                <Input id="acting_on_basis" {...registerProfile('acting_on_basis')} placeholder="Устава" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="inn">ИНН (опционально)</Label>
-                                <Input id="inn" {...registerProfile('inn')} />
-                            </div>
+
+                            {/* CLIENT FIELDS */}
+                            {isClient && (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="company_name">Название компании</Label>
+                                        <Input id="company_name" {...registerProfile('company_name')} placeholder='ТОО "Ромашка"' />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="bin">БИН/ИИН</Label>
+                                        <Input id="bin" {...registerProfile('bin')} placeholder="123456789012" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="director_name">ФИО Директора</Label>
+                                        <Input id="director_name" {...registerProfile('director_name')} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="legal_address">Юридический адрес</Label>
+                                        <Input id="legal_address" {...registerProfile('legal_address')} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="actual_address">Фактический адрес</Label>
+                                        <Input id="actual_address" {...registerProfile('actual_address')} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="acting_on_basis">Действует на основании</Label>
+                                        <Input id="acting_on_basis" {...registerProfile('acting_on_basis')} placeholder="Устава" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="inn">ИНН (опционально)</Label>
+                                        <Input id="inn" {...registerProfile('inn')} />
+                                    </div>
+                                </>
+                            )}
+
+                            {/* STAFF FIELDS */}
+                            {!isClient && (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="first_name">Имя</Label>
+                                        <Input id="first_name" {...registerProfile('first_name')} placeholder="Иван" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="last_name">Фамилия</Label>
+                                        <Input id="last_name" {...registerProfile('last_name')} placeholder="Иванов" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="job_title">Должность</Label>
+                                        <Input id="job_title" {...registerProfile('job_title')} placeholder="Менеджер" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Email (Логин)</Label>
+                                        <Input value={user.email} disabled className="bg-gray-100" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Роль в системе</Label>
+                                        <Input value={user.role?.toUpperCase()} disabled className="bg-gray-100" />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end border-t pt-4">
@@ -220,57 +261,59 @@ const ProfilePage: React.FC = () => {
                 </form>
             </Card>
 
-            {/* SECTION 2: Bank Requisites (Multiple) */}
-            <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h2 className="text-xl font-bold">Банковские счета</h2>
-                        <p className="text-gray-500 text-sm">Добавьте несколько счетов для выбора при заказе</p>
+            {/* SECTION: Bank Requisites (CLIENT ONLY) */}
+            {isClient && (
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h2 className="text-xl font-bold">Банковские счета</h2>
+                            <p className="text-gray-500 text-sm">Добавьте несколько счетов для выбора при заказе</p>
+                        </div>
+                        <Button onClick={handleNewRequisite} variant="outline">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Добавить счет
+                        </Button>
                     </div>
-                    <Button onClick={handleNewRequisite} variant="outline">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Добавить счет
-                    </Button>
-                </div>
 
-                {isLoadingRequisites ? (
-                    <div>Загрузка счетов...</div>
-                ) : requisites.length === 0 ? (
-                    <Card className="text-center py-8">
-                        <CardContent>
-                            <p className="text-gray-500 mb-2">Счетов пока нет</p>
-                            <Button size="sm" onClick={handleNewRequisite}>Добавить первый счет</Button>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {requisites.map((req) => (
-                            <Card key={req.id} className="relative group">
-                                <CardHeader className="pb-2">
-                                    <div className="flex justify-between items-start">
-                                        <CardTitle className="text-base font-medium">{req.bank_name || 'Банк не указан'}</CardTitle>
-                                        <div className="flex space-x-1">
-                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-gray-400 hover:text-blue-500" onClick={() => handleEditRequisite(req)}>
-                                                <Edit2 className="h-4 w-4" />
-                                            </Button>
-                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-gray-400 hover:text-red-500" onClick={() => handleDeleteRequisite(req.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                    {isLoadingRequisites ? (
+                        <div>Загрузка счетов...</div>
+                    ) : requisites.length === 0 ? (
+                        <Card className="text-center py-8">
+                            <CardContent>
+                                <p className="text-gray-500 mb-2">Счетов пока нет</p>
+                                <Button size="sm" onClick={handleNewRequisite}>Добавить первый счет</Button>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {requisites.map((req) => (
+                                <Card key={req.id} className="relative group">
+                                    <CardHeader className="pb-2">
+                                        <div className="flex justify-between items-start">
+                                            <CardTitle className="text-base font-medium">{req.bank_name || 'Банк не указан'}</CardTitle>
+                                            <div className="flex space-x-1">
+                                                <Button size="icon" variant="ghost" className="h-6 w-6 text-gray-400 hover:text-blue-500" onClick={() => handleEditRequisite(req)}>
+                                                    <Edit2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button size="icon" variant="ghost" className="h-6 w-6 text-gray-400 hover:text-red-500" onClick={() => handleDeleteRequisite(req.id)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <CardDescription className="text-xs break-all">
-                                        IBAN: {req.iban}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="text-xs text-gray-500">
-                                    <div>SWIFT: {req.swift}</div>
-                                    {req.kbe && <div>КБе: {req.kbe}</div>}
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                )}
-            </div>
+                                        <CardDescription className="text-xs break-all">
+                                            IBAN: {req.iban}
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="text-xs text-gray-500">
+                                        <div>SWIFT: {req.swift}</div>
+                                        {req.kbe && <div>КБе: {req.kbe}</div>}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Modal for New Requisite */}
             <Dialog open={isRequisiteModalOpen} onOpenChange={setIsRequisiteModalOpen}>

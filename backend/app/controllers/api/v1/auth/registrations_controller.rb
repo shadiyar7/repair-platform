@@ -44,11 +44,11 @@ module Api
         private
 
         def sign_up_params
-          params.permit(:email, :password, :password_confirmation, :role, :company_name, :phone, :director_name, :acting_on_basis, :legal_address, :actual_address, :inn, :bin, :iban, :swift)
+          params.permit(:email, :password, :password_confirmation, :role, :company_name, :phone, :director_name, :acting_on_basis, :legal_address, :actual_address, :inn, :bin, :iban, :swift, :first_name, :last_name, :job_title)
         end
 
         def account_update_params
-          params.permit(:company_name, :phone, :director_name, :acting_on_basis, :legal_address, :actual_address, :inn, :bin, :iban, :swift)
+          params.permit(:company_name, :phone, :director_name, :acting_on_basis, :legal_address, :actual_address, :inn, :bin, :iban, :swift, :first_name, :last_name, :job_title)
         end
 
         def current_token
