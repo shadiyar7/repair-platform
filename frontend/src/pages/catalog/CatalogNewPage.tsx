@@ -301,9 +301,9 @@ const CatalogNewPage: React.FC = () => {
                                     <TableBody>
                                         {filteredItems.length > 0 ? (
                                             filteredItems.map((item: any) => {
-                                                const cartQty = getItemQuantity(item.id);
+                                                const quantity = getItemQuantity(item.id);
                                                 const stockQty = parseFloat(item.quantity) || 0;
-                                                const remainingQty = Math.max(0, stockQty - cartQty);
+                                                const remainingQty = Math.max(0, stockQty - quantity);
 
                                                 return (
                                                     <TableRow key={item.sku} className="group hover:bg-gray-50/50 transition-colors">
