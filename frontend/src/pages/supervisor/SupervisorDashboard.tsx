@@ -72,13 +72,6 @@ const SupervisorDashboard: React.FC = () => {
             return;
         }
 
-        const payload = {
-            ...formData,
-            driver_arrival_time: `${formData.driver_arrival_date} ${formData.driver_arrival_time}`
-        };
-        // Remove date field from payload as backend expects single string for 'driver_arrival_time'
-        // Actually best to just construct the payload clearly
-
         assignDriverMutation.mutate({
             driver_name: formData.driver_name,
             driver_phone: formData.driver_phone,
