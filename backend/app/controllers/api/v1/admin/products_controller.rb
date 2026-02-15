@@ -92,7 +92,15 @@ module Api
 
         # DELETE /api/v1/admin/products/:id
         def destroy
-          @product.destroy
+          if @product.order_items.exists?
+            @product.update(is_active: false)
+            render json: { message: "Product deactivated (soft deleted) because it has existing orders." }, status: :ok
+          else
+            @product.destroy
+            head :no_content
+          end
+        rescue => e
+            render json: { error: e.message }, status: :unprocessable_entity
         end
 
         private
