@@ -73,18 +73,48 @@ module Api
               "ID": target_order_id.to_i,
               "companyName": "TEST",
               "warehouseId": "000000001",
-              "totalPrice": 800,
+              "totalPrice": 1000, # Approximate total
               "items": [
-                {
-                  "nomenclature_code": "00000000181",
-                  "quantity": 50,
-                  "price": 4
-                },
-                {
-                  "nomenclature_code": "00000000190",
-                  "quantity": 120,
-                  "price": 5
-                }
+                {"quantity"=>66, "nomenclature_code"=>"00000000016", "price"=>10}, 
+                {"quantity"=>66, "nomenclature_code"=>"00000000019", "price"=>10}, 
+                {"quantity"=>10, "nomenclature_code"=>"00000000035", "price"=>10}, 
+                {"quantity"=>6, "nomenclature_code"=>"00000000054", "price"=>10}, 
+                {"quantity"=>4, "nomenclature_code"=>"00000000060", "price"=>10}, 
+                {"quantity"=>92, "nomenclature_code"=>"00000000062", "price"=>10}, 
+                {"quantity"=>212.675, "nomenclature_code"=>"00000000083", "price"=>10}, 
+                {"quantity"=>6, "nomenclature_code"=>"00000000115", "price"=>10}, 
+                {"quantity"=>26, "nomenclature_code"=>"00000000140", "price"=>10}, 
+                {"quantity"=>75, "nomenclature_code"=>"00000000147", "price"=>10}, 
+                {"quantity"=>10, "nomenclature_code"=>"00000000207", "price"=>10}, 
+                {"quantity"=>118, "nomenclature_code"=>"00000000389", "price"=>10}, 
+                {"quantity"=>18, "nomenclature_code"=>"00000000495", "price"=>10}, 
+                {"quantity"=>2, "nomenclature_code"=>"00000000496", "price"=>10}, 
+                {"quantity"=>2, "nomenclature_code"=>"00000000497", "price"=>10}, 
+                {"quantity"=>98, "nomenclature_code"=>"00000000411", "price"=>10}, 
+                {"quantity"=>126, "nomenclature_code"=>"00000000557", "price"=>10}, 
+                {"quantity"=>66, "nomenclature_code"=>"00000000558", "price"=>10}, 
+                {"quantity"=>92, "nomenclature_code"=>"00000000559", "price"=>10}, 
+                {"quantity"=>33, "nomenclature_code"=>"00000000571", "price"=>10}, 
+                {"quantity"=>33, "nomenclature_code"=>"00000000574", "price"=>10}, 
+                {"quantity"=>33, "nomenclature_code"=>"00000000575", "price"=>10}, 
+                {"quantity"=>33, "nomenclature_code"=>"00000000576", "price"=>10}, 
+                {"quantity"=>33, "nomenclature_code"=>"00000000577", "price"=>10}, 
+                {"quantity"=>33, "nomenclature_code"=>"00000000578", "price"=>10}, 
+                {"quantity"=>66, "nomenclature_code"=>"00000000579", "price"=>10}, 
+                {"quantity"=>26, "nomenclature_code"=>"00000000580", "price"=>10}, 
+                {"quantity"=>132, "nomenclature_code"=>"00000000581", "price"=>10}, 
+                {"quantity"=>33, "nomenclature_code"=>"00000000583", "price"=>10}, 
+                {"quantity"=>99, "nomenclature_code"=>"00000000584", "price"=>10}, 
+                {"quantity"=>198, "nomenclature_code"=>"00000000585", "price"=>10}, 
+                {"quantity"=>132, "nomenclature_code"=>"00000000586", "price"=>10}, 
+                {"quantity"=>66, "nomenclature_code"=>"00000000587", "price"=>10}, 
+                {"quantity"=>505, "nomenclature_code"=>"00000000588", "price"=>10}, 
+                {"quantity"=>97, "nomenclature_code"=>"00000000438", "price"=>10}, 
+                {"quantity"=>14, "nomenclature_code"=>"00000000243", "price"=>10}, 
+                {"quantity"=>182, "nomenclature_code"=>"00000000255", "price"=>10}, 
+                {"quantity"=>18, "nomenclature_code"=>"00000000300", "price"=>10}, 
+                {"quantity"=>96, "nomenclature_code"=>"00000000310", "price"=>10}, 
+                {"quantity"=>97, "nomenclature_code"=>"00000000311", "price"=>10}
               ]
             }
 
