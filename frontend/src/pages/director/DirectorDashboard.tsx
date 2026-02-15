@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import {
@@ -218,7 +219,11 @@ const AnalyticsDashboard = () => {
     );
 };
 
+
+
 const DirectorDashboard = () => {
+    const [activeTab, setActiveTab] = React.useState('signatures');
+
     return (
         <div className="container mx-auto p-6 space-y-8">
             <div className="flex justify-between items-center">
@@ -231,7 +236,7 @@ const DirectorDashboard = () => {
                 </div>
             </div>
 
-            <Tabs defaultValue="signatures" className="space-y-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="grid w-[400px] grid-cols-2">
                     <TabsTrigger value="signatures" className="gap-2">
                         <PenTool className="h-4 w-4" /> На подпись
