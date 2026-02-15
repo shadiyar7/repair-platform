@@ -67,7 +67,15 @@ const CatalogNewPage: React.FC = () => {
     const filteredItems = useMemo(() => {
         if (!warehouseData?.items) return [];
 
+        const seenCodes = new Set();
+
         return warehouseData.items.filter((item: any) => {
+            // Deduplication by nomenclature_code (1C ID)
+            if (item.nomenclature_code) {
+                if (seenCodes.has(item.nomenclature_code)) return false;
+                seenCodes.add(item.nomenclature_code);
+            }
+
             // Tab filtering matches CatalogPage.tsx logic
             if (activeTab === 'wheelsets') {
                 const isWheelset = item.category === 'Колесные пары';
@@ -293,7 +301,10 @@ const CatalogNewPage: React.FC = () => {
                                     <TableBody>
                                         {filteredItems.length > 0 ? (
                                             filteredItems.map((item: any) => {
-                                                const quantity = getItemQuantity(item.id);
+                                                const cartQty = getItemQuantity(item.id);
+                                                const stockQty = parseFloat(item.quantity) || 0;
+                                                const remainingQty = Math.max(0, stockQty - cartQty);
+
                                                 return (
                                                     <TableRow key={item.sku} className="group hover:bg-gray-50/50 transition-colors">
                                                         <TableCell className="font-medium">{item.name}</TableCell>
@@ -321,8 +332,8 @@ const CatalogNewPage: React.FC = () => {
                                                             {new Intl.NumberFormat('ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(item.price)}
                                                         </TableCell>
                                                         <TableCell className="text-right">
-                                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${parseFloat(item.quantity) > 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-                                                                {parseFloat(item.quantity) > 0 ? `${parseFloat(item.quantity)} шт.` : "Нет"}
+                                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${remainingQty > 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                                                                {remainingQty > 0 ? `${remainingQty} шт.` : "Нет"}
                                                             </span>
                                                         </TableCell>
                                                         <TableCell className="text-right">
