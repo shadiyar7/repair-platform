@@ -5,9 +5,9 @@ module Api
       before_action :authorize_analytics
 
       def dashboard
-        # Statuses that count as "Revenue" (Paid/Confirmed)
+        # Statuses that count as "Revenue" (Paid/Confirmed/Reviewing)
         revenue_statuses = [
-          'searching_driver', 'driver_assigned', 'at_warehouse', 
+          'payment_review', 'searching_driver', 'driver_assigned', 'at_warehouse', 
           'in_transit', 'delivered', 'documents_ready', 'completed', 'paid'
         ]
 

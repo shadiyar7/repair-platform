@@ -126,7 +126,7 @@ const AnalyticsDashboard = () => {
                     title="Общая выручка"
                     value={formatCurrency(kpi.total_revenue || 0)}
                     icon={DollarSign}
-                    description="+20.1% с прошлого месяца"
+                    description="За все время"
                 />
                 <KPICard
                     title="Активные заказы"
