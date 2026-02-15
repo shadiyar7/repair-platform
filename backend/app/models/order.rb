@@ -6,7 +6,9 @@ class Order < ApplicationRecord
 
   belongs_to :user
   belongs_to :company_requisite, optional: true    
-  belongs_to :driver, class_name: 'User', optional: true
+  belongs_to :company_requisite, optional: true    
+  # driver_id foreign key to users is deprecated as drivers are now just text fields (no login)
+  # belongs_to :driver, class_name: 'User', optional: true
   has_many :order_items, dependent: :destroy
   has_many :products, through: :order_items
 

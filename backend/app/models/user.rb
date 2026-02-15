@@ -5,7 +5,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :jwt_authenticatable, :confirmable, jwt_revocation_strategy: self
 
-  enum role: { client: 'client', admin: 'admin', warehouse: 'warehouse', driver: 'driver', director: 'director' }
+  enum role: { client: 'client', admin: 'admin', warehouse: 'warehouse', director: 'director', supervisor: 'supervisor' }
 
   validates :role, presence: true
   
