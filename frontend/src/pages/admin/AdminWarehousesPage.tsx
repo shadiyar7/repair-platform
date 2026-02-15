@@ -32,7 +32,7 @@ const AdminWarehousesPage: React.FC = () => {
     const fetchWarehouses = async () => {
         try {
             const response = await api.get('/api/v1/admin/warehouses');
-            setWarehouses(response.data);
+            setWarehouses(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
             console.error("Failed to fetch warehouses:", error);
         } finally {

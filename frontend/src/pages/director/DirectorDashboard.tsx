@@ -56,7 +56,9 @@ const SignaturesList = () => {
     });
 
     // Filter for pending_director_signature
-    const orders = ordersData?.data.data.filter((o: any) => o.attributes.status === 'pending_director_signature') || [];
+    const rawOrders = ordersData?.data?.data;
+    const ordersList = Array.isArray(rawOrders) ? rawOrders : [];
+    const orders = ordersList.filter((o: any) => o.attributes.status === 'pending_director_signature');
 
     if (isLoading) return <div>Загрузка...</div>;
 

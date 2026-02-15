@@ -78,8 +78,10 @@ const AdminProductsPage: React.FC = () => {
             setWarehouseName(whRes.data.name);
 
             const prodRes = await api.get(`/api/v1/admin/products`, { params: { warehouse_id: warehouseId } });
-            if (prodRes.data && prodRes.data.data) {
+            if (prodRes.data && Array.isArray(prodRes.data.data)) {
                 setProducts(prodRes.data.data);
+            } else {
+                setProducts([]);
             }
         } catch (error) {
             console.error("Failed to fetch admin data:", error);

@@ -27,7 +27,8 @@ const DriverDashboard: React.FC = () => {
     if (error) return <div className="text-red-500">Ошибка при загрузке заказов</div>;
 
     // Filter orders relevant for driver
-    const relevantOrders = orders?.filter((order: any) =>
+    const ordersList = Array.isArray(orders) ? orders : [];
+    const relevantOrders = ordersList.filter((order: any) =>
         ['at_warehouse', 'in_transit', 'delivered'].includes(order.attributes.status)
     );
 

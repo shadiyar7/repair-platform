@@ -45,8 +45,10 @@ const CatalogPage: React.FC = () => {
                 const response = await api.get('/api/v1/products');
                 // Creating a structure compatible with the existing code
                 // Expecting response.data.data to be an array of JSON:API objects
-                if (response.data && response.data.data) {
+                if (response.data && Array.isArray(response.data.data)) {
                     setProducts(response.data.data);
+                } else {
+                    setProducts([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch products:", error);

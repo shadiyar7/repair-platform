@@ -27,7 +27,8 @@ const WarehouseDashboard: React.FC = () => {
     if (error) return <div className="text-red-500">Ошибка при загрузке заказов</div>;
 
     // Filter orders relevant for warehouse
-    const relevantOrders = orders?.filter((order: any) =>
+    const ordersList = Array.isArray(orders) ? orders : [];
+    const relevantOrders = ordersList.filter((order: any) =>
         ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse'].includes(order.attributes.status)
     );
 

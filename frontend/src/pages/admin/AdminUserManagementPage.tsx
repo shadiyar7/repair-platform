@@ -142,7 +142,7 @@ const AdminUserManagementPage: React.FC = () => {
         setIsEditOpen(true);
     };
 
-    const users = usersData?.data || [];
+    const users = Array.isArray(usersData?.data) ? usersData.data : [];
 
     return (
         <div className="container mx-auto py-10">
