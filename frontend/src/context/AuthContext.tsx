@@ -4,7 +4,7 @@ import api from '@/lib/api';
 interface User {
     id: string;
     email: string;
-    role: 'client' | 'admin' | 'warehouse' | 'driver' | 'director';
+    role: 'client' | 'admin' | 'warehouse' | 'driver' | 'director' | 'supervisor';
     company_name?: string;
     phone?: string;
 }

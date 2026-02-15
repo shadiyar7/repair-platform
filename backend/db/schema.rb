@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_15_015335) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_15_053038) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -90,6 +90,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_15_015335) do
     t.text "driver_comment"
     t.float "current_lat"
     t.float "current_lng"
+    t.decimal "delivery_price", precision: 10, scale: 2
     t.index ["company_requisite_id"], name: "index_orders_on_company_requisite_id"
     t.index ["smart_link_token"], name: "index_orders_on_smart_link_token"
     t.index ["user_id"], name: "index_orders_on_user_id"

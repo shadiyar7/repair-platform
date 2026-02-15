@@ -28,7 +28,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Shield, Warehouse } from 'lucide-react';
+import { Plus, Pencil, Trash2, Shield, Warehouse, UserCog } from 'lucide-react';
 
 interface User {
     id: number;
@@ -106,7 +106,7 @@ const AdminUserManagementPage: React.FC = () => {
             case 'admin': return <Badge className="bg-red-100 text-red-800 hover:bg-red-100"><Shield className="w-3 h-3 mr-1" /> Админ</Badge>;
             case 'director': return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">Директор</Badge>;
             case 'warehouse': return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100"><Warehouse className="w-3 h-3 mr-1" /> Склад</Badge>;
-            case 'supervisor': return <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">Супервайзер</Badge>;
+            case 'supervisor': return <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100"><UserCog className="w-3 h-3 mr-1" /> Супервайзер</Badge>;
             default: return <Badge variant="outline">{role}</Badge>;
         }
     };

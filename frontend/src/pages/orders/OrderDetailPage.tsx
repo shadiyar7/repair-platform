@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -16,6 +16,30 @@ import {
 } from "@/components/ui/dialog";
 import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+
+const SimulationText = () => {
+    const [index, setIndex] = useState(0);
+    const messages = [
+        "Связываемся с биржей грузоперевозок...",
+        "Анализируем доступные машины поблизости...",
+        "Проверяем рейтинг водителей...",
+        "Торгуемся за лучшую цену доставки...",
+        "Ожидаем подтверждения от водителя..."
+    ];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setIndex((prev) => (prev + 1) % messages.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="animate-pulse text-blue-700 font-medium transition-all duration-500">
+            {messages[index]}
+        </div>
+    );
+};
 
 const OrderDetailPage: React.FC = () => {
     const { id } = useParams();
@@ -531,12 +555,7 @@ const OrderDetailPage: React.FC = () => {
                                             <div>
                                                 <h3 className="text-xl font-semibold text-blue-900 mb-2">Поиск водителя</h3>
                                                 <div className="h-6 overflow-hidden">
-                                                    <div className="animate-pulse text-blue-700 font-medium">
-                                                        {/* Simple cycling text effect could be added here state-wise, for now static animated text */}
-                                                        <span className="inline-block transition-opacity duration-500">
-                                                            Система подбирает оптимальный маршрут...
-                                                        </span>
-                                                    </div>
+                                                    <SimulationText />
                                                 </div>
                                                 <p className="text-xs text-blue-500 mt-2 max-w-sm mx-auto">
                                                     Мы уже уведомили доступных водителей через Della.kz. В среднем поиск занимает 15-30 минут.
@@ -706,13 +725,58 @@ const OrderDetailPage: React.FC = () => {
                             {attributes.status === 'in_transit' && (
                                 <div className="space-y-4">
                                     <div className="p-4 bg-blue-50 border border-blue-100 rounded-md">
-                                        <p className="text-sm font-bold text-blue-900 mb-2">Smart Link для водителя</p>
-                                        <div className="flex items-center gap-2">
-                                            <Input readOnly value={`${window.location.origin}/smart-link/${attributes.smart_link_token}`} className="bg-white" />
-                                            <Button variant="outline" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/smart-link/${attributes.smart_link_token}`)}>
-                                                Copy
-                                            </Button>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <p className="text-sm font-bold text-blue-900">Груз в пути</p>
+                                            <Badge className="bg-green-500 animate-pulse">GPS ACTIVE</Badge>
                                         </div>
+
+                                        {/* Fake Map UI */}
+                                        <div className="relative h-64 bg-gray-200 rounded-lg overflow-hidden border border-gray-300">
+                                            {/* Map Background (Pattern) */}
+                                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+
+                                            {/* Road Path (Svg) */}
+                                            <svg className="absolute inset-0 w-full h-full text-gray-400" preserveAspectRatio="none">
+                                                <path d="M 50 200 Q 150 50 300 150 T 550 100" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="8 4" />
+                                            </svg>
+
+                                            {/* Driver Marker (Animated) */}
+                                            <div className="absolute top-[100px] left-[10px] animate-[slide_10s_linear_infinite]" style={{ offsetPath: 'path("M 50 200 Q 150 50 300 150 T 550 100")', offsetDistance: '0%' }}>
+                                                <div className="relative">
+                                                    <div className="absolute -top-3 -left-3 bg-blue-500 rounded-full h-8 w-8 flex items-center justify-center shadow-lg z-10">
+                                                        <Truck className="h-4 w-4 text-white" />
+                                                    </div>
+                                                    <div className="absolute -top-3 -left-3 bg-blue-400 rounded-full h-8 w-8 animate-ping opacity-50"></div>
+                                                </div>
+                                                <div className="absolute top-6 left-0 bg-white px-2 py-0.5 rounded text-[10px] font-bold shadow whitespace-nowrap">
+                                                    {attributes.driver_car_number}
+                                                </div>
+                                            </div>
+
+                                            {/* Destination Marker */}
+                                            <div className="absolute right-10 top-20">
+                                                <MapPin className="h-8 w-8 text-red-600 mb-1" />
+                                                <div className="bg-white px-2 py-1 rounded shadow text-xs font-bold text-center">
+                                                    {attributes.city}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-xs text-blue-600 mt-2 text-center">
+                                            Водитель {attributes.driver_name} движется к пункту назначения. Расчетное время прибытия: ~15 мин.
+                                        </p>
+
+                                        {(user?.role === 'admin' || user?.role === 'driver' || user?.role === 'warehouse') && (
+                                            <div className="mt-4 pt-4 border-t border-blue-200">
+                                                <p className="text-xs font-bold text-blue-900 mb-2">Smart Link (Для водителя)</p>
+                                                <div className="flex items-center gap-2">
+                                                    <Input readOnly value={`${window.location.origin}/smart-link/${attributes.smart_link_token}`} className="bg-white text-xs h-8" />
+                                                    <Button variant="outline" size="sm" className="h-8" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/smart-link/${attributes.smart_link_token}`)}>
+                                                        Copy
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     {(user?.role === 'admin' || user?.role === 'driver') && (
                                         <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => deliverMutation.mutate()} disabled={deliverMutation.isPending}>
