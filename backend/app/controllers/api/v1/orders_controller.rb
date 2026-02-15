@@ -5,7 +5,7 @@ class Api::V1::OrdersController < ApplicationController
   def index
     orders = case current_user&.role
              when 'admin', 'warehouse', 'supervisor', 'director'
-               Order.all # Supervisors need to see all to find 'searching_driver'
+               Order.includes(:company_requisite, order_items: :product).all # Supervisors need to see all to find 'searching_driver'
              when 'driver'
                # Drivers see orders that are either explicitly 'searching_driver' OR 'payment_review' (Pre-search)
                Order.where(driver: current_user).or(Order.where(status: ['at_warehouse', 'searching_driver', 'payment_review']))
