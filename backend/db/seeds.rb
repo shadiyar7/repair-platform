@@ -86,6 +86,7 @@ unless User.exists?(email: admin_email)
     role: 'admin',
     job_title: 'System Administrator',
     email_confirmed: true,
+    confirmed_at: Time.now,
     phone: '+77770000000'
   )
   puts "Created Default Admin: #{admin_email}"

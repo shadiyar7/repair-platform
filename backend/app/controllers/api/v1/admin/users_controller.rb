@@ -16,6 +16,7 @@ module Api
           user.password = params[:user][:password]
           user.password_confirmation = params[:user][:password]
           user.email_confirmed = true # Admins create pre-confirmed users
+          user.confirmed_at = Time.now # Skip Devise confirmation for staff
 
           if user.save
             render json: UserSerializer.new(user).serializable_hash, status: :created

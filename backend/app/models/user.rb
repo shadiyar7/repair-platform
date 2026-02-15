@@ -42,6 +42,11 @@ class User < ApplicationRecord
     # Do nothing
   end
 
+  # Only require confirmation for clients (who use OTP)
+  def confirmation_required?
+    client?
+  end
+
   # Temporary: Keep legacy fields accessible but prefer CompanyRequisite
   # In future steps we will migrate data and remove these columns
 end
