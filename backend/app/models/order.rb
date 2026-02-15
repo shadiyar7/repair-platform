@@ -36,8 +36,8 @@ class Order < ApplicationRecord
       state :pending_director_signature
       state :pending_signature
       state :pending_payment
-      # state :payment_review # Deprecated: Auto-skip to searching_driver
-      # state :paid # Deprecated: Auto-skip to searching_driver
+      state :payment_review # Deprecated but kept for legacy orders
+      state :paid # Deprecated but kept for legacy orders
       state :searching_driver
       state :driver_assigned
       state :at_warehouse
@@ -67,7 +67,7 @@ class Order < ApplicationRecord
       end
 
       event :upload_receipt do
-        transitions from: :pending_payment, to: :searching_driver
+        transitions from: [:pending_payment, :payment_review], to: :searching_driver
       end
 
       # Admin confirms payment manually or system auto-confirms
@@ -84,7 +84,7 @@ class Order < ApplicationRecord
       end
 
       event :assign_driver do
-        transitions from: :searching_driver, to: :driver_assigned
+        transitions from: [:searching_driver, :payment_review, :paid], to: :driver_assigned
       end
 
       event :driver_arrived do

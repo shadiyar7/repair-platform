@@ -46,7 +46,17 @@ const OrderDetailPage: React.FC = () => {
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
-    const [driverForm, setDriverForm] = useState({ name: '', phone: '', car: '', time: '', comment: '' });
+    const [driverForm, setDriverForm] = useState(() => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return {
+            name: '',
+            phone: '',
+            car: '',
+            time: now.toISOString().slice(0, 16),
+            comment: ''
+        };
+    });
 
     const { data: order, isLoading, error } = useQuery({
         queryKey: ['order', id],
@@ -683,9 +693,12 @@ const OrderDetailPage: React.FC = () => {
                                                     <div className="space-y-2">
                                                         <Label>Время прибытия</Label>
                                                         <Input
-                                                            type="time"
+                                                            type="datetime-local"
                                                             value={driverForm.time}
                                                             onChange={(e) => setDriverForm({ ...driverForm, time: e.target.value })}
+                                                        // Default logic handled in onOpenChange or useEffect if needed, 
+                                                        // but user asked for "date default today".
+                                                        // We can set initial state for 'time' to current datetime formatted.
                                                         />
                                                     </div>
                                                     <div className="space-y-2">
