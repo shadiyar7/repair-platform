@@ -442,12 +442,17 @@ const OrderDetailPage: React.FC = () => {
                             {/* Actions Logic */}
 
                             {/* DEBUG BUTTON - Global for Admin/Warehouse */}
-                            {(user?.role === 'admin' || user?.role === 'warehouse') && attributes.invoice_base64 && (
+                            {(user?.role === 'admin' || user?.role === 'warehouse') && (
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     className="w-full mb-4 text-xs text-blue-600 border-blue-200 bg-blue-50"
                                     onClick={() => {
+                                        if (!attributes.invoice_base64) {
+                                            alert("В текущем заказе нет сохраненного счета (Base64). Нажмите 'Тест 1С', чтобы получить его.");
+                                            return;
+                                        }
+
                                         try {
                                             const byteCharacters = atob(attributes.invoice_base64);
                                             const byteNumbers = new Array(byteCharacters.length);
