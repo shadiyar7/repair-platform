@@ -21,6 +21,7 @@ const SupervisorDashboard: React.FC = () => {
         driver_name: '',
         driver_phone: '',
         driver_car_number: '',
+        driver_arrival_date: '',
         driver_arrival_time: '',
         delivery_price: '',
         driver_comment: ''
@@ -48,12 +49,17 @@ const SupervisorDashboard: React.FC = () => {
     });
 
     const handleAssignClick = (order: any) => {
+        const now = new Date();
+        const date = now.toISOString().split('T')[0];
+        const time = now.toTimeString().slice(0, 5);
+
         setSelectedOrder(order);
         setFormData({
             driver_name: '',
             driver_phone: '',
             driver_car_number: '',
-            driver_arrival_time: '',
+            driver_arrival_date: date,
+            driver_arrival_time: time,
             delivery_price: '',
             driver_comment: ''
         });
@@ -61,11 +67,26 @@ const SupervisorDashboard: React.FC = () => {
     };
 
     const handleSubmit = () => {
-        if (!formData.driver_name || !formData.driver_phone || !formData.driver_arrival_time || !formData.delivery_price) {
+        if (!formData.driver_name || !formData.driver_phone || !formData.driver_arrival_date || !formData.driver_arrival_time || !formData.delivery_price) {
             alert('Заполните обязательные поля');
             return;
         }
-        assignDriverMutation.mutate(formData);
+
+        const payload = {
+            ...formData,
+            driver_arrival_time: `${formData.driver_arrival_date} ${formData.driver_arrival_time}`
+        };
+        // Remove date field from payload as backend expects single string for 'driver_arrival_time'
+        // Actually best to just construct the payload clearly
+
+        assignDriverMutation.mutate({
+            driver_name: formData.driver_name,
+            driver_phone: formData.driver_phone,
+            driver_car_number: formData.driver_car_number,
+            driver_arrival_time: `${formData.driver_arrival_date} ${formData.driver_arrival_time}`,
+            delivery_price: formData.delivery_price,
+            driver_comment: formData.driver_comment
+        });
     };
 
     // Filter only orders waiting for driver
@@ -186,7 +207,16 @@ const SupervisorDashboard: React.FC = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="arrival_time">Время прибытия *</Label>
+                                <Label htmlFor="arrival_date">Дата прибытия *</Label>
+                                <Input
+                                    id="arrival_date"
+                                    type="date"
+                                    value={formData.driver_arrival_date}
+                                    onChange={(e) => setFormData({ ...formData, driver_arrival_date: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="arrival_time">Время *</Label>
                                 <Input
                                     id="arrival_time"
                                     type="time"
@@ -194,7 +224,7 @@ const SupervisorDashboard: React.FC = () => {
                                     onChange={(e) => setFormData({ ...formData, driver_arrival_time: e.target.value })}
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 col-span-2">
                                 <Label htmlFor="price">Цена доставки (KZT) *</Label>
                                 <div className="relative">
                                     <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
