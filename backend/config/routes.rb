@@ -48,6 +48,7 @@ Rails.application.routes.draw do
 
       # Admin Namespace
       namespace :admin do
+        resources :users, only: [:index, :create, :update, :destroy] # Staff management
         resources :warehouses
         resources :products, only: [:index, :create, :update, :destroy] do
           get 'unlinked', on: :collection

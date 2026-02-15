@@ -17,6 +17,8 @@ import DriverDashboard from '@/pages/driver/DriverDashboard';
 import ProfilePage from '@/pages/ProfilePage';
 import AdminWarehousesPage from '@/pages/admin/AdminWarehousesPage';
 import AdminProductsPage from '@/pages/admin/AdminProductsPage';
+import AdminUserManagementPage from '@/pages/admin/AdminUserManagementPage';
+import AdminLoginPage from '@/pages/auth/AdminLoginPage';
 
 import SmartLinkPage from '@/pages/driver/SmartLinkPage';
 
@@ -100,7 +102,19 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="admin/users"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AdminUserManagementPage />
+                    </ProtectedRoute>
+                  }
+                />
               </Route>
+
+              {/* Standalone Admin Login Route - Outside Layout if we want different look, or inside if we want header */}
+              {/* Requirement: /admin/login */}
+              <Route path="/admin/login" element={<AdminLoginPage />} />
             </Routes>
           </Router>
         </CartProvider>

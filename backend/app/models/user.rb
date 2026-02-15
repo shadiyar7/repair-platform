@@ -9,17 +9,17 @@ class User < ApplicationRecord
 
   validates :role, presence: true
   
-  # Client-specific validations (Legacy - moving to CompanyRequisite)
-  # with_options if: :client? do |client|
-  #   client.validates :company_name, presence: true
-  #   client.validates :director_name, presence: true
-  #   client.validates :acting_on_basis, presence: true
-  #   client.validates :legal_address, presence: true
-  #   client.validates :actual_address, presence: true
-  #   client.validates :bin, presence: true
-  #   client.validates :iban, presence: true
-  #   client.validates :swift, presence: true
-  # end
+  # Client-specific validations
+  with_options if: :client? do |client|
+    # Only validate legacy fields if they are actually used (which they shouldn't be for new flows)
+    # But for now, we keep them optional or only validate if not empty to support legacy data.
+    # The requirement is: Internal staff (Admin, etc) do NOT need these.
+    
+    # We can just skip validations for non-clients.
+  end
+
+  # Validate job_title for internal staff
+  validates :job_title, presence: true, unless: :client?
 
   has_many :company_requisites, dependent: :destroy
   has_many :orders, dependent: :destroy

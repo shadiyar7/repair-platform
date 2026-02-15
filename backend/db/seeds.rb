@@ -76,7 +76,22 @@ warehouses_data.each do |data|
   wh.update!(name: data[:name])
   warehouses << wh
 end
-
+# Create Default Admin
+admin_email = 'admin@dynamix.kz'
+unless User.exists?(email: admin_email)
+  User.create!(
+    email: admin_email,
+    password: '@Astana2026',
+    password_confirmation: '@Astana2026',
+    role: 'admin',
+    job_title: 'System Administrator',
+    email_confirmed: true,
+    phone: '+77770000000'
+  )
+  puts "Created Default Admin: #{admin_email}"
+else
+  puts "Admin already exists: #{admin_email}"
+end
 # 4. Products & Stocks
 puts "Seeding Products & Stocks..."
 
