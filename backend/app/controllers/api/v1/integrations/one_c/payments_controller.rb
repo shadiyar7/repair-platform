@@ -70,7 +70,7 @@ module Api
             # Sample payload structure as requested, using dynamic ID
             payload = {
               "binn": "881204301044",
-              "ID": target_order_id.to_i,
+              "ID": 95,
               "companyName": "TEST",
               "warehouseId": "000000001",
               "totalPrice": 1000, # Approximate total
