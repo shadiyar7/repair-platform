@@ -4,13 +4,13 @@ module Api
       # GET /api/v1/warehouses
       def index
         warehouses = Warehouse.all.order(:external_id_1c)
-        render json: warehouses
+        render json: WarehouseSerializer.new(warehouses).serializable_hash.to_json
       end
 
       # GET /api/v1/warehouses/:id
       def show
         warehouse = Warehouse.find(params[:id])
-        render json: warehouse
+        render json: WarehouseSerializer.new(warehouse).serializable_hash.to_json
       end
     end
   end

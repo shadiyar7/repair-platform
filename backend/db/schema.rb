@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_15_074707) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_15_083244) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -144,10 +144,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_15_074707) do
     t.string "job_title"
     t.string "first_name"
     t.string "last_name"
+    t.integer "warehouse_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["jti"], name: "index_users_on_jti", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["warehouse_id"], name: "index_users_on_warehouse_id"
   end
 
   create_table "warehouse_stocks", force: :cascade do |t|
@@ -180,5 +182,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_15_074707) do
   add_foreign_key "order_items", "products"
   add_foreign_key "orders", "company_requisites"
   add_foreign_key "orders", "users"
+  add_foreign_key "users", "warehouses"
   add_foreign_key "warehouse_stocks", "warehouses"
 end
