@@ -19,18 +19,15 @@ class CommercialProposalService
       # Checking if we have one, otherwise usage might be limited.
       # Assuming we might need to load a font.
       
-      pdf.font_families.update("OpenSans" => {
-        normal: "/System/Library/Fonts/Supplemental/Arial.ttf", # Mac fallback
-        bold: "/System/Library/Fonts/Supplemental/Arial Bold.ttf", # Mac fallback
-        italic: "/System/Library/Fonts/Supplemental/Arial Italic.ttf" # Mac fallback
-      }) rescue nil
+      font_path = Rails.root.join("app/assets/fonts")
       
-      # Trying to use a font that likely exists or fallback
-      begin
-        pdf.font "OpenSans"
-      rescue
-        # Fallback to standard if custom fails, though Cyrillic might not render
-      end
+      pdf.font_families.update("Arial" => {
+        normal: File.join(font_path, "Arial.ttf"),
+        bold: File.join(font_path, "Arial Bold.ttf"),
+        italic: File.join(font_path, "Arial.ttf") # Fallback to regular if italic missing
+      })
+      
+      pdf.font "Arial"
 
       # Coordinates need to be adjusted based on the template
       # Date Overlay (Assumed position: Top Right or specific field)
