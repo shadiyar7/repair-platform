@@ -86,4 +86,6 @@ gem "image_processing", "~> 1.2"
 
 gem "docx", "~> 0.10.0"
 
+gem "combine_pdf", "~> 1.0"
+
 gem "minitest-mock", "~> 5.27", :group => :test

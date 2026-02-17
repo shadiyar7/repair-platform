@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Trash2, X } from 'lucide-react';
+import { ShoppingCart, Trash2, X, FileDown } from 'lucide-react';
 import LoginModal from '@/components/auth/LoginModal';
+import api from '@/lib/api';
 
 interface CartDrawerProps {
     isOpen: boolean;
@@ -17,6 +18,31 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
 
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isKpLoading, setIsKpLoading] = useState(false);
+
+    const handleDownloadKP = async () => {
+        setIsKpLoading(true);
+        try {
+            const response = await api.post('/api/v1/commercial_proposals', {
+                items: items.map(i => ({ id: i.id, quantity: i.quantity }))
+            }, {
+                responseType: 'blob'
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `KP_DYNAMIX_${new Date().toISOString().split('T')[0]}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Error downloading KP:', error);
+            alert('Ошибка при скачивании КП');
+        } finally {
+            setIsKpLoading(false);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -102,9 +128,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                     <p>{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(totalPrice)}</p>
                                 </div>
                                 <p className="mt-0.5 text-sm text-gray-500">Доставка и налоги рассчитываются при оформлении.</p>
-                                <div className="mt-6">
+                                <div className="mt-6 space-y-3">
                                     <Button onClick={handleCheckout} className="w-full text-base py-6 bg-red-600 hover:bg-red-700">
                                         Оформить заказ
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleDownloadKP}
+                                        disabled={isKpLoading}
+                                        className="w-full text-base py-6 border-red-200 text-red-700 hover:bg-red-50"
+                                    >
+                                        <FileDown className="mr-2 h-5 w-5" />
+                                        {isKpLoading ? 'Генерация КП...' : 'Скачать Коммерческое Предложение'}
                                     </Button>
                                 </div>
                                 <div className="mt-6 flex justify-center text-sm text-center text-gray-500">
