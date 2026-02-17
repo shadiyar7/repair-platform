@@ -5,7 +5,7 @@ class CommercialProposalService
 
   def generate
     # Render the HTML template with the data
-    html_content = ApplicationController.render(
+    html_content = ActionController::Base.render(
       template: 'api/v1/commercial_proposals/kp_template',
       layout: nil,
       assigns: { products: @products }
