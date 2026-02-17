@@ -67,7 +67,8 @@ module Api
                   price: product.price,
                   characteristics: product.characteristics,
                   quantity: stock.quantity,
-                  synced_at: stock.synced_at
+                  synced_at: stock.synced_at,
+                  warehouse_nomenclature_name: stock.nomenclature_name
                 }
               end
             end
@@ -118,6 +119,8 @@ module Api
                 # Also fallback for existing ones? No, user wants clean start or migration?
                 # Let's populate product_sku for legacy compatibility if we can find a product?
                 # Actually, if we switch to nomenclature_code linking, we should stick to it.
+                
+                stock.nomenclature_name = item[:nomenclature_name] if item[:nomenclature_name].present?
                 
                 stock.quantity = item[:quantity] || 0
                 stock.synced_at = synced_now
