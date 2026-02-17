@@ -18,7 +18,8 @@ class CommercialProposalService
       page_size: 'A4',
       margin: { top: 0, bottom: 0, left: 0, right: 0 },
       encoding: 'UTF-8',
-      disable_smart_shrinking: true
+      disable_smart_shrinking: true,
+      enable_local_file_access: true
     )
 
     pdf_data
