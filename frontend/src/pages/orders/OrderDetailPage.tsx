@@ -838,17 +838,23 @@ const OrderDetailPage: React.FC = () => {
                                             <Badge className="bg-green-500 animate-pulse">GPS ACTIVE</Badge>
                                         </div>
 
-                                        {/* Real Tracking Map */}
-                                        <OrderTrackingMap order={{
-                                            id: order.id,
-                                            status: attributes.status,
-                                            delivery_address: attributes.delivery_address,
-                                            driver_name: attributes.driver_name,
-                                            driver_car_number: attributes.driver_car_number,
-                                            current_lat: attributes.current_lat,
-                                            current_lng: attributes.current_lng,
-                                            warehouse_name: attributes.warehouse_name
-                                        }} />
+                                        {/* Real Tracking Map - Large View (80vh) */}
+                                        <div className="h-[70vh] w-full rounded-lg overflow-hidden shadow-lg border border-blue-200 relative">
+                                            <OrderTrackingMap
+                                                order={{
+                                                    id: order.id,
+                                                    status: attributes.status,
+                                                    delivery_address: attributes.delivery_address,
+                                                    driver_name: attributes.driver_name,
+                                                    driver_car_number: attributes.driver_car_number,
+                                                    current_lat: attributes.current_lat,
+                                                    current_lng: attributes.current_lng,
+                                                    warehouse_name: attributes.warehouse_name,
+                                                    smart_link_token: attributes.smart_link_token
+                                                }}
+                                                className="h-full w-full border-0 shadow-none rounded-none"
+                                            />
+                                        </div>
 
                                         {(user?.role === 'admin' || user?.role === 'driver' || user?.role === 'warehouse') && (
                                             <div className="mt-4 pt-4 border-t border-blue-200">

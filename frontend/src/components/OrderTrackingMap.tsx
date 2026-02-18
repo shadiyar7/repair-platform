@@ -6,6 +6,7 @@ import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import 'leaflet-routing-machine';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import api from '@/lib/api';
 
 // Fix Leaflet default icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -31,7 +32,9 @@ interface OrderTrackingMapProps {
         current_lat?: number | null;
         current_lng?: number | null;
         warehouse_name?: string;
-    }
+        smart_link_token?: string; // Add token for polling
+    };
+    className?: string; // Add className for custom styling
 }
 
 // Routing Machine Component
@@ -78,16 +81,35 @@ const RoutingMachine = ({ start, end, onRouteFound }: { start: L.LatLng; end: L.
     return null;
 };
 
-const OrderTrackingMap: React.FC<OrderTrackingMapProps> = ({ order }) => {
+const OrderTrackingMap: React.FC<OrderTrackingMapProps> = ({ order: initialOrder, className }) => {
+    const [orderData, setOrderData] = useState(initialOrder);
     const [destinationCoords, setDestinationCoords] = useState<L.LatLng | null>(null);
     const [eta, setEta] = useState<string | null>(null);
 
     // Initial Geocoding
     useEffect(() => {
-        if (order.delivery_address) {
-            geocodeAddress(order.delivery_address);
+        if (orderData.delivery_address) {
+            geocodeAddress(orderData.delivery_address);
         }
-    }, [order.delivery_address]);
+    }, [orderData.delivery_address]);
+
+    // Polling Logic
+    useEffect(() => {
+        if (!initialOrder.smart_link_token) return;
+
+        const fetchUpdates = async () => {
+            try {
+                const res = await api.get(`/api/v1/smart_links/${initialOrder.smart_link_token}`);
+                setOrderData(prev => ({ ...prev, ...res.data }));
+            } catch (error) {
+                console.error("Failed to poll order updates", error);
+            }
+        };
+
+        // Poll every 10 seconds
+        const interval = setInterval(fetchUpdates, 10000);
+        return () => clearInterval(interval);
+    }, [initialOrder.smart_link_token]);
 
     const geocodeAddress = async (address: string) => {
         try {
@@ -117,25 +139,25 @@ const OrderTrackingMap: React.FC<OrderTrackingMapProps> = ({ order }) => {
         setEta(timeString);
     };
 
-    const driverPosition = order.current_lat && order.current_lng
-        ? new L.LatLng(order.current_lat, order.current_lng)
+    const driverPosition = orderData.current_lat && orderData.current_lng
+        ? new L.LatLng(orderData.current_lat, orderData.current_lng)
         : null;
 
     const mapCenter = driverPosition || new L.LatLng(43.238949, 76.889709);
 
     return (
-        <Card className="overflow-hidden border-2 border-blue-100 shadow-md">
-            <CardContent className="p-0 relative h-[500px]">
+        <Card className={`overflow-hidden border-2 border-blue-100 shadow-md ${className}`}>
+            <CardContent className="p-0 relative h-full">
                 {/* Map Overlay Info */}
-                <div className="absolute top-4 left-4 z-[400] bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg max-w-xs">
+                <div className="absolute top-4 left-4 z-[400] bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg max-w-[200px] sm:max-w-xs">
                     <div className="flex items-center gap-2 mb-1">
                         <Clock className="h-5 w-5 text-blue-600" />
                         <span className="font-bold text-lg">
                             {eta ? `~${eta}` : 'Расчет...'}
                         </span>
                     </div>
-                    <p className="text-sm text-gray-600">
-                        {order.driver_name} · {order.driver_car_number}
+                    <p className="text-sm text-gray-600 truncate">
+                        {orderData.driver_name} · {orderData.driver_car_number}
                     </p>
                 </div>
 
@@ -163,10 +185,10 @@ const OrderTrackingMap: React.FC<OrderTrackingMapProps> = ({ order }) => {
                 </MapContainer>
 
                 {/* Disclaimer Footer */}
-                <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur p-2 z-[400] border-t flex items-center justify-center gap-2 text-xs text-orange-600">
-                    <AlertTriangle className="h-3 w-3" />
+                <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur p-2 z-[400] border-t flex items-center justify-center gap-2 text-xs text-orange-600 text-center">
+                    <AlertTriangle className="h-3 w-3 flex-shrink-0" />
                     <span>
-                        Информация обновляется каждые 5 минут. Возможны задержки из-за качества связи в пути.
+                        Информация обновляется в реальном времени. Возможны задержки из-за качества связи.
                     </span>
                 </div>
             </CardContent>
