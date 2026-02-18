@@ -130,19 +130,17 @@ const OrderTrackingMap: React.FC<OrderTrackingMapProps> = ({ order: initialOrder
         const routes = e.routes;
         if (routes && routes.length > 0) {
             const summary = routes[0].summary;
+            // Remove traffic buffer to match driver's view
             const minutes = Math.round(summary.totalTime / 60);
 
-            // Add buffer for traffic (30%)
-            const timeWithTraffic = Math.ceil(minutes * 1.3);
-
             let timeString = '';
-            const hours = Math.floor(timeWithTraffic / 60);
-            const mins = timeWithTraffic % 60;
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
 
             if (hours > 0) timeString += `${hours} ч `;
             timeString += `${mins} мин`;
 
-            console.log("Calculated ETA:", timeString);
+            console.log("Calculated ETA (Raw):", timeString);
             setEta(timeString);
         }
     };
