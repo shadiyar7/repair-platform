@@ -62,9 +62,7 @@ const RoutingMachine = ({ start, end, onRouteFound }: { start: L.LatLng; end: L.
         } as any);
 
         routingControl.on('routesfound', function (e: any) {
-            const routes = e.routes;
-            const summary = routes[0].summary;
-            if (onRouteFound) onRouteFound(summary);
+            if (onRouteFound) onRouteFound(e);
         });
 
         routingControl.addTo(map);
@@ -127,16 +125,26 @@ const OrderTrackingMap: React.FC<OrderTrackingMapProps> = ({ order: initialOrder
         }
     };
 
-    const handleRouteFound = (summary: any) => {
-        const minutes = Math.round(summary.totalTime / 60);
-        const hours = Math.floor(minutes / 60);
-        const mins = minutes % 60;
+    const handleRouteFound = (e: any) => {
+        console.log("Route found:", e);
+        const routes = e.routes;
+        if (routes && routes.length > 0) {
+            const summary = routes[0].summary;
+            const minutes = Math.round(summary.totalTime / 60);
 
-        let timeString = '';
-        if (hours > 0) timeString += `${hours} ч `;
-        timeString += `${mins} мин`;
+            // Add buffer for traffic (30%)
+            const timeWithTraffic = Math.ceil(minutes * 1.3);
 
-        setEta(timeString);
+            let timeString = '';
+            const hours = Math.floor(timeWithTraffic / 60);
+            const mins = timeWithTraffic % 60;
+
+            if (hours > 0) timeString += `${hours} ч `;
+            timeString += `${mins} мин`;
+
+            console.log("Calculated ETA:", timeString);
+            setEta(timeString);
+        }
     };
 
     const driverPosition = orderData.current_lat && orderData.current_lng
@@ -148,17 +156,30 @@ const OrderTrackingMap: React.FC<OrderTrackingMapProps> = ({ order: initialOrder
     return (
         <Card className={`overflow-hidden border-2 border-blue-100 shadow-md ${className}`}>
             <CardContent className="p-0 relative h-full">
-                {/* Map Overlay Info */}
-                <div className="absolute top-4 left-4 z-[400] bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg max-w-[200px] sm:max-w-xs">
-                    <div className="flex items-center gap-2 mb-1">
-                        <Clock className="h-5 w-5 text-blue-600" />
-                        <span className="font-bold text-lg">
-                            {eta ? `~${eta}` : 'Расчет...'}
-                        </span>
+                {/* Enhanced Floating Status Card */}
+                <div className="absolute top-4 left-4 z-[500] bg-white/95 backdrop-blur shadow-2xl rounded-xl p-4 border border-blue-100 max-w-[280px] space-y-3">
+                    <div className="flex items-center gap-3 border-b border-gray-100 pb-2">
+                        <div className="bg-blue-100 p-2 rounded-full">
+                            <Clock className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Прибытие через</p>
+                            <p className="text-2xl font-black text-blue-900 leading-none">
+                                {eta ? eta : <span className="text-lg text-gray-400 animate-pulse">Расчет...</span>}
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-sm text-gray-600 truncate">
-                        {orderData.driver_name} · {orderData.driver_car_number}
-                    </p>
+
+                    <div className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                            <span className="text-gray-500">Водитель:</span>
+                            <span className="font-semibold text-gray-900 text-right">{orderData.driver_name || 'Не назначен'}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                            <span className="text-gray-500">Авто:</span>
+                            <span className="font-semibold text-gray-900">{orderData.driver_car_number || '---'}</span>
+                        </div>
+                    </div>
                 </div>
 
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
