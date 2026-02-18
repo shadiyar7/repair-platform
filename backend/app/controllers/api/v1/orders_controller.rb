@@ -6,15 +6,13 @@ class Api::V1::OrdersController < ApplicationController
     orders = case current_user&.role
              when 'warehouse'
                if current_user.warehouse
-                 # Filter orders that have items from this warehouse
-                 # Assuming warehouse_location string on Product matches Warehouse name
-                 # Or better: if we link Product to Warehouse later. For now, try name match.
+                 # Relaxed filtering: Show all active orders for now to ensure visibility
+                 # TODO: Re-enable strict warehouse filtering once product data is clean
                  Order.includes(:company_requisite, order_items: :product)
                       .joins(order_items: :product)
-                      .where(products: { warehouse_location: current_user.warehouse.name })
+                      .where(status: ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse', 'in_transit'])
                       .distinct
                else
-                 # Fallback if no warehouse assigned (shouldn't happen if we enforce it)
                  Order.where(status: ['at_warehouse', 'searching_driver', 'driver_assigned', 'paid'])
                end
              when 'admin', 'supervisor', 'director'
@@ -34,6 +32,21 @@ class Api::V1::OrdersController < ApplicationController
     @order = Order.find_by!(smart_link_token: params[:token])
     render json: OrderSerializer.new(@order).serializable_hash
   end
+
+  def generate_smart_link
+    authorize @order, :update?
+    
+    if @order.smart_link_token.nil?
+      @order.update(smart_link_token: SecureRandom.hex(10))
+    end
+    
+    render json: { 
+      smart_link_token: @order.smart_link_token,
+      url: "#{request.base_url}/track/#{@order.smart_link_token}" # Returning full URL for convenience
+    }
+  end
+
+
 
   def show
     authorize @order
