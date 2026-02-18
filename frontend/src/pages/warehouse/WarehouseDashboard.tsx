@@ -4,7 +4,7 @@ import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Package, Truck, Clock, CheckCircle } from 'lucide-react';
+import { Package, Truck, CheckCircle } from 'lucide-react';
 
 const WarehouseDashboard: React.FC = () => {
     const queryClient = useQueryClient();
@@ -75,100 +75,93 @@ const WarehouseDashboard: React.FC = () => {
                                                 {getStatusBadge(order.attributes.status)}
                                             </div>
                                             <p className="text-sm text-gray-500">
-                                                Клиент: {order.attributes.company_name || 'Частное лицо'}
+                                                Клиент: {order.attributes.company_requisite?.company_name || 'Частное лицо'}
                                             </p>
                                             <p className="text-sm text-gray-500">
                                                 Товары: {order.attributes.order_items?.map((i: any) => `${i.product_name} (x${i.quantity})`).join(', ')}
                                             </p>
                                         </div>
 
-                                        <div className="flex flex-wrap gap-2 items-center">
+                                        <div className="flex flex-col gap-2 items-end">
                                             {/* SMART LINK ACTIONS */}
-                                            {token ? (
-                                                <div className="flex gap-2 mr-4">
+                                            <div className="flex gap-2">
+                                                {token ? (
+                                                    <>
+                                                        <Button
+                                                            variant="secondary"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(trackingUrl);
+                                                                alert("Ссылка скопирована!");
+                                                            }}
+                                                        >
+                                                            📋 Скопировать
+                                                        </Button>
+                                                        <Button
+                                                            className="bg-green-500 hover:bg-green-600 text-white"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                const text = `Отслеживайте ваш заказ здесь: ${trackingUrl}`;
+                                                                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                                                            }}
+                                                        >
+                                                            📱 WhatsApp
+                                                        </Button>
+                                                    </>
+                                                ) : (
                                                     <Button
-                                                        variant="secondary"
+                                                        variant="outline"
                                                         size="sm"
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(trackingUrl);
-                                                            alert("Ссылка скопирована!");
-                                                        }}
+                                                        onClick={() => updateStatusMutation.mutate({ id: order.id, action: 'generate_smart_link' })}
                                                     >
-                                                        📋 Скопировать ссылку
+                                                        🔗 Создать SmartLink
                                                     </Button>
-                                                    <Button
-                                                        className="bg-green-500 hover:bg-green-600 text-white"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            const text = `Отслеживайте ваш заказ здесь: ${trackingUrl}`;
-                                                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                                                        }}
-                                                    >
-                                                        📱 WhatsApp
-                                                    </Button>
-                                                </div>
-                                            ) : (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="mr-4"
-                                                    onClick={() => updateStatusMutation.mutate({ id: order.id, action: 'generate_smart_link' })}
-                                                >
-                                                    🔗 Создать SmartLink
-                                                </Button>
-                                            )}
+                                                )}
+                                            </div>
 
                                             {/* STATUS ACTIONS */}
-                                            {order.attributes.status === 'paid' && (
-                                                <Button
-                                                    className="bg-red-600 hover:bg-red-700"
-                                                    onClick={() => updateStatusMutation.mutate({ id: order.id, action: 'find_driver' })}
-                                                    disabled={updateStatusMutation.isPending}
-                                                >
-                                                    <Truck className="mr-2 h-4 w-4" />
-                                                    Начать поиск водителя
-                                                </Button>
-                                            )}
+                                            <div className="flex gap-2 items-center">
+                                                {order.attributes.status === 'paid' && (
+                                                    <Button
+                                                        className="bg-red-600 hover:bg-red-700"
+                                                        onClick={() => updateStatusMutation.mutate({ id: order.id, action: 'find_driver' })}
+                                                        disabled={updateStatusMutation.isPending}
+                                                    >
+                                                        <Truck className="mr-2 h-4 w-4" />
+                                                        Начать поиск водителя
+                                                    </Button>
+                                                )}
 
-                                            {order.attributes.status === 'searching_driver' && (
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => updateStatusMutation.mutate({ id: order.id, action: 'assign_driver_debug' })}
-                                                    disabled={updateStatusMutation.isPending}
-                                                >
-                                                    <Clock className="mr-2 h-4 w-4" />
-                                                    Назначить водителя (Демо)
-                                                </Button>
-                                            )}
+                                                {/* Removed 'assign_driver' button as requested */}
 
-                                            {order.attributes.status === 'driver_assigned' && (
-                                                <Button
-                                                    className="bg-orange-600 hover:bg-orange-700"
-                                                    onClick={() => updateStatusMutation.mutate({ id: order.id, action: 'driver_arrived' })}
-                                                    disabled={updateStatusMutation.isPending}
-                                                >
-                                                    <Package className="mr-2 h-4 w-4" />
-                                                    Отметить прибытие на склад
-                                                </Button>
-                                            )}
+                                                {order.attributes.status === 'driver_assigned' && (
+                                                    <Button
+                                                        className="bg-orange-600 hover:bg-orange-700"
+                                                        onClick={() => updateStatusMutation.mutate({ id: order.id, action: 'driver_arrived' })}
+                                                        disabled={updateStatusMutation.isPending}
+                                                    >
+                                                        <Package className="mr-2 h-4 w-4" />
+                                                        Отметить прибытие
+                                                    </Button>
+                                                )}
 
-                                            {order.attributes.status === 'driver_arrived' && (
-                                                <Button
-                                                    className="bg-blue-600 hover:bg-blue-700"
-                                                    onClick={() => updateStatusMutation.mutate({ id: order.id, action: 'start_trip' })}
-                                                    disabled={updateStatusMutation.isPending}
-                                                >
-                                                    <Truck className="mr-2 h-4 w-4" />
-                                                    Отправить в путь
-                                                </Button>
-                                            )}
-
-                                            {order.attributes.status === 'at_warehouse' && (
-                                                <div className="flex items-center text-orange-600 font-medium px-4 py-2 bg-orange-50 rounded-md">
-                                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                                    Готов к выдаче
-                                                </div>
-                                            )}
+                                                {order.attributes.status === 'at_warehouse' && (
+                                                    <>
+                                                        <div className="flex items-center text-orange-600 font-medium px-4 py-2 bg-orange-50 rounded-md border border-orange-200">
+                                                            <CheckCircle className="mr-2 h-4 w-4" />
+                                                            Готов к выдаче
+                                                        </div>
+                                                        <Button
+                                                            className="bg-blue-600 hover:bg-blue-700"
+                                                            onClick={() => updateStatusMutation.mutate({ id: order.id, action: 'start_trip' })}
+                                                            disabled={updateStatusMutation.isPending}
+                                                        >
+                                                            <Truck className="mr-2 h-4 w-4" />
+                                                            Отправить в путь
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
