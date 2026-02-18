@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
@@ -9,7 +9,6 @@ import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
 import CatalogPage from '@/pages/catalog/CatalogPage';
 import CatalogNewPage from '@/pages/catalog/CatalogNewPage';
-
 
 import OrdersPage from '@/pages/orders/OrdersPage';
 import OrderDetailPage from '@/pages/orders/OrderDetailPage';
@@ -23,12 +22,13 @@ import AdminUserManagementPage from '@/pages/admin/AdminUserManagementPage';
 import AdminLoginPage from '@/pages/auth/AdminLoginPage';
 
 import SmartLinkPage from '@/pages/driver/SmartLinkPage';
+import TrackingPage from '@/pages/public/TrackingPage';
 
 import SupervisorDashboard from '@/pages/supervisor/SupervisorDashboard';
 import DirectorDashboard from '@/pages/director/DirectorDashboard';
 
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+
 
 const RoleBasedRedirect = () => {
   const { user, isLoading } = useAuth();
@@ -53,7 +53,12 @@ function App() {
         <CartProvider>
           <Router>
             <Routes>
+              {/* Public Tracking Route */}
+              <Route path="/track/:token" element={<TrackingPage />} />
+
+              {/* Driver specific smart link (Legacy or specific view) */}
               <Route path="/smart-link/:token" element={<SmartLinkPage />} />
+
               <Route path="/" element={<Layout />}>
                 <Route index element={
                   <ProtectedRoute allowedRoles={['client', 'admin', 'supervisor', 'director']}>
@@ -130,7 +135,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                import SupervisorDashboard from '@/pages/supervisor/SupervisorDashboard';
 
                 <Route
                   path="supervisor"
