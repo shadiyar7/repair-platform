@@ -17,6 +17,10 @@ Rails.application.routes.draw do
           post :complete
           get :download_invoice
           get :download_contract
+          
+          # IDocs Integration
+          post 'idocs/prepare', to: 'integrations/idocs#prepare'
+          post 'idocs/sign', to: 'integrations/idocs#sign'
         end
       end
       resources :products, only: [:index, :show]

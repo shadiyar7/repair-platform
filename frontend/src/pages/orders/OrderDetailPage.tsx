@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { toast } from "sonner";
+import { NCALayer } from "@/lib/ncalayer";
 import { Label } from '@/components/ui/label';
 import {
     Dialog,
@@ -14,7 +16,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader } from 'lucide-react';
+import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import OrderTrackingMap from '@/components/OrderTrackingMap';
 
@@ -74,7 +76,7 @@ const OrderDetailPage: React.FC = () => {
     };
 
     const signContractMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/sign_contract`), ...mutationOptions });
-    const directorSignMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/director_sign`), ...mutationOptions });
+    // const directorSignMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/director_sign`), ...mutationOptions });
     // const payMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/pay`), ...mutationOptions });
     // const findDriverMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/find_driver`), ...mutationOptions });
     const confirmPaymentMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/confirm_payment`), ...mutationOptions });
@@ -94,6 +96,41 @@ const OrderDetailPage: React.FC = () => {
     const deliverMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/deliver`), ...mutationOptions });
     // const completeMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/complete`), ...mutationOptions });
 
+
+    const [isIdocsSigning, setIsIdocsSigning] = useState(false);
+
+    const handleIdocsSign = async () => {
+        setIsIdocsSigning(true);
+        try {
+            // 1. Connect to NCALayer
+            await NCALayer.connect();
+
+            // 2. Prepare Document on Backend
+            toast.loading("Подготовка документа...", { id: "idocs-sign" });
+            const prepareRes = await api.post(`/orders/${id}/idocs/prepare`);
+            const { contentToSign, documentId } = prepareRes.data;
+
+            // 3. Sign in Browser
+            toast.loading("Ожидание подписи (проверьте окно NCALayer)...", { id: "idocs-sign" });
+            const signature = await NCALayer.createCms(contentToSign);
+
+            // 4. Send Signature to Backend
+            toast.loading("Отправка подписанного документа...", { id: "idocs-sign" });
+            await api.post(`/orders/${id}/idocs/sign`, {
+                documentId,
+                signature
+            });
+
+            toast.success("Документ успешно подписан и отправлен!", { id: "idocs-sign" });
+            queryClient.invalidateQueries({ queryKey: ['order', id] });
+
+        } catch (error: any) {
+            console.error("IDocs Sign Error", error);
+            toast.error(error.message || "Ошибка при подписании", { id: "idocs-sign" });
+        } finally {
+            setIsIdocsSigning(false);
+        }
+    };
 
     if (isLoading) return <div className="flex justify-center items-center h-64">Загрузка деталей заказа...</div>;
     if (error) return <div className="text-red-500">Ошибка при загрузке заказа</div>;
@@ -592,8 +629,24 @@ const OrderDetailPage: React.FC = () => {
                                             <FileText className="h-5 w-5 text-orange-600 mt-0.5" />
                                             <p className="text-sm text-orange-700">Договор готов. Пожалуйста, подпишите его (ЭЦП).</p>
                                         </div>
-                                        <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => directorSignMutation.mutate()} disabled={directorSignMutation.isPending}>
-                                            {directorSignMutation.isPending ? "Подписание..." : "Подписать как Директор"}
+
+                                        {/* Legacy Local Sign */}
+                                        {/* <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => directorSignMutation.mutate()} disabled={directorSignMutation.isPending}>
+                                            {directorSignMutation.isPending ? "Подписание..." : "Подписать как Директор (Локально)"}
+                                        </Button> */}
+
+                                        {/* IDocs Sign */}
+                                        <Button
+                                            className="w-full bg-blue-600 hover:bg-blue-700"
+                                            onClick={handleIdocsSign}
+                                            disabled={isIdocsSigning}
+                                        >
+                                            {isIdocsSigning ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Подписание через NCALayer...
+                                                </>
+                                            ) : "Подписать и отправить (iDocs)"}
                                         </Button>
                                     </div>
                                 )}
