@@ -31,10 +31,10 @@ module Api
           metadata = {
             name: "Договор поставки №CTR-#{Time.now.year}-#{order.id}",
             number: "CTR-#{Time.now.year}-#{order.id}",
-            date: Time.now.to_i,
-            group: "Договор",
+            date: Time.now.strftime("%Y-%m-%dT%H:%M:%S"),
             author_id: director_id
           }
+          Rails.logger.info "iDocs create_document payload: #{metadata.merge(blob_id: blob_id)}"
           doc_response = client.create_document(metadata, blob_id)
           Rails.logger.info "iDocs create_document response: #{doc_response}"
           # iDocs may return id under 'id' or 'documentId'

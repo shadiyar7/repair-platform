@@ -55,13 +55,12 @@ module IDocs
     end
 
     def create_document(metadata, blob_id)
-      # Metadata: { name: "", number: "", date: timestamp, group: "", author_id: int }
+      # Metadata: { name: "", number: "", date: ISO string, author_id: uuid }
       payload = {
         documentMetadata: {
           documentName: metadata[:name],
           documentNumber: metadata[:number],
           documentDate: metadata[:date],
-          documentGroup: metadata[:group],
           documentAuthorEmployeeId: metadata[:author_id]
         },
         documentBinaryContents: [
@@ -69,6 +68,7 @@ module IDocs
         ]
       }
       
+      Rails.logger.info "iDocs create_document full payload: #{payload.to_json}"
       response = @conn.post('sync/external/outbox/document/create') do |req|
         req.headers['Content-Type'] = 'application/json-patch+json'
         req.body = payload.to_json
