@@ -59,8 +59,14 @@ module Api
 
           # 5. Get content-to-sign for NCALayer
           sign_content_response = client.get_content_to_sign(document_id, director_id)
-          Rails.logger.info "iDocs content-to-sign response: #{sign_content_response.class}"
-          content_to_sign = sign_content_response.dig("response") || sign_content_response
+          Rails.logger.info "iDocs content-to-sign FULL: #{sign_content_response.inspect}"
+
+          # Response may be plain base64 string (wrapped as {"raw"=>"..."}) or a JSON object
+          content_to_sign = sign_content_response["raw"] ||
+                            sign_content_response["response"] ||
+                            sign_content_response["content"] ||
+                            sign_content_response["data"] ||
+                            sign_content_response
 
           # 6. Save document_id on order
           order.update(idocs_document_id: document_id, idocs_status: 'pending_director_signature')
