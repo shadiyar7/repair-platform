@@ -168,9 +168,11 @@ module IDocs
 
         response = @conn.post('sync/external/outbox/route/quick-route/create') do |req|
             req.headers['Content-Type'] = 'application/json-patch+json'
+            req.headers['Accept'] = 'text/plain'
             req.body = payload.to_json
         end
-        
+
+        Rails.logger.info "iDocs create_quick_route response: status=#{response.status}, body=#{response.body.inspect}"
         handle_response(response)
     end
 
@@ -178,7 +180,14 @@ module IDocs
 
     def handle_response(response)
       if response.success?
-        JSON.parse(response.body)
+        body = response.body.to_s.strip
+        return {} if body.empty?          # some endpoints return 200 with empty body
+        begin
+          JSON.parse(body)
+        rescue JSON::ParserError
+          # Some endpoints return plain text (e.g. a UUID or status string)
+          { "raw" => body }
+        end
       else
         Rails.logger.error "IDocs API Error: #{response.status} - #{response.body}"
         raise "IDocs API Error: #{response.status} - #{response.body}"
