@@ -108,7 +108,7 @@ const OrderDetailPage: React.FC = () => {
             // 2. Prepare Document on Backend
             toast.loading("Подготовка документа...", { id: "idocs-sign" });
             const prepareRes = await api.post(`/api/v1/orders/${id}/idocs/prepare`);
-            const { contentToSign, documentId } = prepareRes.data;
+            const { contentToSign, documentId, idempotencyTicket } = prepareRes.data;
 
             // 3. Sign in Browser
             toast.loading("Ожидание подписи (проверьте окно NCALayer)...", { id: "idocs-sign" });
@@ -118,7 +118,8 @@ const OrderDetailPage: React.FC = () => {
             toast.loading("Отправка подписанного документа...", { id: "idocs-sign" });
             await api.post(`/api/v1/orders/${id}/idocs/sign`, {
                 documentId,
-                signature
+                signature,
+                idempotencyTicket   // required by iDocs quick-sign/save
             });
 
             toast.success("Документ успешно подписан и отправлен!", { id: "idocs-sign" });

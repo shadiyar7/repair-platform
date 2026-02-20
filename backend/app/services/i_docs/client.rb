@@ -94,16 +94,25 @@ module IDocs
         documentId: document_id,
         signedByEmployeeId: employee_id
       }
-      
+
       response = @conn.post('sync/external/outbox/signature/content-to-sign/generate') do |req|
         req.headers['Content-Type'] = 'application/json-patch+json'
+        req.headers['Accept'] = 'text/plain'
         req.body = payload.to_json
       end
-      # This usually returns a Binary content or a Blob ID of the hash?
-      # Screenshots show it returns a JSON. We need to parse it.
-      # Actually, screenshot 7 (Create content to sign - generate) doesn't show response detailed body.
-      # But usually we need this content to pass to NCALayer.
       handle_response(response)
+    end
+
+    # Download the binary content-to-sign file from iDocs downloadLink
+    # Returns raw bytes (to be base64-encoded before sending to NCALayer)
+    def download_sign_content(download_link)
+      response = Faraday.new do |faraday|
+        faraday.adapter Faraday.default_adapter
+        faraday.headers['Authorization'] = "Bearer #{TOKEN}"
+      end.get(download_link)
+
+      raise "Failed to download sign content: #{response.status}" unless response.success?
+      response.body
     end
 
     def upload_signature(signature_data)
@@ -128,14 +137,15 @@ module IDocs
       handle_response(response)
     end
 
-    def save_signature(document_id, employee_id, signature_blob_id)
+    def save_signature(document_id, employee_id, signature_blob_id, idempotency_ticket = nil)
       payload = {
         documentId: document_id,
         signedByEmployeeId: employee_id,
         signatureBinaryContent: {
           blobId: signature_blob_id
         },
-        idempotencyTicket: SecureRandom.uuid
+        # idempotencyTicket comes from content-to-sign response — required by iDocs
+        idempotencyTicket: idempotency_ticket || SecureRandom.uuid
       }
 
       response = @conn.post('sync/external/outbox/signature/quick-sign/save') do |req|
