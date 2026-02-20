@@ -34,7 +34,7 @@ export const NCALayer = {
             const request = {
                 module: 'kz.gov.pki.knca.commonUtils',
                 method: 'createCms',
-                args: ['PKCS12', data, false] // type, data, isAttached (false for detached signature usually, or true if full doc)
+                args: ['', data, true] // type, data, isAttached
             };
 
             // iDocs usually requires attached or detached?
