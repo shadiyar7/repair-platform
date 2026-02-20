@@ -155,7 +155,7 @@ module IDocs
       temp_file.rewind
 
       payload = {
-        signatureContent: Faraday::UploadIO.new(temp_file.path, 'application/pdf') # Mime type might be application/pkcs7-signature or just application/octet-stream? Screenshot says signatureContent=<file>;type=application/pdf (weird for CMS)
+        signatureContent: Faraday::UploadIO.new(temp_file.path, 'application/octet-stream')
       }
       
       response = @upload_conn.post('sync/blobs/document-signature-content', payload)
@@ -169,9 +169,9 @@ module IDocs
       payload = {
         documentId: document_id,
         employeeId: employee_id,
-        signatureBinaryContent: {
-          blobId: signature_blob_id
-        },
+        signatureBinaryContents: [
+          { blobId: signature_blob_id }
+        ],
         # idempotencyTicket comes from content-to-sign response — required by iDocs
         idempotencyTicket: idempotency_ticket || SecureRandom.uuid
       }
@@ -179,6 +179,7 @@ module IDocs
       Rails.logger.info "iDocs save_signature payload: #{payload.to_json}"
       response = @conn.post('sync/external/outbox/signature/quick-sign/save') do |req|
         req.headers['Content-Type'] = 'application/json-patch+json'
+        req.headers['Accept'] = 'text/plain'
         req.body = payload.to_json
       end
 
