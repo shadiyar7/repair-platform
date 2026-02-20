@@ -27,36 +27,41 @@ export const NCALayer = {
     createCms: (data: string): Promise<string> => {
         return new Promise((resolve, reject) => {
             if (!NCALayer.socket || NCALayer.socket.readyState !== WebSocket.OPEN) {
-                reject(new Error('NCALayer not connected'));
+                reject(new Error('NCALayer не подключен (проверьте, запущено ли приложение NCALayer)'));
                 return;
             }
 
+            // Try 'createCmsFromBase64' which is more standard in modern SDKs
+            // than 'createCms' which can be version-dependent.
             const request = {
                 module: 'kz.gov.pki.knca.commonUtils',
-                method: 'createCms',
-                args: ['', 'SIGNATURE', data, true] // storage, keyType, data, isAttached
+                method: 'createCmsFromBase64',
+                args: ['', 'SIGNATURE', data, true] // storage, keyType, base64Data, isAttached
             };
 
             console.log('NCALayer signing request:', { ...request, args: [request.args[0], request.args[1], `Base64(${data.length})`, request.args[3]] });
 
-            // iDocs usually requires attached or detached?
-            // "signatureBinaryContent" implies we send the signature. If it's CAdES, it might be attached or detached.
-            // Usually for PDF signing in systems like this, we sign the HASH (detached).
-            // But the method name is `createCms`. 
-            // I will assume attached (true) or detached (false). 
-            // Let's try `false` (detached) first as we upload the original file separately.
-            // Wait, if we sign a hash, we sign the hash. 
-            // If `content-to-sign` returns the file digest, we sign it.
-
-            // We need to handle the response message
             const handleMessage = (event: MessageEvent) => {
-                const response = JSON.parse(event.data);
-                if (response.code === '200') {
-                    resolve(response.responseObject);
-                } else {
-                    reject(new Error(response.message || 'Signing failed'));
+                try {
+                    const response = JSON.parse(event.data);
+                    console.log('NCALayer raw response:', response);
+
+                    if (response.code === '200') {
+                        resolve(response.responseObject);
+                    } else if (response.status === '200') {
+                        // Some versions use status instead of code
+                        resolve(response.responseObject || response.result);
+                    } else {
+                        // Handle potential error from NCALayer
+                        const errorMsg = response.message || response.responseObject || 'Ошибка при подписании';
+                        reject(new Error(errorMsg));
+                    }
+                } catch (e) {
+                    console.error('Error parsing NCALayer response', e);
+                    reject(new Error('Некорректный ответ от NCALayer'));
+                } finally {
+                    NCALayer.socket?.removeEventListener('message', handleMessage);
                 }
-                NCALayer.socket?.removeEventListener('message', handleMessage);
             };
 
             NCALayer.socket.addEventListener('message', handleMessage);
