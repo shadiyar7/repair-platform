@@ -31,11 +31,10 @@ export const NCALayer = {
                 return;
             }
 
-            // Try 'createCmsFromBase64' which is more standard in modern SDKs
-            // than 'createCms' which can be version-dependent.
+            // Correct method name is 'createCMSSignatureFromBase64' (case sensitive)
             const request = {
                 module: 'kz.gov.pki.knca.commonUtils',
-                method: 'createCmsFromBase64',
+                method: 'createCMSSignatureFromBase64',
                 args: ['', 'SIGNATURE', data, true] // storage, keyType, base64Data, isAttached
             };
 
