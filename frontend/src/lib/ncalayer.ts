@@ -34,8 +34,10 @@ export const NCALayer = {
             const request = {
                 module: 'kz.gov.pki.knca.commonUtils',
                 method: 'createCms',
-                args: ['', data, true] // type, data, isAttached
+                args: ['', 'SIGNATURE', data, true] // storage, keyType, data, isAttached
             };
+
+            console.log('NCALayer signing request:', { ...request, args: [request.args[0], request.args[1], `Base64(${data.length})`, request.args[3]] });
 
             // iDocs usually requires attached or detached?
             // "signatureBinaryContent" implies we send the signature. If it's CAdES, it might be attached or detached.

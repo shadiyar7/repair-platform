@@ -108,10 +108,12 @@ const OrderDetailPage: React.FC = () => {
             // 2. Prepare Document on Backend
             toast.loading("Подготовка документа...", { id: "idocs-sign" });
             const prepareRes = await api.post(`/api/v1/orders/${id}/idocs/prepare`);
+            console.log('IDocs prepare response:', prepareRes.data);
             const { contentToSign, documentId, idempotencyTicket } = prepareRes.data;
 
             // 3. Sign in Browser
             toast.loading("Ожидание подписи (проверьте окно NCALayer)...", { id: "idocs-sign" });
+            console.log('Calling NCALayer with content length:', contentToSign?.length);
             const signature = await NCALayer.createCms(contentToSign);
 
             // 4. Send Signature to Backend
