@@ -155,10 +155,12 @@ module IDocs
       temp_file.rewind
 
       payload = {
-        signatureContent: Faraday::UploadIO.new(temp_file.path, 'application/octet-stream')
+        signatureContent: Faraday::UploadIO.new(temp_file.path, 'application/pdf')
       }
       
-      response = @upload_conn.post('sync/blobs/document-signature-content', payload)
+      response = @upload_conn.post('sync/blobs/document-signature-content', payload) do |req|
+        req.headers['Accept'] = 'text/plain'
+      end
       temp_file.close
       temp_file.unlink
       
@@ -168,10 +170,10 @@ module IDocs
     def save_signature(document_id, employee_id, signature_blob_id, idempotency_ticket = nil)
       payload = {
         documentId: document_id,
-        employeeId: employee_id,
-        signatureBinaryContents: [
-          { blobId: signature_blob_id }
-        ],
+        signedByEmployeeId: employee_id,
+        signatureBinaryContent: {
+          blobId: signature_blob_id
+        },
         # idempotencyTicket comes from content-to-sign response — required by iDocs
         idempotencyTicket: idempotency_ticket || SecureRandom.uuid
       }
@@ -179,7 +181,7 @@ module IDocs
       Rails.logger.info "iDocs save_signature payload: #{payload.to_json}"
       response = @conn.post('sync/external/outbox/signature/quick-sign/save') do |req|
         req.headers['Content-Type'] = 'application/json-patch+json'
-        req.headers['Accept'] = 'text/plain'
+        req.headers['Accept'] = '*/*'
         req.body = payload.to_json
       end
 
