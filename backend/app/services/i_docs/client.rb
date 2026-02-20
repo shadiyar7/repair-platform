@@ -106,23 +106,40 @@ module IDocs
     # Download the binary content-to-sign file from iDocs downloadLink
     # Returns raw bytes (to be base64-encoded before sending to NCALayer)
     # Uses Net::HTTP directly because Faraday normalizes double slashes in URLs
-    # (the downloadLink from iDocs contains //UUID which Faraday collapses to /UUID → 404)
+    # However, we also normalize double slashes manually to ensure compatibility
     def download_sign_content(download_link)
       require 'net/http'
-      uri = URI.parse(download_link)
+      
+      # iDocs returns something like .../download//UUID
+      # Some environments fail on the double slash. Let's normalize it to single slash.
+      # But keep the double slash in https://
+      normalized_link = download_link.gsub(%r{([^:])//}, '\1/')
+      
+      uri = URI.parse(normalized_link)
 
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = (uri.scheme == 'https')
 
       request = Net::HTTP::Get.new(uri.request_uri)
       request['Authorization'] = "Bearer #{TOKEN}"
-      request['Accept'] = 'application/octet-stream'
+      request['Accept'] = '*/*'
 
-      Rails.logger.info "iDocs downloading sign content from: #{download_link}"
+      Rails.logger.info "iDocs downloading sign content from (normalized): #{normalized_link}"
       response = http.request(request)
       Rails.logger.info "iDocs download response: status=#{response.code}, body_size=#{response.body&.bytesize}"
 
-      raise "Failed to download sign content: #{response.code} #{response.message}" unless response.code.to_i == 200
+      if response.code.to_i != 200
+        # If normalized failed, try the original link as a fallback
+        Rails.logger.warn "Normalized link failed (404), retrying original: #{download_link}"
+        uri = URI.parse(download_link)
+        request = Net::HTTP::Get.new(uri.request_uri)
+        request['Authorization'] = "Bearer #{TOKEN}"
+        request['Accept'] = '*/*'
+        response = http.request(request)
+        Rails.logger.info "iDocs fallback download response: status=#{response.code}, body_size=#{response.body&.bytesize}"
+      end
+
+      raise "Failed to download sign content after retry: #{response.code} #{response.message}" unless response.code.to_i == 200
       response.body
     end
 
