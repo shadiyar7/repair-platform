@@ -13,12 +13,21 @@ module IDocs
     TOKEN = "eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZDQkMtSFM1MTIiLCJraWQiOiJCNEVFQjMzNkREMDQ0MzkwM0EyQzQwNzVDMDJGNzg2RTEzRjQ2QUIwIiwidHlwIjoiYXQrand0In0.gr1EOjUJcgj_ek6BXjK2UjKyDdtrqpghe9hrjQraxgY_9oUNf6-_yXfbpAvZoixc80V5Cn25b0F3C0OfwdZSJ56Vn_1J3KQoMFs2lMTEGAvcXw5BGZ3YKOET3DwUD2PzrowCQR4j8QV5Wsclv-D6xFQJ6NyNKKDQoNlJjStjPRRT8IAcSxQQnA7kYdL47HNm6TYWG636pstdhv6SUXDowiLNT-V5cd3oK5dRdEkvTrd3CzbB-aZqwnlPZBCIF15oGtNJ8Ugaq5coOpmFiH1OB0h8HEjMPvKIIy-Gji4LcYLAZi7mfw9EKtqRVfxEstrGR8XOTfGydckSEiXgmgmekQ.H0b7LoorkVAibU9d4uaqnA.zJP_4tyDWnidT3_-AM2kbemQbPO8lAGa0tM7xyevrjm8FIdfXqJdM5fqC0RVbx1lvGq8dd7o5mkBR8NQ7ROS3YFiSCMF8EeAhus5CP1uIVICUlgJ-_PQpR5QoEG2M6dh4ntfyGNOJgjIxwDf-V63cOo8J3WAAX8kfsWwnaMD8WwvyhMFreuV4TZ_2YIMWHEfJHGPeOPakGP3vlsWCI0_FQtSGwNl1YwLYkvcOiRWNprvKNeEf7bBS5arzKZVQVbvV3o-dr9TFwro-Cox4Wmii1Rk6w6w6g6gVPFuysJGczupj9vJX80iuAKRCvjdJxNhgwITbU7bxEVL5pPNg9trL158cx1j1i9Lfmv9nZK4TS7Xkq5UH7eSjLlzlq5aBYFwqZWMlYKTUBTE1i2I1lgo4BuHIjQQaJsqMYJodgnefcLBnPsnPlyMnJp4756_oKG5d7nFC2HRPSEWE-enQYm6tsePS6r3qbyJG8C-ITCWSGlYKXx8blDeRDAwclI0TGhDQiZNXu666vg_PvQtT2OkfVuzrtHcAS5ajbz5PUN9a7IzF0tiLGUKFFy_ezkMtyscjhVdKPU5DSrV7kZsRrFAovEa2vNyxBK5kgT9-eB7f7Usi49iAIrx8qSEOpm2fShVR7IKmQEIDNq1jw3V_vWWYlPgquJFQscxNfP25N4wCJWSIwjpAglAWke8G0V6mGjJMDDZXsRQ7wOFKbMqUa8seKjPjwjY1xtkDTFEfkmbPJIA6OkGHsecon6pLzhu92HD6v9qlIF0I3LFI4a0AVu8yKhKC07r5MIwAvtp0VuSV-jMulDtS8fU40KIjwNS5WaGRhDIFobZEUjcNeneVHXoj7V3p0_c1EEN8MyNoRO0Moxg3XqYq4e-i3eSKOkgMxNIGjk6bvY5TtNmOz2M_47kuo--Oc6UWyIbx0QBrQ0YnMtgRcvjnjqY7M_wH_yFAB9LhKaetLLpcFH8g03hnTNxDaMtD02IF4ojxSxqSmptigWtF91jkVJQdpUhbRZEYNXDynxFa9H9u14KiMW6aiNGD8MgpCdeLvFWDHv8Vu-_cc9jB1Fq_lrrrj8J3c_F5neQR6SrmqImtQXXzVHjl5_G0wW0QPYsQ_6PckWkczbGxnwhpZjoY2JH6UUrQIF4Qa4FSTP4ASROljrQh_Y-s6KgiY2L1voscelc2hiEPwimu-2vlwf23GF6tzDTHsn2CanF417I2vuky3A8IXZy_ltJQdxms8Zk-HE5h5zE43-4EJ1r0oFTLP0x_cvp5AJGwS6fn_SLF2_FgqHa-JIE8JzaurdzwlGsZUo6v8xTUNYZxg6RO8-F8Xa6sS0Ei7dcTupPukKPNz1mNC1QqWEz4IWt4peiR0RPhw5TpbtCkZu_UX7bVTKUnNI7gL4dzpx2_rmZA6U3Gym5h70kiHJjKhAJFXQ2PTe7spSlCvVux4QBgBxUOYPAAvrCg1-TRKBE44Ib2D8hfcKMYxeWu5bARg1yGM8xpOe5wkxPsY4Ng3pkf4a4SQMSE6QFBIQA_-X266Gp0_NfUhtQ_tuEBmXNCVzZ09Gv0voANWkJPdmjgli_kykYXXKcCcakDRoanMWYLVRfj0TREOa1yO7V24q5zUq97P0ULTTZeUyocYiYqNBVBg4aPEAaK0VOQmFg6OxDZow6sWVNS_zo2CdaWZJWw_JOMxFygFHkA4CWUAk-TcUpND4h2wCxje9vPg29RFw4ahBst2AUIZarKymOq_-ms4h_ZrTzYGXoEkdiVDKDfe7T_lgWMhDVZdpHjnDlwG1EmA-xOGFm2-_LG-G4uPQSZfWpAri-Q9wGsZZC4gZnNqIs74R4VOiOeIUe1dxuLvmp_9RWwyJPbE2NWIHJcSxpegYsxFEuiE6vQP8yDq-wC7XpPZo.dU5mJIBgFbb9_2xHmdSqi6JR-WVmYmwRs7-1p0wA_9Q"
 
     def initialize
+      # JSON connection — for all API calls (create_document, save_signature, etc.)
       @conn = Faraday.new(url: BASE_URL) do |faraday|
+        faraday.adapter Faraday.default_adapter
+        faraday.headers['Authorization'] = "Bearer #{TOKEN}"
+        faraday.headers['Content-Type'] = 'application/json'
+        faraday.headers['Accept'] = 'application/json'
+      end
+
+      # Multipart connection — for file uploads only
+      @upload_conn = Faraday.new(url: BASE_URL) do |faraday|
         faraday.request :multipart
         faraday.request :url_encoded
         faraday.adapter Faraday.default_adapter
         faraday.headers['Authorization'] = "Bearer #{TOKEN}"
-        faraday.headers['Accept'] = 'text/plain'
+        faraday.headers['Accept'] = 'application/json'
       end
     end
 
@@ -50,7 +59,8 @@ module IDocs
       payload = {
         documentContent: Faraday::UploadIO.new(file_path, 'application/pdf')
       }
-      response = @conn.post('sync/blobs/document-content', payload)
+      # Use @upload_conn (multipart) for file upload
+      response = @upload_conn.post('sync/blobs/document-content', payload)
       handle_response(response)
     end
 
@@ -109,7 +119,7 @@ module IDocs
         signatureContent: Faraday::UploadIO.new(temp_file.path, 'application/pdf') # Mime type might be application/pkcs7-signature or just application/octet-stream? Screenshot says signatureContent=<file>;type=application/pdf (weird for CMS)
       }
       
-      response = @conn.post('sync/blobs/document-signature-content', payload)
+      response = @upload_conn.post('sync/blobs/document-signature-content', payload)
       temp_file.close
       temp_file.unlink
       
