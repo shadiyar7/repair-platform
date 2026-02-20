@@ -168,7 +168,7 @@ module IDocs
     def save_signature(document_id, employee_id, signature_blob_id, idempotency_ticket = nil)
       payload = {
         documentId: document_id,
-        signedByEmployeeId: employee_id,
+        employeeId: employee_id,
         signatureBinaryContent: {
           blobId: signature_blob_id
         },
@@ -176,6 +176,7 @@ module IDocs
         idempotencyTicket: idempotency_ticket || SecureRandom.uuid
       }
 
+      Rails.logger.info "iDocs save_signature payload: #{payload.to_json}"
       response = @conn.post('sync/external/outbox/signature/quick-sign/save') do |req|
         req.headers['Content-Type'] = 'application/json-patch+json'
         req.body = payload.to_json
