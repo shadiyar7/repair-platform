@@ -22,8 +22,10 @@ module Api
 
           # 2. Upload PDF blob to iDocs
           blob_response = client.upload_file(file_path.to_s)
-          blob_id = blob_response.dig("response", "id")
-          raise "Failed to upload PDF to iDocs: #{blob_response}" if blob_id.blank?
+          Rails.logger.info "iDocs blob upload response: #{blob_response}"
+          # iDocs returns { response: { blobId: '...', fileName: '...' } }
+          blob_id = blob_response.dig("response", "blobId") || blob_response.dig("response", "id")
+          raise "Failed to get blobId from iDocs upload: #{blob_response}" if blob_id.blank?
 
           # 3. Create document in iDocs on behalf of Director
           metadata = {
@@ -34,8 +36,10 @@ module Api
             author_id: director_id
           }
           doc_response = client.create_document(metadata, blob_id)
-          document_id = doc_response.dig("response", "id")
-          raise "Failed to create document in iDocs: #{doc_response}" if document_id.blank?
+          Rails.logger.info "iDocs create_document response: #{doc_response}"
+          # iDocs may return id under 'id' or 'documentId'
+          document_id = doc_response.dig("response", "id") || doc_response.dig("response", "documentId")
+          raise "Failed to get documentId from iDocs create_document: #{doc_response}" if document_id.blank?
 
           # 4. Get content-to-sign (hash/data) for NCALayer
           sign_content_response = client.get_content_to_sign(document_id, director_id)
