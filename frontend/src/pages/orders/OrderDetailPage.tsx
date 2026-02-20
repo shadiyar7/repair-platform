@@ -107,7 +107,7 @@ const OrderDetailPage: React.FC = () => {
 
             // 2. Prepare Document on Backend
             toast.loading("Подготовка документа...", { id: "idocs-sign" });
-            const prepareRes = await api.post(`/orders/${id}/idocs/prepare`);
+            const prepareRes = await api.post(`/api/v1/orders/${id}/idocs/prepare`);
             const { contentToSign, documentId } = prepareRes.data;
 
             // 3. Sign in Browser
@@ -116,7 +116,7 @@ const OrderDetailPage: React.FC = () => {
 
             // 4. Send Signature to Backend
             toast.loading("Отправка подписанного документа...", { id: "idocs-sign" });
-            await api.post(`/orders/${id}/idocs/sign`, {
+            await api.post(`/api/v1/orders/${id}/idocs/sign`, {
                 documentId,
                 signature
             });
@@ -622,20 +622,16 @@ const OrderDetailPage: React.FC = () => {
                                     </Button>
                                 )}
 
-                                {/* Director Signature */}
-                                {attributes.status === 'pending_director_signature' && (user?.role === 'director' || user?.role === 'admin') && (
+                                {/* Director / Admin: iDocs Signature — visible for any order */}
+                                {(user?.role === 'director' || user?.role === 'admin') && (
                                     <div className="space-y-4">
                                         <div className="p-4 bg-orange-50 border border-orange-100 rounded-md flex items-start space-x-3">
                                             <FileText className="h-5 w-5 text-orange-600 mt-0.5" />
-                                            <p className="text-sm text-orange-700">Договор готов. Пожалуйста, подпишите его (ЭЦП).</p>
+                                            <div>
+                                                <p className="text-sm font-semibold text-orange-800">Подписание ЭЦП (iDocs)</p>
+                                                <p className="text-xs text-orange-600 mt-0.5">Статус: <span className="font-mono">{attributes.status}</span></p>
+                                            </div>
                                         </div>
-
-                                        {/* Legacy Local Sign */}
-                                        {/* <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => directorSignMutation.mutate()} disabled={directorSignMutation.isPending}>
-                                            {directorSignMutation.isPending ? "Подписание..." : "Подписать как Директор (Локально)"}
-                                        </Button> */}
-
-                                        {/* IDocs Sign */}
                                         <Button
                                             className="w-full bg-blue-600 hover:bg-blue-700"
                                             onClick={handleIdocsSign}
@@ -650,6 +646,7 @@ const OrderDetailPage: React.FC = () => {
                                         </Button>
                                     </div>
                                 )}
+
                                 {/* ... Other status actions ... */}
                                 {/* Placeholder removed */}
 
