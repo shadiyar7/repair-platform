@@ -31,12 +31,16 @@ export const NCALayer = {
                 return;
             }
 
-            // Correct method name is 'createCMSSignatureFromBase64' (case sensitive)
+            // 'storageName' cannot be empty in createCMSSignatureFromBase64.
+            // 'PKCS12' is the standard for file-based keys (.p12) and triggers a file picker.
             const request = {
                 module: 'kz.gov.pki.knca.commonUtils',
                 method: 'createCMSSignatureFromBase64',
-                args: ['', 'SIGNATURE', data, true] // storage, keyType, base64Data, isAttached
+                args: ['PKCS12', 'SIGNATURE', data, true] // storage, keyType, base64Data, isAttached
             };
+
+            // Note: If you have a physical token (Kaztoken, etc.), use 'AKKaztoken Store' or similar.
+            // But 'PKCS12' is the safest default to trigger the browser's file selection if needed.
 
             console.log('NCALayer signing request:', { ...request, args: [request.args[0], request.args[1], `Base64(${data.length})`, request.args[3]] });
 
