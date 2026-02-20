@@ -31,7 +31,8 @@ module Api
           metadata = {
             name: "Договор поставки №CTR-#{Time.now.year}-#{order.id}",
             number: "CTR-#{Time.now.year}-#{order.id}",
-            date: Time.now.strftime("%Y-%m-%dT%H:%M:%S"),
+            date: Time.now.to_i,        # Unix timestamp (int) — required by iDocs API
+            group: "Purchase",           # DocumentGroupType enum: Purchase/Legal/Accounting/Financial/etc
             author_id: director_id
           }
           Rails.logger.info "iDocs create_document payload: #{metadata.merge(blob_id: blob_id)}"
