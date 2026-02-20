@@ -105,13 +105,24 @@ module IDocs
 
     # Download the binary content-to-sign file from iDocs downloadLink
     # Returns raw bytes (to be base64-encoded before sending to NCALayer)
+    # Uses Net::HTTP directly because Faraday normalizes double slashes in URLs
+    # (the downloadLink from iDocs contains //UUID which Faraday collapses to /UUID → 404)
     def download_sign_content(download_link)
-      response = Faraday.new do |faraday|
-        faraday.adapter Faraday.default_adapter
-        faraday.headers['Authorization'] = "Bearer #{TOKEN}"
-      end.get(download_link)
+      require 'net/http'
+      uri = URI.parse(download_link)
 
-      raise "Failed to download sign content: #{response.status}" unless response.success?
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+
+      request = Net::HTTP::Get.new(uri.request_uri)
+      request['Authorization'] = "Bearer #{TOKEN}"
+      request['Accept'] = 'application/octet-stream'
+
+      Rails.logger.info "iDocs downloading sign content from: #{download_link}"
+      response = http.request(request)
+      Rails.logger.info "iDocs download response: status=#{response.code}, body_size=#{response.body&.bytesize}"
+
+      raise "Failed to download sign content: #{response.code} #{response.message}" unless response.code.to_i == 200
       response.body
     end
 
