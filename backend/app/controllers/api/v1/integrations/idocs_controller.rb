@@ -39,8 +39,8 @@ module Api
           raise "Failed to get documentId from iDocs: #{doc_response}" if document_id.blank?
 
           # 4. Create quick route to client (BEFORE signing, per iDocs scenario)
-          client_bin   = "980107301250" # Hardcoded Test Data from User
-          client_email = "test@example.com"
+          client_bin   = order.company_requisite&.bin || order.user&.inn
+          client_email = order.user&.email
 
           if client_bin.present? && client_email.present?
             Rails.logger.info "iDocs creating quick route: doc=#{document_id}, bin=#{client_bin}, email=#{client_email}"

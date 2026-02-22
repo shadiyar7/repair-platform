@@ -632,21 +632,28 @@ const OrderDetailPage: React.FC = () => {
                                             <FileText className="h-5 w-5 text-orange-600 mt-0.5" />
                                             <div>
                                                 <p className="text-sm font-semibold text-orange-800">Подписание ЭЦП (iDocs)</p>
-                                                <p className="text-xs text-orange-600 mt-0.5">Статус: <span className="font-mono">{attributes.status}</span></p>
+                                                <p className="text-xs text-orange-600 mt-0.5">Статус iDocs: <span className="font-mono">{attributes.idocs_status || 'Не начато'}</span></p>
                                             </div>
                                         </div>
-                                        <Button
-                                            className="w-full bg-blue-600 hover:bg-blue-700"
-                                            onClick={handleIdocsSign}
-                                            disabled={isIdocsSigning}
-                                        >
-                                            {isIdocsSigning ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Подписание через NCALayer...
-                                                </>
-                                            ) : "Подписать и отправить (iDocs)"}
-                                        </Button>
+                                        {attributes.idocs_status !== 'sent_to_client' && (
+                                            <Button
+                                                className="w-full bg-blue-600 hover:bg-blue-700"
+                                                onClick={handleIdocsSign}
+                                                disabled={isIdocsSigning}
+                                            >
+                                                {isIdocsSigning ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        Подписание через NCALayer...
+                                                    </>
+                                                ) : "Подписать и отправить (iDocs)"}
+                                            </Button>
+                                        )}
+                                        {attributes.idocs_status === 'sent_to_client' && (
+                                            <div className="text-sm text-green-600 font-medium text-center">
+                                                ✓ Документ подписан и отправлен клиенту
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
