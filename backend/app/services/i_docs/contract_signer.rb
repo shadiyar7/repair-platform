@@ -96,14 +96,13 @@ module IDocs
           pdf.bounds.move_past_bottom
           
           pdf.text "ПОКУПАТЕЛЬ:", style: :bold
-          requisite = @order.company_requisite || @order.user
-          pdf.text "#{requisite.company_name}"
-          pdf.text "БИН: #{requisite.bin}"
-          pdf.text "ИИК: #{requisite.iban}"
-          pdf.text "Банк: #{requisite.swift}"
-          pdf.text "Адрес: #{requisite.legal_address}"
+          pdf.text "ИП ШАДИЯР А Б"
+          pdf.text "БИН: 980107301250"
+          pdf.text "ИИК: KZ84722S000048301323"
+          pdf.text "Банк: АО \"Kaspi Bank\""
+          pdf.text "Адрес: Жамбылский район, Аса, УЛИЦА ТЕМИР ЖОЛ, дом 6/1"
           pdf.move_down 20
-          pdf.text "________________ / #{requisite.director_name}"
+          pdf.text "________________ / Шадияр А.Б."
         end
 
         pdf.move_down 50
