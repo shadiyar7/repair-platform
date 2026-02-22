@@ -212,12 +212,27 @@ class Api::V1::OrdersController < ApplicationController
   def download_contract
     authorize @order, :show?
     
+    timestamp = Time.current.strftime('%H%M%S')
+    
+    # PROXY MODE: Try to download from iDocs first if a document was created
+    if @order.idocs_document_id.present?
+      begin
+        client = IDocs::Client.new
+        pdf_content = client.download_print_form(@order.idocs_document_id)
+        
+        return send_data pdf_content,
+                  filename: "Dogovor_iDocs_#{@order.id}_#{timestamp}.pdf",
+                  type: 'application/pdf',
+                  disposition: 'inline'
+      rescue => e
+        Rails.logger.warn "Failed to download iDocs print form for Order #{@order.id}: #{e.message}. Falling back to standard local contract."
+      end
+    end
+
     # Generate only if missing
     unless @order.document.attached?
       generate_and_attach_contract(@order)
     end
-    
-    timestamp = Time.current.strftime('%H%M%S')
     
     # PROXY MODE: Download from S3 and send to client to avoid CORS issues
     # and ensure correct filename/content type.

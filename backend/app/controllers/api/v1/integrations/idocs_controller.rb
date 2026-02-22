@@ -12,9 +12,8 @@ module Api
           client = IDocs::Client.new
           director_id = IDocs::Client::DIRECTOR_EMPLOYEE_ID
 
-          # 1. Generate contract PDF
-          signer_service = IDocs::ContractSigner.new(order)
-          pdf_data = signer_service.generate_contract_pdf
+          # 1. Generate contract PDF exactly as it appears in the regular system
+          pdf_data = Pdf::ContractGenerator.new(order).generate
           file_path = Rails.root.join("tmp", "contract_order_#{order.id}.pdf")
           File.binwrite(file_path, pdf_data)
 
@@ -101,7 +100,11 @@ module Api
           save_result = client.save_signature(document_id, director_id, sig_blob_id, idempotency_ticket)
           Rails.logger.info "iDocs save_signature response: #{save_result.inspect}"
 
-          order.update(idocs_status: 'sent_to_client')
+          order.update!(idocs_status: 'sent_to_client')
+          
+          # Advance the main order state machine so the frontend UI immediately updates for the client
+          order.director_sign! if order.may_director_sign?
+
           render json: {
             success: true,
             message: "Документ подписан директором и отправлен клиенту",

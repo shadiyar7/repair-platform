@@ -902,7 +902,7 @@ const OrderDetailPage: React.FC = () => {
                                         <FileText className="mr-2 h-4 w-4" /> Счет на оплату
                                     </Button>
                                     <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => downloadFile('contract')}>
-                                        <FileText className="mr-2 h-4 w-4" /> Договор
+                                        <FileText className="mr-2 h-4 w-4" /> {attributes.idocs_status ? "Скачать договор (iDocs)" : "Договор"}
                                     </Button>
                                 </div>
                             </CardContent>

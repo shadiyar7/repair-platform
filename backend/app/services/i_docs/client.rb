@@ -218,6 +218,17 @@ module IDocs
         handle_response(response)
     end
 
+    def download_print_form(document_id)
+      response = @conn.get("sync/single/document/GetDocumentPrintFormByDocumentId/#{document_id}")
+      
+      if response.success?
+        response.body
+      else
+        Rails.logger.error "IDocs API Error (Download Print Form): #{response.status} - #{response.body}"
+        raise "IDocs API Error (Download Print Form): #{response.status} - #{response.body}"
+      end
+    end
+
     private
 
     def handle_response(response)
