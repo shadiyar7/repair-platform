@@ -1,0 +1,12 @@
+"/api/v3/async/bulk/external/inbox/signature/quick-sign/save"
+null
+"/api/v3/async/bulk/external/inbox/signature/quick-sign/save/status"
+null
+"/api/v3/async/bulk/external/outbox/signature/quick-sign/save"
+null
+"/api/v3/async/bulk/external/outbox/signature/quick-sign/save/status"
+null
+"/api/v3/sync/external/inbox/signature/quick-sign/save"
+null
+"/api/v3/sync/external/outbox/signature/quick-sign/save"
+null

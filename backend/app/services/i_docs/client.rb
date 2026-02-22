@@ -170,10 +170,10 @@ module IDocs
     def save_signature(document_id, employee_id, signature_blob_id, idempotency_ticket = nil)
       payload = {
         documentId: document_id,
-        employeeId: employee_id,
-        signatureBinaryContents: [
-          { blobId: signature_blob_id }
-        ],
+        signedByEmployeeId: employee_id,
+        signatureBinaryContent: {
+          blobId: signature_blob_id
+        },
         idempotencyTicket: idempotency_ticket || SecureRandom.uuid
       }
 
