@@ -167,17 +167,15 @@ module IDocs
       handle_response(response)
     end
 
-    def save_signature(document_id, employee_id, signature_blob_id, idempotency_ticket = nil, signing_ticket = nil)
+    def save_signature(document_id, employee_id, signature_blob_id, idempotency_ticket = nil)
       payload = {
         documentId: document_id,
-        signedByEmployeeId: employee_id,
-        signatureBinaryContent: {
-          blobId: signature_blob_id
-        },
+        employeeId: employee_id,
+        signatureBinaryContents: [
+          { blobId: signature_blob_id }
+        ],
         idempotencyTicket: idempotency_ticket || SecureRandom.uuid
       }
-      
-      payload[:signingTicket] = signing_ticket if signing_ticket
 
       Rails.logger.info "iDocs save_signature payload: #{payload.to_json}"
       response = @conn.post('sync/external/outbox/signature/quick-sign/save') do |req|
