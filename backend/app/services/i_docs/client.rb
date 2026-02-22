@@ -4,8 +4,9 @@ module IDocs
     BASE_URL = 'https://beta-ext-edo-integration.idocs.kz/api/v3'
 
     # Real EmployeeIDs retrieved from company-employees API (2026-02-21)
-    # Using User's Employee ID for testing IIN signature validation
-    DIRECTOR_EMPLOYEE_ID = '5477bb14-63b0-4545-deca-08de6e1521ce'
+    # КОМАНДИРОВ АДИЛЕТ МУРАТОВИЧ — Первый руководитель (Директор)
+    DIRECTOR_EMPLOYEE_ID = '08e9f2df-1b6d-447d-3db0-08de6cc71a03'
+    # АЛАХАН ШАДИЯР БОЛАТҰЛЫ — Разработчик / Админ
     ADMIN_EMPLOYEE_ID = '5477bb14-63b0-4545-deca-08de6e1521ce'
 
     # Token provided by idocs manager for beta/test environment
