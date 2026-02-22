@@ -192,6 +192,7 @@ module IDocs
             employeeId: sender_employee_id,
             route: {
                 external: {
+                    isSignRequiredBySender: true,
                     nodes: [
                         {
                             order: 0,
@@ -199,7 +200,7 @@ module IDocs
                             comment: "Please sign this document",
                             isIndividual: false,
                             counterpartyEmails: [client_email],
-                            requiredActionType: "Signature" # Guessing enum
+                            isSignRequiredByCounterparty: true
                         }
                     ]
                 }
