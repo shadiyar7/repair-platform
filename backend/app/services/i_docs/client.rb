@@ -81,8 +81,8 @@ module IDocs
 
       Rails.logger.info "iDocs create_document full payload: #{payload.to_json}"
       response = @conn.post('sync/external/outbox/document/create') do |req|
-        req.headers['Content-Type'] = 'application/json-patch+json'
-        req.headers['Accept'] = 'text/plain'
+        req.headers['Content-Type'] = 'application/json'
+        req.headers['Accept'] = 'application/json'
         req.body = payload.to_json
       end
       
@@ -96,8 +96,8 @@ module IDocs
       }
 
       response = @conn.post('sync/external/outbox/signature/content-to-sign/generate') do |req|
-        req.headers['Content-Type'] = 'application/json-patch+json'
-        req.headers['Accept'] = 'text/plain'
+        req.headers['Content-Type'] = 'application/json'
+        req.headers['Accept'] = 'application/json'
         req.body = payload.to_json
       end
       handle_response(response)
@@ -167,21 +167,22 @@ module IDocs
       handle_response(response)
     end
 
-    def save_signature(document_id, employee_id, signature_blob_id, idempotency_ticket = nil)
+    def save_signature(document_id, employee_id, signature_blob_id, idempotency_ticket = nil, signing_ticket = nil)
       payload = {
         documentId: document_id,
         signedByEmployeeId: employee_id,
         signatureBinaryContent: {
           blobId: signature_blob_id
         },
-        # idempotencyTicket comes from content-to-sign response — required by iDocs
         idempotencyTicket: idempotency_ticket || SecureRandom.uuid
       }
+      
+      payload[:signingTicket] = signing_ticket if signing_ticket
 
       Rails.logger.info "iDocs save_signature payload: #{payload.to_json}"
       response = @conn.post('sync/external/outbox/signature/quick-sign/save') do |req|
-        req.headers['Content-Type'] = 'application/json-patch+json'
-        req.headers['Accept'] = '*/*'
+        req.headers['Content-Type'] = 'application/json'
+        req.headers['Accept'] = 'application/json'
         req.body = payload.to_json
       end
 
@@ -209,8 +210,8 @@ module IDocs
         }
 
         response = @conn.post('sync/external/outbox/route/quick-route/create') do |req|
-            req.headers['Content-Type'] = 'application/json-patch+json'
-            req.headers['Accept'] = 'text/plain'
+            req.headers['Content-Type'] = 'application/json'
+            req.headers['Accept'] = 'application/json'
             req.body = payload.to_json
         end
 

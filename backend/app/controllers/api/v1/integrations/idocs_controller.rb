@@ -56,6 +56,7 @@ module Api
 
           download_link    = sign_meta["downloadLink"]
           idempotency_ticket = sign_meta["idempotencyTicket"]
+          signing_ticket     = sign_meta["signingTicket"]
           raise "No downloadLink in content-to-sign response: #{sign_meta}" if download_link.blank?
 
           # 6. Download the content-to-sign file and base64 encode it for NCALayer
@@ -70,7 +71,8 @@ module Api
             success: true,
             documentId: document_id,
             contentToSign: content_to_sign,
-            idempotencyTicket: idempotency_ticket
+            idempotencyTicket: idempotency_ticket,
+            signingTicket: signing_ticket
           }
         rescue => e
           Rails.logger.error "iDocs prepare error: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
@@ -83,6 +85,7 @@ module Api
           signature          = params[:signature]
           document_id        = params[:documentId] || order.idocs_document_id
           idempotency_ticket = params[:idempotencyTicket]
+          signing_ticket     = params[:signingTicket]
 
           return render json: { error: "Signature is missing" }, status: 400 if signature.blank?
           return render json: { error: "Document ID is missing" }, status: 400 if document_id.blank?
@@ -99,7 +102,7 @@ module Api
           raise "Failed to upload signature to iDocs: #{sig_blob_response}" if sig_blob_id.blank?
 
           # 2. Save signature on document (idempotencyTicket required by iDocs API)
-          save_result = client.save_signature(document_id, director_id, sig_blob_id, idempotency_ticket)
+          save_result = client.save_signature(document_id, director_id, sig_blob_id, idempotency_ticket, signing_ticket)
           Rails.logger.info "iDocs save_signature response: #{save_result.inspect}"
 
           order.update(idocs_status: 'sent_to_client')
