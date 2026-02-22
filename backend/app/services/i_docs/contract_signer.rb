@@ -37,8 +37,8 @@ module IDocs
         pdf.move_down 20
 
         # Parties
-        pdf.text "ТОО «Comander Sup»", style: :bold
-        pdf.text "в лице Директора Сулейменова К.А., действующего на основании Устава, именуемое в дальнейшем «Поставщик», с одной стороны, и"
+        pdf.text "ТОО «Komandeer Supply»", style: :bold
+        pdf.text "в лице Директора Командирова А.М., действующего на основании Устава, именуемое в дальнейшем «Поставщик», с одной стороны, и"
         pdf.move_down 10
         requisite = @order.company_requisite || @order.user
         pdf.text "«#{requisite.company_name}»", style: :bold
@@ -85,13 +85,13 @@ module IDocs
         # Signatures
         pdf.column_box([0, pdf.cursor], columns: 2, width: pdf.bounds.width) do
           pdf.text "ПОСТАВЩИК:", style: :bold
-          pdf.text "ТОО «Comander Sup»"
-          pdf.text "БИН: 123456789012"
-          pdf.text "ИИК: KZ123456789012345678"
-          pdf.text "Банк: АО «Kaspi Bank»"
-          pdf.text "Адрес: г. Алматы, пр. Аль-Фараби, 77/7"
+          pdf.text "ТОО «Komandeer Supply»"
+          pdf.text "БИН: 100740004791"
+          pdf.text "ИИК: KZ5396503F0012694785"
+          pdf.text "Банк: Филиал АО \"ForteBank\" в г. Астана"
+          pdf.text "Адрес: г. Астана, Конаева 10, БЦ «Emerald Tower», офис 501"
           pdf.move_down 20
-          pdf.text "________________ / Сулейменов К.А."
+          pdf.text "________________ / Командиров А.М."
           
           pdf.bounds.move_past_bottom
           
