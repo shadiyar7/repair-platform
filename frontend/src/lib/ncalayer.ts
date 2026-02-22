@@ -36,7 +36,7 @@ export const NCALayer = {
             const request = {
                 module: 'kz.gov.pki.knca.commonUtils',
                 method: 'createCMSSignatureFromBase64',
-                args: ['PKCS12', 'SIGNATURE', data, true] // storage, keyType, base64Data, isAttached
+                args: ['PKCS12', 'SIGNATURE', data, false] // storage, keyType, base64Data, isAttached
             };
 
             // Note: If you have a physical token (Kaztoken, etc.), use 'AKKaztoken Store' or similar.

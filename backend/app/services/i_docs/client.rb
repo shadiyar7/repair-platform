@@ -155,7 +155,7 @@ module IDocs
       temp_file.rewind
 
       payload = {
-        signatureContent: Faraday::UploadIO.new(temp_file.path, 'application/pdf')
+        signatureContent: Faraday::UploadIO.new(temp_file.path, 'application/octet-stream')
       }
       
       response = @upload_conn.post('sync/blobs/document-signature-content', payload) do |req|
