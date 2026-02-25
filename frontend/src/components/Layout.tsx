@@ -5,7 +5,6 @@ import { useCart } from '@/context/CartContext';
 import { ShoppingCart } from 'lucide-react';
 import CartDrawer from '@/components/cart/CartDrawer';
 import LoginModal from '@/components/auth/LoginModal';
-import api from '@/lib/api';
 
 const Layout: React.FC = () => {
     const { user, logout } = useAuth();
@@ -77,7 +76,7 @@ const Layout: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                            {user && (
+                            {/* user && (
                                 <button
                                     onClick={async () => {
                                         try {
@@ -109,7 +108,7 @@ const Layout: React.FC = () => {
                                 >
                                     Тест отправка 1С
                                 </button>
-                            )}
+                            ) */}
                             <button
                                 onClick={() => setIsCartOpen(true)}
                                 className="relative p-2 text-gray-400 hover:text-gray-500"
