@@ -1,7 +1,7 @@
 class UpdateShadiyarsProductionData < ActiveRecord::Migration[7.1]
   def up
-    # 1. Clean up "Test Client LLP (Main)"
-    CompanyRequisite.where("company_name LIKE ?", "%Test Client%").destroy_all
+    # 1. Soft-delete "Test Client LLP (Main)"
+    CompanyRequisite.where("company_name LIKE ?", "%Test Client%").update_all(is_active: false)
 
     # 2. Update user profile
     user = User.find_by(email: 'client@repair.com') || User.find_by(email: 'shadiyar7@gmail.com')
