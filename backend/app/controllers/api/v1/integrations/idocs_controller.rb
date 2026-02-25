@@ -99,6 +99,21 @@ module Api
           # 2. Save signature on document (idempotencyTicket required by iDocs API)
           save_result = client.save_signature(document_id, director_id, sig_blob_id, idempotency_ticket)
           Rails.logger.info "iDocs save_signature response: #{save_result.inspect}"
+          
+          # 3. Download the signed Print Form from iDocs and persist it back to our S3 storage
+          # This replaces the initial unsigned PDF with the Director-signed version
+          begin
+            signed_pdf_content = client.download_print_form(document_id)
+            order.document.attach(
+              io: StringIO.new(signed_pdf_content),
+              filename: "Contract_iDocs_#{order.id}.pdf",
+              content_type: 'application/pdf'
+            )
+            Rails.logger.info "iDocs: Successfully persisted Director-signed PDF to Order.document"
+          rescue => e
+            Rails.logger.error "iDocs: Failed to persist signed PDF after Director sign: #{e.message}"
+            # We don't fail the whole request here, the route is still created and signature saved
+          end
 
           order.update!(idocs_status: 'sent_to_client')
           

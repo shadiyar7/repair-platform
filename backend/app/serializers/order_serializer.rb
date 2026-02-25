@@ -2,7 +2,8 @@ class OrderSerializer
   include JSONAPI::Serializer
   attributes :id, :status, :total_amount, :city, :delivery_address, :delivery_notes, :created_at, :order_items,
              :driver_name, :driver_phone, :driver_car_number, :driver_arrival_time, :driver_comment, :delivery_price,
-             :director_signed_at, :smart_link_token, :invoice_base64, :is_verified, :origin_city
+             :director_signed_at, :smart_link_token, :invoice_base64, :is_verified, :origin_city,
+             :idocs_status, :idocs_document_id
 
   attribute :origin_city do |object|
     # Assuming all items in an order come from the same warehouse for now, or just taking the first one.

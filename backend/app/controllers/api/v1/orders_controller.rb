@@ -214,18 +214,26 @@ class Api::V1::OrdersController < ApplicationController
     
     timestamp = Time.current.strftime('%H%M%S')
     
-    # PROXY MODE: Try to download from iDocs first if a document was created
+    # PROXY AND PERSIST MODE: Fetch latest signed version from iDocs if available
     if @order.idocs_document_id.present?
       begin
         client = IDocs::Client.new
         pdf_content = client.download_print_form(@order.idocs_document_id)
+        
+        # Persist the latest version (which may now include the client's signature) to S3
+        @order.document.attach(
+          io: StringIO.new(pdf_content),
+          filename: "Contract_iDocs_#{@order.id}.pdf",
+          content_type: 'application/pdf'
+        )
+        Rails.logger.info "OrdersController: Persisted latest iDocs Print Form to Order.document for Order #{@order.id}"
         
         return send_data pdf_content,
                   filename: "Dogovor_iDocs_#{@order.id}_#{timestamp}.pdf",
                   type: 'application/pdf',
                   disposition: 'inline'
       rescue => e
-        Rails.logger.warn "Failed to download iDocs print form for Order #{@order.id}: #{e.message}. Falling back to standard local contract."
+        Rails.logger.warn "Failed to download iDocs print form for Order #{@order.id}: #{e.message}. Falling back to existing local contract."
       end
     end
 
