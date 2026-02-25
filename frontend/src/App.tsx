@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { MessageCircle } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
@@ -170,8 +171,23 @@ function App() {
           </Router>
         </CartProvider>
       </AuthProvider>
+      <SupportWidget />
     </QueryClientProvider>
   );
 }
+
+const SupportWidget = () => {
+  return (
+    <a
+      href="https://wa.me/77011234567" // Можно заменить на актуальный номер
+      target="_blank"
+      rel="noopener noreferrer"
+      className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-xl hover:bg-green-600 hover:scale-110 transition-all z-50 flex items-center justify-center"
+      title="Написать в поддержку (WhatsApp)"
+    >
+      <MessageCircle className="w-8 h-8" />
+    </a>
+  );
+};
 
 export default App;

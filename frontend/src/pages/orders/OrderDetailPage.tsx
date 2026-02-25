@@ -115,6 +115,48 @@ const OrderDetailPage: React.FC = () => {
 
 
     const [isIdocsSigning, setIsIdocsSigning] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
+
+    const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsScanning(true);
+        const toastId = toast.loading('Считывание чека...');
+
+        try {
+            // Primitive scan for total_amount if it's an image
+            if (file.type.startsWith('image/')) {
+                toast.loading('Считывание чека (может занять до 10 секунд)...', { id: toastId });
+                const { createWorker } = await import('tesseract.js');
+                const worker = await createWorker('rus');
+                const ret = await worker.recognize(file);
+                await worker.terminate();
+
+                const text = ret.data.text.replace(/\s+/g, '');
+                const expectedAmount = String(order.attributes.total_amount).replace(/\.0$/, '');
+
+                if (!text.includes(expectedAmount)) {
+                    toast.error(`Сумма ${expectedAmount} ₸ не найдена в чеке. Если у вас возникла проблема, обратитесь в поддержку.`, { id: toastId, duration: 10000 });
+                    return;
+                }
+            }
+
+            toast.loading('Загрузка чека на сервер...', { id: toastId });
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('amount', String(order.attributes.total_amount));
+            await api.post(`/api/v1/orders/${id}/upload_receipt`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+            toast.success('Чек успешно загружен!', { id: toastId });
+            queryClient.invalidateQueries({ queryKey: ['order', id] });
+        } catch (err: any) {
+            console.error(err);
+            toast.error(err.response?.data?.error || 'Произошла ошибка при загрузке чека.', { id: toastId });
+        } finally {
+            setIsScanning(false);
+            e.target.value = '';
+        }
+    };
 
     const handleIdocsSign = async () => {
         setIsIdocsSigning(true);
@@ -722,15 +764,7 @@ const OrderDetailPage: React.FC = () => {
                                                 {/* File Upload Form - Simplified for brevity in this insertion, ideally componentized */}
                                                 <DialogHeader><DialogTitle>Загрузка чека</DialogTitle></DialogHeader>
                                                 <p>Пожалуйста, загрузите чек об оплате.</p>
-                                                <Input type="file" onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const fd = new FormData();
-                                                        fd.append('file', file);
-                                                        fd.append('amount', String(attributes.total_amount));
-                                                        api.post(`/api/v1/orders/${id}/upload_receipt`, fd).then(() => queryClient.invalidateQueries({ queryKey: ['order', id] }));
-                                                    }
-                                                }} />
+                                                <Input type="file" disabled={isScanning} onChange={handleReceiptUpload} />
                                             </DialogContent>
                                         </Dialog>
                                     </div>
@@ -935,14 +969,16 @@ const OrderDetailPage: React.FC = () => {
                                 )}
 
                                 {/* Common Doc Downloads */}
-                                <div className="space-y-2 pt-4 border-t">
-                                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => downloadFile('invoice')}>
-                                        <FileText className="mr-2 h-4 w-4" /> Счет на оплату
-                                    </Button>
-                                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => downloadFile('contract')}>
-                                        <FileText className="mr-2 h-4 w-4" /> {attributes.idocs_status ? "Скачать договор (iDocs)" : "Договор"}
-                                    </Button>
-                                </div>
+                                {!['cart', 'requisites_selected', 'pending_director_signature', 'pending_signature'].includes(attributes.status) && (
+                                    <div className="space-y-2 pt-4 border-t">
+                                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => downloadFile('invoice')}>
+                                            <FileText className="mr-2 h-4 w-4" /> Счет на оплату
+                                        </Button>
+                                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => downloadFile('contract')}>
+                                            <FileText className="mr-2 h-4 w-4" /> {attributes.idocs_status ? "Скачать договор (iDocs)" : "Договор"}
+                                        </Button>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
