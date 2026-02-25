@@ -229,6 +229,12 @@ module IDocs
       end
     end
 
+    def get_document_status(document_id)
+      response = @conn.get("sync/single/document/GetDocumentStatusByDocumentId/#{document_id}")
+      Rails.logger.info "iDocs get_document_status response: status=#{response.status}, body=#{response.body.inspect}"
+      handle_response(response)
+    end
+
     private
 
     def handle_response(response)

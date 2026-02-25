@@ -16,7 +16,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2 } from 'lucide-react';
+import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import OrderTrackingMap from '@/components/OrderTrackingMap';
 
@@ -75,7 +75,24 @@ const OrderDetailPage: React.FC = () => {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['order', id] })
     };
 
-    const signContractMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/sign_contract`), ...mutationOptions });
+    const checkIdocsStatusMutation = useMutation({
+        mutationFn: () => api.get(`/api/v1/orders/${id}/check_idocs_status`),
+        onSuccess: (response: any) => {
+            if (response.data.status === 'completed') {
+                toast.success(response.data.message || "Документ успешно подписан обеими сторонами!");
+                queryClient.invalidateQueries({ queryKey: ['order', id] });
+            } else if (response.data.status === 'pending') {
+                toast.info(response.data.message || "Ожидание подписания клиентом...");
+            } else if (response.data.success === false) {
+                toast.error(response.data.message || response.data.error || "Ошибка проверки статуса");
+            }
+        },
+        onError: (error: any) => {
+            console.error("Check status error", error);
+            const message = error.response?.data?.error || "Произошла ошибка при проверке статуса";
+            toast.error(message);
+        }
+    });
     // const directorSignMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/director_sign`), ...mutationOptions });
     // const payMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/pay`), ...mutationOptions });
     // const findDriverMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/find_driver`), ...mutationOptions });
@@ -663,9 +680,28 @@ const OrderDetailPage: React.FC = () => {
                                 {/* RE-IMPLEMENTING STANDARD ACTION BUTTONS FOR NON-TRANSIT STATUSES */}
                                 {attributes.status === 'pending_signature' && (user?.role === 'client' || user?.role === 'admin') && (
                                     <div className="space-y-4">
-                                        <Button className="w-full bg-red-600 hover:bg-red-700" onClick={() => signContractMutation.mutate()} disabled={signContractMutation.isPending}>
-                                            <CheckCircle className="mr-2 h-4 w-4" /> Подписать договор (Клиент)
-                                        </Button>
+                                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
+                                            Контрагент (Клиент) должен подписать этот документ в системе iDocs.
+                                            Проверьте почту или перейдите на портал iDocs для подписания.
+                                            После подписания нажмите "Проверить статус".
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                className="w-1/2 bg-white"
+                                                onClick={() => window.open('https://beta.idocs.kz/', '_blank')}
+                                            >
+                                                Перейти в iDocs
+                                            </Button>
+                                            <Button
+                                                className="w-1/2 bg-blue-600 hover:bg-blue-700 font-semibold"
+                                                onClick={() => checkIdocsStatusMutation.mutate()}
+                                                disabled={checkIdocsStatusMutation.isPending}
+                                            >
+                                                {checkIdocsStatusMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                                                Проверить статус
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
 

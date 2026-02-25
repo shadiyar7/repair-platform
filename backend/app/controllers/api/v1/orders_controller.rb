@@ -203,6 +203,63 @@ class Api::V1::OrdersController < ApplicationController
     render json: result
   end
 
+  def check_idocs_status
+    authorize @order, :show?
+    
+    if @order.idocs_document_id.blank?
+      return render json: { success: false, error: "Документ еще не создан в iDocs" }
+    end
+
+    begin
+      client = IDocs::Client.new
+      status_response = client.get_document_status(@order.idocs_document_id)
+      doc_status = status_response["documentStatus"] || status_response.dig("response", "documentStatus") || status_response["raw"]
+
+      if doc_status == "FINISHED" || doc_status == "FINISHED_BY_COMPANY" || status_response["raw"] == "10" || status_response["raw"] == "16" || status_response == 10 || status_response == 16
+        # Download the final signed document
+        begin
+          pdf_content = client.download_print_form(@order.idocs_document_id)
+          @order.document.attach(
+            io: StringIO.new(pdf_content),
+            filename: "Contract_iDocs_#{@order.id}.pdf",
+            content_type: 'application/pdf'
+          )
+        rescue => e
+          Rails.logger.error "Check iDocs Status: Failed to fetch final PDF: #{e.message}"
+        end
+
+        @order.update!(idocs_status: 'completed')
+        
+        # Advance order state if possible
+        if @order.may_client_sign?
+          @order.client_sign!
+          
+          # Trigger 1C Integration exactly like the old sign_contract
+          begin
+            OneCPaymentTrigger.new(@order).call
+            Rails.logger.info "1C Payment Trigger fired for Order ##{@order.id}"
+          rescue => e
+            Rails.logger.error "Failed to fire 1C Payment Trigger: #{e.message}"
+          end
+        end
+
+        render json: { 
+          success: true, 
+          status: 'completed', 
+          message: "Документ успешно подписан обеими сторонами", 
+          order: OrderSerializer.new(@order).serializable_hash 
+        }
+      elsif doc_status == "REJECTED_BY_RECIPIENT" || doc_status == "REJECTED_BY_COMPANY"
+        render json: { success: false, status: 'rejected', message: "Документ был отклонен контрагентом в iDocs" }
+      else
+        render json: { success: true, status: 'pending', idocs_api_status: doc_status, message: "Ожидание подписания клиентом..." }
+      end
+    rescue => e
+      Rails.logger.error "check_idocs_status error: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      render json: { success: false, error: e.message }
+    end
+  end
+
   def download_invoice
     authorize @order, :show?
     pdf = OneC::InvoiceGenerator.new(@order).send(:generate_pdf)
