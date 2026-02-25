@@ -27,6 +27,7 @@ import TrackingPage from '@/pages/public/TrackingPage';
 
 import SupervisorDashboard from '@/pages/supervisor/SupervisorDashboard';
 import DirectorDashboard from '@/pages/director/DirectorDashboard';
+import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 
 import { Navigate } from 'react-router-dom';
 
@@ -72,6 +73,7 @@ function App() {
                 <Route path="landing" element={<HomePage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegisterPage />} />
+                <Route path="forgot-password" element={<ForgotPasswordPage />} />
                 <Route
                   path="orders"
                   element={

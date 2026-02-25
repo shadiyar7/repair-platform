@@ -7,6 +7,18 @@ interface User {
     role: 'client' | 'admin' | 'warehouse' | 'driver' | 'director' | 'supervisor';
     company_name?: string;
     phone?: string;
+    bin?: string;
+    inn?: string;
+    director_name?: string;
+    acting_on_basis?: string;
+    legal_address?: string;
+    actual_address?: string;
+    iban?: string;
+    swift?: string;
+    job_title?: string;
+    first_name?: string;
+    last_name?: string;
+    warehouse_id?: number;
 }
 
 interface AuthContextType {
@@ -61,11 +73,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Map backend attributes to frontend User interface
         const newUser: User = {
-            id: response.data.user.data.id,
+            id: String(response.data.user.data.id),
             email: userData.email,
             role: userData.role,
             company_name: userData.company_name,
-            phone: userData.phone
+            phone: userData.phone,
+            bin: userData.bin,
+            inn: userData.inn,
+            director_name: userData.director_name,
+            acting_on_basis: userData.acting_on_basis,
+            legal_address: userData.legal_address,
+            actual_address: userData.actual_address,
+            iban: userData.iban,
+            swift: userData.swift,
+            job_title: userData.job_title,
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            warehouse_id: userData.warehouse_id
         };
 
         setUser(newUser);
@@ -100,11 +124,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const newUser: User = {
-            id: String(userData.id || '0'),
+            id: String(userData.id || response.data.user?.data?.id || '0'),
             email: userData.email,
             role: userData.role,
             company_name: userData.company_name,
-            phone: userData.phone
+            phone: userData.phone,
+            bin: userData.bin,
+            inn: userData.inn,
+            director_name: userData.director_name,
+            acting_on_basis: userData.acting_on_basis,
+            legal_address: userData.legal_address,
+            actual_address: userData.actual_address,
+            iban: userData.iban,
+            swift: userData.swift,
+            job_title: userData.job_title,
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            warehouse_id: userData.warehouse_id
         };
         setUser(newUser);
         localStorage.setItem('user', JSON.stringify(newUser));

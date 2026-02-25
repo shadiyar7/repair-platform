@@ -87,6 +87,11 @@ const LoginPage: React.FC = () => {
                                 required
                             />
                         </div>
+                        <div className="text-right">
+                            <Link to="/forgot-password" hidden className="text-sm text-red-600 hover:underline">
+                                Забыли пароль?
+                            </Link>
+                        </div>
                     </CardContent>
                     <CardFooter className="flex flex-col space-y-4">
                         <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isLoading}>
