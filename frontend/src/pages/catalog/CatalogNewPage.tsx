@@ -173,8 +173,8 @@ const CatalogNewPage: React.FC = () => {
     return (
         <div className="space-y-6 container mx-auto py-8">
             <div className="flex flex-col space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Каталог (Live 1C)</h1>
-                <p className="text-gray-500">Актуальные остатки напрямую из интеграции с 1С.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Каталог продукции</h1>
+                <p className="text-gray-500">Выберите склад и категорию для просмотра доступных запчастей.</p>
             </div>
 
             {/* Global Warehouse Selector (Pills) */}

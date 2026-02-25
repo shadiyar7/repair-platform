@@ -62,14 +62,12 @@ function App() {
               <Route path="/smart-link/:token" element={<SmartLinkPage />} />
 
               <Route path="/" element={<Layout />}>
-                <Route index element={
+                <Route index element={<CatalogNewPage />} />
+                <Route path="catalogNew" element={
                   <ProtectedRoute allowedRoles={['client', 'admin', 'supervisor', 'director']}>
-                    {/* Role-based Redirects */}
                     <RoleBasedRedirect />
                   </ProtectedRoute>
                 } />
-                <Route path="catalog" element={<CatalogPage />} />
-                <Route path="catalogNew" element={<CatalogNewPage />} />
                 <Route path="landing" element={<HomePage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegisterPage />} />
