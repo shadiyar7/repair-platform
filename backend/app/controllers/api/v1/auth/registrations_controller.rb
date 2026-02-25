@@ -32,6 +32,18 @@ module Api
 
         def update
           if current_user.update(account_update_params)
+            
+            # Sync new company profile details down to all existing requisites
+            current_user.company_requisites.update_all(
+              company_name: current_user.company_name,
+              bin: current_user.bin,
+              inn: current_user.inn,
+              director_name: current_user.director_name,
+              acting_on_basis: current_user.acting_on_basis,
+              legal_address: current_user.legal_address,
+              actual_address: current_user.actual_address
+            )
+
             render json: {
               message: 'Profile updated successfully',
               user: UserSerializer.new(current_user).serializable_hash
