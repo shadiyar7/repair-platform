@@ -33,16 +33,36 @@ module Api
         def update
           if current_user.update(account_update_params)
             
-            # Sync new company profile details down to all existing requisites
-            current_user.company_requisites.update_all(
-              company_name: current_user.company_name,
-              bin: current_user.bin,
-              inn: current_user.inn,
-              director_name: current_user.director_name,
-              acting_on_basis: current_user.acting_on_basis,
-              legal_address: current_user.legal_address,
-              actual_address: current_user.actual_address
-            )
+            # Sync new company profile details down to active requisites
+            current_user.company_requisites.where(is_active: true).each do |req|
+              if Order.exists?(company_requisite_id: req.id)
+                # Soft delete and clone to preserve historical orders
+                req.update!(is_active: false)
+                
+                new_attrs = req.attributes.except('id', 'created_at', 'updated_at').merge(
+                  'company_name' => current_user.company_name,
+                  'bin' => current_user.bin,
+                  'inn' => current_user.inn,
+                  'director_name' => current_user.director_name,
+                  'acting_on_basis' => current_user.acting_on_basis,
+                  'legal_address' => current_user.legal_address,
+                  'actual_address' => current_user.actual_address,
+                  'is_active' => true
+                )
+                current_user.company_requisites.create!(new_attrs)
+              else
+                # Safe to update in place
+                req.update!(
+                  company_name: current_user.company_name,
+                  bin: current_user.bin,
+                  inn: current_user.inn,
+                  director_name: current_user.director_name,
+                  acting_on_basis: current_user.acting_on_basis,
+                  legal_address: current_user.legal_address,
+                  actual_address: current_user.actual_address
+                )
+              end
+            end
 
             render json: {
               message: 'Profile updated successfully',

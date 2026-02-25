@@ -6,7 +6,7 @@ module Api
 
       # GET /api/v1/company_requisites
       def index
-        @company_requisites = current_user.company_requisites
+        @company_requisites = current_user.company_requisites.where(is_active: true)
         render json: CompanyRequisiteSerializer.new(@company_requisites).serializable_hash
       end
 
@@ -38,20 +38,47 @@ module Api
 
       # PATCH/PUT /api/v1/company_requisites/:id
       def update
-        if @company_requisite.update(company_requisite_params)
-          render json: CompanyRequisiteSerializer.new(@company_requisite).serializable_hash
+        if order_exists?(@company_requisite)
+          # Soft delete the old one and create a new one to preserve history
+          @company_requisite.update!(is_active: false)
+          
+          # Clone the attributes and merge with new ones
+          new_attributes = @company_requisite.attributes.except('id', 'created_at', 'updated_at').merge(company_requisite_params.to_h)
+          new_attributes['is_active'] = true
+          @new_company_requisite = current_user.company_requisites.build(new_attributes)
+          
+          if @new_company_requisite.save
+            render json: CompanyRequisiteSerializer.new(@new_company_requisite).serializable_hash
+          else
+            # Rollback the soft-delete if save fails
+            @company_requisite.update!(is_active: true)
+            render json: @new_company_requisite.errors, status: :unprocessable_entity
+          end
         else
-          render json: @company_requisite.errors, status: :unprocessable_entity
+          # Safe to update in-place
+          if @company_requisite.update(company_requisite_params)
+            render json: CompanyRequisiteSerializer.new(@company_requisite).serializable_hash
+          else
+            render json: @company_requisite.errors, status: :unprocessable_entity
+          end
         end
       end
 
       # DELETE /api/v1/company_requisites/:id
       def destroy
-        @company_requisite.destroy
+        if order_exists?(@company_requisite)
+          @company_requisite.update!(is_active: false)
+        else
+          @company_requisite.destroy
+        end
         head :no_content
       end
 
       private
+
+      def order_exists?(company_requisite)
+        Order.exists?(company_requisite_id: company_requisite.id)
+      end
 
       def set_company_requisite
         @company_requisite = current_user.company_requisites.find(params[:id])
