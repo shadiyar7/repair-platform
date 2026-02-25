@@ -231,8 +231,8 @@ class Api::V1::OrdersController < ApplicationController
         @order.update!(idocs_status: 'completed')
         
         # Advance order state if possible
-        if @order.may_client_sign?
-          @order.client_sign!
+        if @order.may_sign_contract?
+          @order.sign_contract!
           
           # Trigger 1C Integration exactly like the old sign_contract
           begin
