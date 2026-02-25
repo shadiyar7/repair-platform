@@ -22,25 +22,13 @@ User.find_or_create_by!(email: 'warehouse@repair.com') do |u|
 end
 
 # Client
-client = User.find_or_create_by!(email: 'client@repair.com') do |u|
+User.find_or_create_by!(email: 'client@repair.com') do |u|
   u.password = 'password123'
   u.role = 'client'
   u.company_name = 'Test Client LLP'
   u.phone = '+77050000000'
 end
 
-
-
-# 2. Company Requisites
-CompanyRequisite.find_or_create_by!(user: client) do |cr|
-  cr.company_name = 'Test Client LLP (Main)'
-  cr.bin = '123456789012'
-  cr.legal_address = 'Almaty, Dostyk 1'
-  cr.actual_address = 'Almaty, Dostyk 1'
-  cr.bank_name = 'Halyk Bank'
-  cr.iban = 'KZ0000000'
-  cr.swift = 'HALYK'
-end
 
 # 3. Warehouses (1C Simulation)
 puts "Seeding Warehouses..."
