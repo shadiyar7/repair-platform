@@ -2,9 +2,10 @@ module Pdf
   class CommercialProposalGenerator
     include ActionView::Helpers::NumberHelper
 
-    def initialize(products_data, client_name: nil)
+    def initialize(products_data, client_name: nil, director_name: nil)
       @products = products_data
       @client_name = client_name || "____________________"
+      @director_name = director_name
     end
 
     def generate
@@ -30,31 +31,41 @@ module Pdf
       end
 
       # Recipient block on the right
-      # Move down slightly for the first line of receiver
       receiver_y = pdf.bounds.top - 10
+      
+      # Recipient title
       pdf.text_box "Первому руководителю", 
-                   at: [pdf.bounds.right - 250, receiver_y], 
-                   width: 250, 
+                   at: [pdf.bounds.right - 280, receiver_y], 
+                   width: 280, 
                    align: :right, 
                    size: 11
 
+      # Recipient Name (Director)
+      director_display = @director_name.present? ? "г-ну #{@director_name}" : "____________________"
+      pdf.text_box director_display, 
+                   at: [pdf.bounds.right - 280, receiver_y - 15], 
+                   width: 280, 
+                   align: :right, 
+                   size: 11
+
+      # Client Company Name
       pdf.text_box "#{@client_name}", 
-                   at: [pdf.bounds.right - 250, receiver_y - 15], 
-                   width: 250, 
+                   at: [pdf.bounds.right - 280, receiver_y - 30], 
+                   width: 280, 
                    align: :right, 
                    size: 11,
                    style: :bold
 
       pdf.text_box "(название компании)", 
-                   at: [pdf.bounds.right - 250, receiver_y - 30], 
-                   width: 250, 
+                   at: [pdf.bounds.right - 280, receiver_y - 45], 
+                   width: 280, 
                    align: :right, 
-                   size: 9
+                   size: 8
 
       # Date alignment (below company name)
       pdf.text_box "Дата: #{Date.current.strftime('%d.%m.%Y')}", 
-                   at: [pdf.bounds.right - 250, receiver_y - 50], 
-                   width: 250, 
+                   at: [pdf.bounds.right - 280, receiver_y - 65], 
+                   width: 280, 
                    align: :right, 
                    size: 10
       
@@ -144,38 +155,10 @@ module Pdf
       # --- Signature Section ---
       pdf.text "С уважением,", size: 11
       pdf.move_down 5
-      pdf.text "Руководитель отдела продаж", size: 11
+      pdf.text "Адилет Командиров", size: 11, style: :bold
+      pdf.text "Директор ТОО “Komandeer Supply”", size: 11
       
-      # Drawing the "AK" signature
-      pdf.stroke_color "1a3b8e" # Dark blue for signature
-      pdf.line_width 1.5
-      
-      # Start drawing relative to current position
-      sig_base_x = 220
-      sig_base_y = pdf.cursor - 5
-      
-      pdf.stroke do
-        # "A"
-        pdf.move_to sig_base_x, sig_base_y
-        pdf.line_to sig_base_x + 10, sig_base_y + 25
-        pdf.line_to sig_base_x + 20, sig_base_y
-        pdf.move_to sig_base_x + 5, sig_base_y + 12
-        pdf.line_to sig_base_x + 15, sig_base_y + 12
-        
-        # "K"
-        pdf.move_to sig_base_x + 25, sig_base_y + 25
-        pdf.line_to sig_base_x + 25, sig_base_y
-        pdf.move_to sig_base_x + 25, sig_base_y + 12
-        pdf.line_to sig_base_x + 35, sig_base_y + 25
-        pdf.move_to sig_base_x + 25, sig_base_y + 12
-        pdf.line_to sig_base_x + 35, sig_base_y
-        
-        # Flourish (underline/swish)
-        pdf.curve [sig_base_x - 10, sig_base_y - 5], [sig_base_x + 50, sig_base_y - 10], 
-                  bounds: [[sig_base_x + 10, sig_base_y - 20], [sig_base_x + 30, sig_base_y + 5]]
-      end
-
-      pdf.move_down 35
+      pdf.move_down 20
       pdf.font "Arial", style: :bold do
         pdf.text "DYNAMIX by Komandeer Supply", size: 11
       end

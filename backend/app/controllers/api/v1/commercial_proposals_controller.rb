@@ -40,7 +40,11 @@ module Api
         end
 
         # Generate PDF using the service
-        service = CommercialProposalService.new(products_data)
+        # If user is logged in, pass their details
+        client_name = current_user&.company_name
+        director_name = current_user&.director_name
+
+        service = CommercialProposalService.new(products_data, client_name: client_name, director_name: director_name)
         pdf_data = service.generate
 
         send_data pdf_data,
