@@ -2,8 +2,9 @@ module Pdf
   class CommercialProposalGenerator
     include ActionView::Helpers::NumberHelper
 
-    def initialize(products_data)
+    def initialize(products_data, client_name: nil)
       @products = products_data
+      @client_name = client_name || "____________________"
     end
 
     def generate
@@ -19,27 +20,49 @@ module Pdf
       )
       pdf.font "Arial"
 
-      # Header section (Logo and Date)
+      # --- Header section ---
       logo_path = Rails.root.join("..", "frontend", "public", "logo.jpg")
       if File.exist?(logo_path)
-        pdf.image logo_path, width: 150, at: [0, pdf.cursor]
+        # Place logo at top left, but track height to avoid overlap
+        pdf.image logo_path, width: 140, at: [0, pdf.bounds.top]
       else
-        # Fallback text if logo missing
-        pdf.text_box "DYNAMIX", at: [0, pdf.cursor], width: 150, size: 20, style: :bold
+        pdf.text_box "DYNAMIX", at: [0, pdf.bounds.top], width: 150, size: 20, style: :bold
       end
 
-      # Date alignment
-      pdf.text_box "Дата: #{Date.current.strftime('%d.%m.%Y')}", at: [pdf.bounds.right - 150, pdf.cursor], width: 150, align: :right, size: 11
-      
-      pdf.move_down 60
+      # Recipient block on the right
+      # Move down slightly for the first line of receiver
+      receiver_y = pdf.bounds.top - 10
+      pdf.text_box "Первому руководителю", 
+                   at: [pdf.bounds.right - 250, receiver_y], 
+                   width: 250, 
+                   align: :right, 
+                   size: 11
 
-      # Recipient
-      pdf.text "Первому руководителю", size: 12
-      pdf.move_down 20
-      pdf.text "____________________ (название компании)", size: 12
-      pdf.move_down 40
+      pdf.text_box "#{@client_name}", 
+                   at: [pdf.bounds.right - 250, receiver_y - 15], 
+                   width: 250, 
+                   align: :right, 
+                   size: 11,
+                   style: :bold
+
+      pdf.text_box "(название компании)", 
+                   at: [pdf.bounds.right - 250, receiver_y - 30], 
+                   width: 250, 
+                   align: :right, 
+                   size: 9
+
+      # Date alignment (below company name)
+      pdf.text_box "Дата: #{Date.current.strftime('%d.%m.%Y')}", 
+                   at: [pdf.bounds.right - 250, receiver_y - 50], 
+                   width: 250, 
+                   align: :right, 
+                   size: 10
+      
+      # We need to manually set cursor below the header elements
+      pdf.move_cursor_to pdf.bounds.top - 100
 
       # Title
+      pdf.move_down 20
       pdf.text "Коммерческое предложение", size: 16, style: :bold, align: :center
       pdf.move_down 20
 
@@ -81,7 +104,6 @@ module Pdf
 
       total_sum = 0
       @products.each_with_index do |item, index|
-        # Ensure we parse numbers properly
         price = item[:price].to_f
         quantity = item[:quantity].to_f
         total = price * quantity
@@ -113,35 +135,53 @@ module Pdf
         t.column(4).width = 100
       end
 
+      pdf.move_down 20
+      pdf.text "Стоимость включает все расходы на доставку до места требования.", size: 9, leading: 2
+      pdf.text "Условия оплаты: согласовываются индивидуально (возможна отсрочка платежа).", size: 9, leading: 2
+
       pdf.move_down 30
 
-      # Footer text
-      pdf.text "Стоимость включает все расходы на доставку до места требования.", size: 10, leading: 2
-      pdf.text "Условия оплаты: согласовываются индивидуально (возможна отсрочка платежа).", size: 10, leading: 2
-
-      pdf.move_down 40
-
-      # Fake Signature
+      # --- Signature Section ---
       pdf.text "С уважением,", size: 11
       pdf.move_down 5
       pdf.text "Руководитель отдела продаж", size: 11
-      pdf.move_down 20
       
-      # Pseudo-signature aesthetics
+      # Drawing the "AK" signature
+      pdf.stroke_color "1a3b8e" # Dark blue for signature
+      pdf.line_width 1.5
+      
+      # Start drawing relative to current position
+      sig_base_x = 220
+      sig_base_y = pdf.cursor - 5
+      
+      pdf.stroke do
+        # "A"
+        pdf.move_to sig_base_x, sig_base_y
+        pdf.line_to sig_base_x + 10, sig_base_y + 25
+        pdf.line_to sig_base_x + 20, sig_base_y
+        pdf.move_to sig_base_x + 5, sig_base_y + 12
+        pdf.line_to sig_base_x + 15, sig_base_y + 12
+        
+        # "K"
+        pdf.move_to sig_base_x + 25, sig_base_y + 25
+        pdf.line_to sig_base_x + 25, sig_base_y
+        pdf.move_to sig_base_x + 25, sig_base_y + 12
+        pdf.line_to sig_base_x + 35, sig_base_y + 25
+        pdf.move_to sig_base_x + 25, sig_base_y + 12
+        pdf.line_to sig_base_x + 35, sig_base_y
+        
+        # Flourish (underline/swish)
+        pdf.curve [sig_base_x - 10, sig_base_y - 5], [sig_base_x + 50, sig_base_y - 10], 
+                  bounds: [[sig_base_x + 10, sig_base_y - 20], [sig_base_x + 30, sig_base_y + 5]]
+      end
+
+      pdf.move_down 35
       pdf.font "Arial", style: :bold do
         pdf.text "DYNAMIX by Komandeer Supply", size: 11
       end
-
-      # Pseudo-signature stroke line overlay to look like signature 
-      # (Prawn has drawing tools, but let's just make it look formal)
-      pdf.stroke_color "0000FF"
-      pdf.stroke do
-        pdf.move_up 25
-        # draw a simple swirly line
-        pdf.curve [200, pdf.cursor], [250, pdf.cursor+20], bounds: [[210, pdf.cursor+30], [230, pdf.cursor-10]]
-        pdf.move_down 25
-      end
+      
       pdf.stroke_color "000000"
+      pdf.line_width 1
 
       pdf.render
     end
