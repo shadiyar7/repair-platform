@@ -85,6 +85,19 @@ const ProfilePage: React.FC = () => {
                 ? data.map((item: any) => ({ id: item.id, ...item.attributes }))
                 : [];
             setRequisites(formatted);
+
+            // ФИЧА: Если основной профиль пользователя (user) пустой, 
+            // автоматически подтягиваем данные из последнего сохраненного реквизита
+            if (formatted.length > 0 && !user?.company_name) {
+                const latestReq = formatted[formatted.length - 1]; // Берем самый актуальный (по ID)
+                setProfileValue('company_name', latestReq.company_name || '');
+                setProfileValue('bin', latestReq.bin || latestReq.inn || '');
+                setProfileValue('legal_address', latestReq.legal_address || '');
+                setProfileValue('actual_address', latestReq.actual_address || latestReq.legal_address || '');
+                setProfileValue('director_name', latestReq.director_name || '');
+                setProfileValue('acting_on_basis', latestReq.acting_on_basis || '');
+                setProfileValue('inn', latestReq.inn || latestReq.bin || '');
+            }
         } catch (error) {
             console.error('Failed to fetch requisites', error);
         } finally {
