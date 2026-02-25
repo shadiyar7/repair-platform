@@ -182,10 +182,19 @@ const SupportWidget = () => {
       href="https://wa.me/77761115112"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-xl hover:bg-green-600 hover:scale-110 transition-all z-50 flex items-center justify-center"
-      title="Написать в поддержку (WhatsApp)"
+      className="fixed bottom-6 right-6 bg-[#25D366] text-white px-5 py-3 rounded-xl shadow-[0_10px_25px_-5px_rgba(37,211,102,0.4)] hover:shadow-[0_15px_30px_-5px_rgba(37,211,102,0.6)] hover:-translate-y-1 transition-all duration-300 z-50 flex items-center space-x-3 group"
     >
-      <MessageCircle className="w-8 h-8" />
+      <div className="relative">
+        <MessageCircle className="w-7 h-7" />
+        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+        </span>
+      </div>
+      <div className="flex flex-col items-start leading-tight">
+        <span className="text-[9px] uppercase tracking-[0.15em] opacity-90 font-black">Поддержка</span>
+        <span className="text-sm font-bold whitespace-nowrap">Нужна помощь?</span>
+      </div>
     </a>
   );
 };
