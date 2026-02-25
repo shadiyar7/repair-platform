@@ -181,7 +181,7 @@ function App() {
 const SupportWidget = () => {
   return (
     <a
-      href="https://wa.me/77011234567" // Можно заменить на актуальный номер
+      href="https://wa.me/77761115112"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-xl hover:bg-green-600 hover:scale-110 transition-all z-50 flex items-center justify-center"
