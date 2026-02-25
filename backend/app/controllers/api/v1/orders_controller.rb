@@ -1,6 +1,6 @@
 class Api::V1::OrdersController < ApplicationController
   before_action :authenticate_user!, except: [:by_token]
-  before_action :set_order, only: %i[show update checkout sign_contract director_sign pay find_driver assign_driver driver_arrived start_trip deliver complete download_invoice download_contract upload_receipt confirm_payment]
+  before_action :set_order, only: %i[show update checkout sign_contract director_sign pay find_driver assign_driver driver_arrived start_trip deliver complete download_invoice download_contract upload_receipt confirm_payment check_idocs_status]
 
   def index
     orders = case current_user&.role
@@ -218,7 +218,7 @@ class Api::V1::OrdersController < ApplicationController
       if doc_status == "FINISHED" || doc_status == "FINISHED_BY_COMPANY" || status_response["raw"] == "10" || status_response["raw"] == "16" || status_response == 10 || status_response == 16
         # Download the final signed document
         begin
-          pdf_content = client.download_print_form(@order.idocs_document_id)
+          pdf_content = client.get_best_pdf(@order.idocs_document_id)
           @order.document.attach(
             io: StringIO.new(pdf_content),
             filename: "Contract_iDocs_#{@order.id}.pdf",
@@ -275,7 +275,7 @@ class Api::V1::OrdersController < ApplicationController
     if @order.idocs_document_id.present?
       begin
         client = IDocs::Client.new
-        pdf_content = client.download_print_form(@order.idocs_document_id)
+        pdf_content = client.get_best_pdf(@order.idocs_document_id)
         
         # Persist the latest version (which may now include the client's signature) to S3
         @order.document.attach(

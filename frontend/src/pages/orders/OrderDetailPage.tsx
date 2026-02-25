@@ -707,9 +707,11 @@ const OrderDetailPage: React.FC = () => {
 
                                 {attributes.status === 'pending_payment' && (user?.role === 'client' || user?.role === 'admin') && (
                                     <div className="space-y-4">
-                                        <Button variant="outline" className="w-full" onClick={() => downloadFile('invoice')} disabled={!attributes.invoice_base64}>
-                                            <Download className="mr-2 h-4 w-4" /> Скачать счет
-                                        </Button>
+                                        {attributes.invoice_base64 && (
+                                            <Button variant="outline" className="w-full" onClick={() => downloadFile('invoice')}>
+                                                <Download className="mr-2 h-4 w-4" /> Скачать счет
+                                            </Button>
+                                        )}
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <Button className="w-full bg-blue-600 hover:bg-blue-700">

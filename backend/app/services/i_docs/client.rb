@@ -229,6 +229,44 @@ module IDocs
       end
     end
 
+    def download_archive(document_id)
+      response = @conn.get("sync/single/document/GetDocumentArchiveByDocumentId/#{document_id}")
+      
+      if response.success?
+        response.body
+      else
+        Rails.logger.error "IDocs API Error (Download Archive): #{response.status} - #{response.body}"
+        raise "IDocs API Error (Download Archive): #{response.status} - #{response.body}"
+      end
+    end
+
+    def get_best_pdf(document_id)
+      begin
+        return download_print_form(document_id)
+      rescue => e
+        Rails.logger.warn "Failed to get print form: #{e.message}. Trying archive fallback..."
+        
+        # Fallback to Archive
+        require 'zip'
+        zip_data = download_archive(document_id)
+        
+        pdf_content = nil
+        Zip::File.open_buffer(zip_data) do |zip_file|
+          # Try to find a PDF
+          pdf_entry = zip_file.glob('*.pdf').first
+          if pdf_entry
+            pdf_content = pdf_entry.get_input_stream.read
+          end
+        end
+        
+        if pdf_content
+          return pdf_content
+        else
+          raise "No PDF found in the document archive"
+        end
+      end
+    end
+
     def get_document_status(document_id)
       response = @conn.get("sync/single/document/GetDocumentStatusByDocumentId/#{document_id}")
       Rails.logger.info "iDocs get_document_status response: status=#{response.status}, body=#{response.body.inspect}"

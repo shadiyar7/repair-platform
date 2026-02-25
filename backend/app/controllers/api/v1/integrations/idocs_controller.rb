@@ -103,7 +103,7 @@ module Api
           # 3. Download the signed Print Form from iDocs and persist it back to our S3 storage
           # This replaces the initial unsigned PDF with the Director-signed version
           begin
-            signed_pdf_content = client.download_print_form(document_id)
+            signed_pdf_content = client.get_best_pdf(document_id)
             order.document.attach(
               io: StringIO.new(signed_pdf_content),
               filename: "Contract_iDocs_#{order.id}.pdf",
