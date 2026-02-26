@@ -158,19 +158,7 @@ const RegisterPage: React.FC = () => {
                     <CardContent className="space-y-4">
                         {error && <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md">{error}</div>}
 
-                        <div className="space-y-2">
-                            <Label htmlFor="role">Я являюсь...</Label>
-                            <select
-                                id="role"
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={formData.role}
-                                onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                            >
-                                <option value="client">Клиент (Ремонтное депо / Логистика)</option>
-                                <option value="warehouse">Менеджер склада</option>
-                                <option value="driver">Водитель</option>
-                            </select>
-                        </div>
+                        {/* Role selection is hidden; defaults to 'client' in state */}
 
                         <div className="space-y-2">
                             <Label htmlFor="company_name">Название компании</Label>
