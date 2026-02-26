@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingBag, ArrowLeft, Plus } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Select,
     SelectContent,
@@ -35,6 +36,7 @@ const CheckoutPage: React.FC = () => {
     const [formData, setFormData] = useState({
         city: '',
         delivery_address: '',
+        is_buyback: false,
         // delivery_notes removed as per request
     });
 
@@ -97,6 +99,7 @@ const CheckoutPage: React.FC = () => {
                     city: formData.city,
                     delivery_address: formData.delivery_address,
                     company_requisite_id: selectedRequisiteId,
+                    is_buyback: formData.is_buyback,
                     order_items_attributes: items.map(item => ({
                         product_id: item.id,
                         quantity: item.quantity
@@ -203,6 +206,30 @@ const CheckoutPage: React.FC = () => {
                                 </div>
                             </CardContent>
                         </form>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Дополнительные опции</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="is_buyback"
+                                    checked={formData.is_buyback}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, is_buyback: e.target.checked })}
+                                />
+                                <Label
+                                    htmlFor="is_buyback"
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                >
+                                    Хочу оформить с обратным выкупом
+                                </Label>
+                            </div>
+                            <p className="mt-2 text-xs text-muted-foreground ml-6">
+                                При выборе этой опции, менеджер свяжется с вами для обсуждения условий обратного выкупа запчастей.
+                            </p>
+                        </CardContent>
                     </Card>
 
                     <Card>

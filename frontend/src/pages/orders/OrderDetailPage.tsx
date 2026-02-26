@@ -16,7 +16,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2, RefreshCw } from 'lucide-react';
+import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2, RefreshCw, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import OrderTrackingMap from '@/components/OrderTrackingMap';
 
@@ -622,6 +622,18 @@ const OrderDetailPage: React.FC = () => {
                                             Мы в поисках водителя. Мы сообщим вам, как только подберем подходящую машину.
                                         </p>
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {attributes.is_buyback && (
+                            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
+                                <div className="bg-amber-100 p-2 rounded-full">
+                                    <ShoppingBag className="h-5 w-5 text-amber-700" />
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-amber-900">Запрос на обратный выкуп</p>
+                                    <p className="text-sm text-amber-700 leading-tight">Этот заказ оформлен с запросом на обратный выкуп запчастей.</p>
                                 </div>
                             </div>
                         )}

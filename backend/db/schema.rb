@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_25_043314) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_26_184812) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -94,6 +94,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_25_043314) do
     t.decimal "delivery_price", precision: 10, scale: 2
     t.string "idocs_document_id"
     t.string "idocs_status"
+    t.boolean "is_buyback", default: false
     t.index ["company_requisite_id"], name: "index_orders_on_company_requisite_id"
     t.index ["smart_link_token"], name: "index_orders_on_smart_link_token"
     t.index ["user_id"], name: "index_orders_on_user_id"

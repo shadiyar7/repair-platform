@@ -349,6 +349,6 @@ class Api::V1::OrdersController < ApplicationController
   end
 
   def order_params
-    params.require(:order).permit(:city, :delivery_address, :delivery_notes, :company_requisite_id, order_items_attributes: [:product_id, :quantity])
+    params.require(:order).permit(:city, :delivery_address, :delivery_notes, :company_requisite_id, :is_buyback, order_items_attributes: [:product_id, :quantity])
   end
 end
