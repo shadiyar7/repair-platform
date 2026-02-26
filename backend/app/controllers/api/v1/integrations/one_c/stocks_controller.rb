@@ -21,16 +21,14 @@ module Api
             end
 
             unless warehouse
+              Rails.logger.warn "⚠️ [Stocks#index] Warehouse not found for ID: #{warehouse_id}"
               render json: { items: [], last_synced_at: nil }
               return
             end
             
-            # Check if sync is needed (ALWAYS sync for debug as requested by user)
-            # if warehouse.last_synced_at.nil? || warehouse.last_synced_at < 30.minutes.ago
-               # Enqueue sync job
-               SyncStocksJob.perform_later(warehouse.id)
-               Rails.logger.info "Enqueued SyncStocksJob for warehouse #{warehouse.name} (#{warehouse.external_id_1c}) - Force Sync"
-            # end
+            # Enqueue sync job
+            SyncStocksJob.perform_later(warehouse.id)
+            Rails.logger.info "⚡️ [Stocks#index] Enqueued SyncStocksJob for warehouse #{warehouse.name} (#{warehouse.external_id_1c})"
 
             # Get stocks for this specific warehouse
             stocks = warehouse.warehouse_stocks.where("quantity > 0")
@@ -89,7 +87,11 @@ module Api
             warehouse_id = params[:warehouse_id_1c]
             items = params[:items]
 
+            Rails.logger.info "📥 [1C PUSH] Incoming sync for Warehouse ID: #{warehouse_id}. Items count: #{items&.size || 0}"
+            # Rails.logger.debug "📥 [1C PUSH] Full Params: #{params.to_unsafe_h.inspect}"
+
             if warehouse_id.blank? || items.nil?
+              Rails.logger.error "❌ [1C PUSH] Invalid payload: warehouse_id_1c=#{warehouse_id.inspect}, items_nil=#{items.nil?}"
               render json: { error: 'Invalid payload' }, status: :bad_request
               return
             end
@@ -97,6 +99,7 @@ module Api
             warehouse = Warehouse.find_by(external_id_1c: warehouse_id)
 
             unless warehouse
+              Rails.logger.error "❌ [1C PUSH] Warehouse not found: #{warehouse_id}"
               render json: { error: "Warehouse with external_id_1c #{warehouse_id} not found" }, status: :not_found
               return
             end
@@ -109,7 +112,10 @@ module Api
               # Update Warehouse timestamp
               warehouse.update!(last_synced_at: synced_now)
 
-              items.each do |item|
+              items.each_with_index do |item, index|
+                if index == 0
+                  Rails.logger.info "🔍 [1C PUSH] Sample item keys: #{item.keys.inspect}"
+                end
                 next unless item[:nomenclature_code].present? 
 
                 # Find by nomenclature_code instead of product_sku

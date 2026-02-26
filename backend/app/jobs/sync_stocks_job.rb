@@ -11,6 +11,8 @@ class SyncStocksJob < ApplicationJob
     one_c_url = ENV.fetch('ONE_C_API_URL', "https://f577a0f8677a.ngrok-free.app/Integration/hs/int/get_stocks")
     url = URI(one_c_url)
     
+    Rails.logger.info "🛰 [SyncStocksJob] Triggering 1C Pull from: #{one_c_url}"
+    
     https = Net::HTTP.new(url.host, url.port)
     https.use_ssl = true
     
@@ -21,15 +23,15 @@ class SyncStocksJob < ApplicationJob
     request.basic_auth("администратор", "")
     
     # Body: {"warehouse_id_1c": "..."}
-    # Using the warehouse's external ID or the hardcoded "000000001" if requested for test?
-    # User example: "000000001". Let's use the warehouse's stored external_id_1c.
+    warehouse_id_1c = warehouse.external_id_1c.to_s.rjust(9, "0")
     request.body = JSON.dump({
-      "warehouse_id_1c": warehouse.external_id_1c.to_s.rjust(9, "0")
+      "warehouse_id_1c": warehouse_id_1c
     })
     
     begin
       response = https.request(request)
-      Rails.logger.info "⚡️ [1C Sync] Triggered for Warehouse #{warehouse.name}. Response: #{response.code} #{response.message}"
+      Rails.logger.info "⚡️ [1C Sync] Triggered for Warehouse #{warehouse.name} (#{warehouse_id_1c}). Response: #{response.code} #{response.message}"
+      # Rails.logger.debug "⚡️ [1C Sync] Response Body: #{response.body}"
     rescue StandardError => e
       Rails.logger.error "⚠️ [1C Sync] Failed to trigger sync: #{e.message}"
     end
