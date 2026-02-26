@@ -166,7 +166,7 @@ module Api
                
                request = Net::HTTP::Get.new(url)
                request["Content-Type"] = "application/json"
-               request.basic_auth("администратор", "")
+               request.basic_auth("integration", "Aa123456!!")
                
                request.body = JSON.dump({
                  "warehouse_id_1c": warehouse_id

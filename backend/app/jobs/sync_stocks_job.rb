@@ -22,13 +22,15 @@ class SyncStocksJob < ApplicationJob
     request = Net::HTTP::Get.new(uri)
     request["Content-Type"] = "application/json"
     
-    # Authenticate: username="администратор", password=""
-    request.basic_auth("администратор", "")
+    # Authenticate: username="integration", password="Aa123456!!"
+    request.basic_auth("integration", "Aa123456!!")
     
     # Body: {"warehouse_id_1c": "..."}
+    # warehouse_id_1c is dynamic based on the warehouse being synced
     request.body = JSON.dump({
       "warehouse_id_1c": warehouse_id_1c
     })
+
 
     
     begin
