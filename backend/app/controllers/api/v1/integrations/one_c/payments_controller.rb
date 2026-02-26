@@ -9,7 +9,12 @@ module Api
           # POST /api/v1/integrations/one_c/payment_verified
           # Payload: { "Id": 1, "status": true }
           def verified
-            order_id = params[:Id]
+            # Logging for debugging
+            Rails.logger.info "📥 [1C Webhook] Payment Verified hit!"
+            Rails.logger.info "📥 Params: #{params.inspect}"
+            
+            # 1C might send 'Id' or 'id', let's be safe
+            order_id = params[:Id] || params[:id]
             status = params[:status]
 
             if order_id.blank?
