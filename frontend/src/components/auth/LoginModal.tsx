@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/context/AuthContext';
-import { X, Loader2, Mail, Lock } from 'lucide-react';
+import { X, Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,7 @@ interface LoginModalProps {
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     const [error, setError] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
     const { loginWithPassword } = useAuth();
     const navigate = useNavigate();
 
@@ -83,10 +84,36 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                         {passErrors.email && <p className="text-xs text-red-500">{passErrors.email.message}</p>}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="password">Пароль</Label>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="password">Пароль</Label>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onClose();
+                                    navigate('/forgot-password');
+                                }}
+                                title="Восстановить через OTP-код"
+                                className="text-xs font-medium text-red-600 hover:text-red-700 hover:underline"
+                            >
+                                Забыли пароль?
+                            </button>
+                        </div>
                         <div className="relative">
                             <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                            <Input id="password" type="password" className="pl-9" placeholder="••••••••" {...registerPass('password')} />
+                            <Input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                className="pl-9 pr-10"
+                                placeholder="••••••••"
+                                {...registerPass('password')}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
                         </div>
                         {passErrors.password && <p className="text-xs text-red-500">{passErrors.password.message}</p>}
                     </div>
