@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -20,29 +20,6 @@ import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User
 import { useAuth } from '@/context/AuthContext';
 import OrderTrackingMap from '@/components/OrderTrackingMap';
 
-const SimulationText = () => {
-    const [index, setIndex] = useState(0);
-    const messages = [
-        "Связываемся с биржей грузоперевозок...",
-        "Анализируем доступные машины поблизости...",
-        "Проверяем рейтинг водителей...",
-        "Торгуемся за лучшую цену доставки...",
-        "Ожидаем подтверждения от водителя..."
-    ];
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setIndex((prev) => (prev + 1) % messages.length);
-        }, 3000);
-        return () => clearInterval(interval);
-    }, []);
-
-    return (
-        <div className="animate-pulse text-blue-700 font-medium transition-all duration-500">
-            {messages[index]}
-        </div>
-    );
-};
 
 const OrderDetailPage: React.FC = () => {
     const { id } = useParams();
@@ -632,6 +609,23 @@ const OrderDetailPage: React.FC = () => {
                 /* STANDARD LAYOUT for all other statuses */
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="md:col-span-2 space-y-6">
+                        {attributes.status === 'searching_driver' && (
+                            <div className="relative p-6 bg-white border border-blue-100 rounded-xl shadow-sm">
+                                <div className="flex flex-col items-center justify-center text-center space-y-4">
+                                    <div className="bg-blue-50 p-4 rounded-full">
+                                        <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-xl font-semibold text-blue-900 mb-2 font-display">Поиск водителя</h3>
+                                        <p className="text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
+                                            Мы в поисках водителя. Мы сообщим вам, как только подберем подходящую машину.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <Card>
                             <CardHeader>
                                 <CardTitle>Состав заказа</CardTitle>
@@ -836,32 +830,8 @@ const OrderDetailPage: React.FC = () => {
                                 )}
 
                                 {attributes.status === 'searching_driver' && (
-                                    <div className="space-y-6">
-                                        {/* Simulation UI: Searching Driver */}
-                                        <div className="relative p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl overflow-hidden shadow-sm">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10">
-                                                <Truck className="h-32 w-32 text-blue-600" />
-                                            </div>
-
-                                            <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-4">
-                                                <div className="relative">
-                                                    <div className="absolute inset-0 bg-blue-400 rounded-full opacity-20 animate-ping"></div>
-                                                    <div className="relative bg-white p-4 rounded-full shadow-md border-2 border-blue-100">
-                                                        <Loader className="h-8 w-8 text-blue-600 animate-spin" />
-                                                    </div>
-                                                </div>
-
-                                                <div>
-                                                    <h3 className="text-xl font-semibold text-blue-900 mb-2">Поиск водителя</h3>
-                                                    <div className="h-6 overflow-hidden">
-                                                        <SimulationText />
-                                                    </div>
-                                                    <p className="text-xs text-blue-500 mt-2 max-w-sm mx-auto">
-                                                        Мы уже уведомили доступных водителей через Della.kz. В среднем поиск занимает 15-30 минут.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div className="space-y-4">
+                                        {/* Status moved to center, only functional items remain here if needed */}
 
                                         {/* Minimalistic Payment Status Sidebar/Badge */}
                                         <div className="flex items-center justify-end space-x-2">
