@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 
 export interface CartItem {
@@ -51,14 +52,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
                 );
             }
-            return [...prevItems, {
+
+            const newItem = {
                 id: product.id,
                 name: product.attributes.name,
                 price: parseFloat(product.attributes.price),
                 quantity: 1,
                 image_url: product.attributes.image_url,
                 warehouseId: product.attributes.warehouseId
-            }];
+            };
+            toast.success(`${newItem.name} добавлен в корзину`);
+            return [...prevItems, newItem];
         });
     };
 
@@ -78,7 +82,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
     };
 
-    const clearCart = () => setItems([]);
+    const clearCart = () => {
+        setItems([]);
+        toast.info("Корзина очищена");
+    };
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);

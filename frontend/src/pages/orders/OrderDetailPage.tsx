@@ -96,7 +96,14 @@ const OrderDetailPage: React.FC = () => {
     // const directorSignMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/director_sign`), ...mutationOptions });
     // const payMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/pay`), ...mutationOptions });
     // const findDriverMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/find_driver`), ...mutationOptions });
-    const confirmPaymentMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/confirm_payment`), ...mutationOptions });
+    const confirmPaymentMutation = useMutation({
+        mutationFn: () => api.post(`/api/v1/orders/${id}/confirm_payment`),
+        ...mutationOptions,
+        onSuccess: () => {
+            mutationOptions.onSuccess();
+            toast.success("Оплата подтверждена!");
+        }
+    });
 
     // Real driver assignment
     const assignDriverMutation = useMutation({
@@ -105,12 +112,41 @@ const OrderDetailPage: React.FC = () => {
         onSuccess: () => {
             mutationOptions.onSuccess();
             setIsDriverModalOpen(false);
+            toast.success("Водитель успешно назначен!");
+        },
+        onError: (err: any) => {
+            toast.error("Ошибка назначения водителя", {
+                description: err.response?.data?.error || "Проверьте данные водителя"
+            });
         }
     });
 
-    const arriveMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/driver_arrived`), ...mutationOptions });
-    const transitMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/start_trip`), ...mutationOptions });
-    const deliverMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/deliver`), ...mutationOptions });
+    const arriveMutation = useMutation({
+        mutationFn: () => api.post(`/api/v1/orders/${id}/driver_arrived`),
+        ...mutationOptions,
+        onSuccess: () => {
+            mutationOptions.onSuccess();
+            toast.success("Прибытие на склад зафиксировано");
+        }
+    });
+    const transitMutation = useMutation({
+        mutationFn: () => api.post(`/api/v1/orders/${id}/start_trip`),
+        ...mutationOptions,
+        onSuccess: () => {
+            mutationOptions.onSuccess();
+            toast.info("Заказ переведен в статус 'В пути'");
+        }
+    });
+    const deliverMutation = useMutation({
+        mutationFn: () => api.post(`/api/v1/orders/${id}/deliver`),
+        ...mutationOptions,
+        onSuccess: () => {
+            mutationOptions.onSuccess();
+            toast.success("Доставка подтверждена!", {
+                description: "Заказ успешно доставлен клиенту"
+            });
+        }
+    });
     // const completeMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/complete`), ...mutationOptions });
 
 

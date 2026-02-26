@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 const RegisterPage: React.FC = () => {
     const [step, setStep] = useState<'form' | 'verify'>('form');
@@ -57,9 +58,15 @@ const RegisterPage: React.FC = () => {
             if (response.data?.data?.verification_required) {
                 setEmailForOtp(formData.email);
                 setStep('verify');
+                toast.info("Код подтверждения отправлен", {
+                    description: `Пожалуйста, проверьте почту ${formData.email}`
+                });
             } else {
                 // Should not happen with new config, but fallback to auto-login
                 await loginWithPassword(formData.email, formData.password);
+                toast.success("Регистрация успешна!", {
+                    description: "Добро пожаловать в DYNAMIX"
+                });
                 navigate('/');
             }
         } catch (err: any) {
@@ -82,6 +89,9 @@ const RegisterPage: React.FC = () => {
                 errorMessage = err.response.data.status.message;
             }
 
+            toast.error("Ошибка регистрации", {
+                description: errorMessage
+            });
             setError(errorMessage);
         } finally {
             setIsLoading(false);
@@ -94,9 +104,15 @@ const RegisterPage: React.FC = () => {
         setIsLoading(true);
         try {
             await verifyOtp(emailForOtp, otp);
+            toast.success("Email подтвержден!", {
+                description: "Добро пожаловать в DYNAMIX"
+            });
             navigate('/');
         } catch (err: any) {
             console.error("Verification error:", err);
+            toast.error("Ошибка подтверждения", {
+                description: "Неверный код или срок действия истек."
+            });
             setError('Неверный код или срок действия истек.');
         } finally {
             setIsLoading(false);

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '@/lib/api';
+import { toast } from 'sonner';
 
 interface User {
     id: string;
@@ -158,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(null);
             localStorage.removeItem('user');
             localStorage.removeItem('token');
+            toast.info("Вы вышли из системы");
         }
     };
 

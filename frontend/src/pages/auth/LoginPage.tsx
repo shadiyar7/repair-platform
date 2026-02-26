@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -49,9 +50,14 @@ const LoginPage: React.FC = () => {
                 navigate('/');
             }
 
+            toast.success("Вход выполнен успешно!", {
+                description: "Добро пожаловать в DYNAMIX"
+            });
         } catch (err: any) {
             console.error(err);
-            // Error is already formatted by AuthContext or we catch it here
+            toast.error("Ошибка входа", {
+                description: err.message || "Неверный email или пароль"
+            });
             setError(err.message || 'Ошибка входа');
         } finally {
             setIsLoading(false);

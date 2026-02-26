@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Truck, MapPin, Package, CheckCircle, Navigation, FileText } from 'lucide-react';
+import { toast } from 'sonner';
 
 const DriverDashboard: React.FC = () => {
     const queryClient = useQueryClient();
@@ -20,7 +21,22 @@ const DriverDashboard: React.FC = () => {
     const updateStatusMutation = useMutation({
         mutationFn: ({ id, action }: { id: string, action: string }) =>
             api.post(`/api/v1/orders/${id}/${action}`),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['driver-orders'] })
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['driver-orders'] });
+
+            const messages: Record<string, string> = {
+                pick_up: "Заказ забран и переведен в статус 'В пути'",
+                deliver: "Заказ успешно доставлен!",
+                complete: "Заказ полностью завершен"
+            };
+
+            toast.success(messages[variables.action] || "Статус успешно обновлен");
+        },
+        onError: (err: any) => {
+            toast.error("Ошибка при обновлении статуса", {
+                description: err.response?.data?.error || "Попробуйте еще раз"
+            });
+        }
     });
 
     if (isLoading) return <div className="flex justify-center items-center h-64">Загрузка панели водителя...</div>;
