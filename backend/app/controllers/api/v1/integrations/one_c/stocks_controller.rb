@@ -84,6 +84,11 @@ module Api
 
           # POST /api/v1/integrations/one_c/stocks
           def update
+            # Log Raw Body for extreme debugging
+            raw_body = request.body.read
+            Rails.logger.info "📥 [1C PUSH] Raw Body: #{raw_body.truncate(500)}"
+            request.body.rewind # Rewind so standard param parsing still works
+
             warehouse_id = params[:warehouse_id_1c]
             items = params[:items]
 
