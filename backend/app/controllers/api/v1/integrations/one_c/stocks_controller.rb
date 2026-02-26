@@ -158,7 +158,8 @@ module Api
              warehouse_id = params[:warehouse_id] || "000000001"
              
              # Configuration
-             one_c_url = "https://f577a0f8677a.ngrok-free.app/Integration/hs/int/get_stocks"
+             # Use production URL
+             one_c_url = ENV.fetch('ONE_C_API_URL', "https://1cstart.itsheff.cloud/komandeersykixo/hs/int/get_stocks")
              url = URI(one_c_url)
              
              begin

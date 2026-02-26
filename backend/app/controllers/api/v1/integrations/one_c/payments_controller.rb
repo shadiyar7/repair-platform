@@ -48,10 +48,10 @@ module Api
           # POST /api/v1/integrations/one_c/test_trigger
           # Triggered by frontend button "Test 1C"
           def test_trigger
-            # Hardcoded 1C Endpoint and Credentials as requested
-            url = "https://f577a0f8677a.ngrok-free.app/Integration/hs/int/post_payments"
-            username = "администратор"
-            password = "" # Empty password
+            # Use Production 1C Endpoint and Credentials
+            url = ENV.fetch('ONE_C_API_URL_PAYMENTS', "https://1cstart.itsheff.cloud/komandeersykixo/hs/int/post_payments")
+            username = "integration"
+            password = "Aa123456!!"
 
             Rails.logger.info "Test Trigger Params: #{params.inspect}"
 

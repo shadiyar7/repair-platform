@@ -43,9 +43,9 @@ class OneCPaymentTrigger
   end
 
   def send_to_debug_endpoint(payload)
-    url = "https://f577a0f8677a.ngrok-free.app/Integration/hs/int/post_payments"
-    username = "администратор"
-    password = "" 
+    url = ENV.fetch('ONE_C_API_URL_PAYMENTS', "https://1cstart.itsheff.cloud/komandeersykixo/hs/int/post_payments")
+    username = "integration"
+    password = "Aa123456!!" 
 
     Rails.logger.info "1C Integration: Sending Order ##{order.id} to #{url}"
     
