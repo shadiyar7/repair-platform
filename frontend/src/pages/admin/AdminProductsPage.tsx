@@ -28,6 +28,7 @@ interface ProductData {
         is_active: boolean;
         characteristics: any;
         warehouse_location?: string;
+        uids?: string[];
     }
 }
 
@@ -64,7 +65,8 @@ const AdminProductsPage: React.FC = () => {
         // Dynamic Characteristics
         thickness: '',
         age: '',
-        other_details: ''
+        other_details: '',
+        uids: '' // Comma separated string for input
     });
 
     useEffect(() => {
@@ -110,7 +112,8 @@ const AdminProductsPage: React.FC = () => {
             is_active: true,
             thickness: THICKNESS_RANGES[0],
             age: AGE_RANGES[0],
-            other_details: ''
+            other_details: '',
+            uids: ''
         });
         setIsEditOpen(true);
     };
@@ -128,7 +131,8 @@ const AdminProductsPage: React.FC = () => {
             is_active: product.attributes.is_active,
             thickness: chars.thickness || THICKNESS_RANGES[0],
             age: chars.age || AGE_RANGES[0],
-            other_details: JSON.stringify(chars)
+            other_details: JSON.stringify(chars),
+            uids: (product.attributes as any).uids?.join(', ') || ''
         });
         setIsEditOpen(true);
     };
@@ -144,7 +148,8 @@ const AdminProductsPage: React.FC = () => {
             is_active: true,
             thickness: THICKNESS_RANGES[0],
             age: AGE_RANGES[0],
-            other_details: ''
+            other_details: '',
+            uids: ''
         });
         setIsEditOpen(true);
     };
@@ -169,7 +174,8 @@ const AdminProductsPage: React.FC = () => {
                     price: parseFloat(formData.price),
                     category: formData.category,
                     is_active: formData.is_active,
-                    characteristics: characteristics
+                    characteristics: characteristics,
+                    uids: formData.uids.split(',').map(s => s.trim()).filter(s => s !== '')
                 },
                 warehouse_id: warehouseId
             };
@@ -269,6 +275,15 @@ const AdminProductsPage: React.FC = () => {
                                                 {product.attributes.category === CATEGORIES.WHEELSETS && `Толщина: ${product.attributes.characteristics?.thickness}`}
                                                 {product.attributes.category === CATEGORIES.CASTING && `Год: ${product.attributes.characteristics?.age}`}
                                             </div>
+                                            {(product.attributes as any).uids?.length > 0 && (
+                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                    {(product.attributes as any).uids.map((uid: string, i: number) => (
+                                                        <Badge key={i} variant="outline" className="text-[10px] px-1 py-0 h-4 bg-gray-50">
+                                                            UID: {uid}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             {new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(product.attributes.price)}
@@ -365,6 +380,17 @@ const AdminProductsPage: React.FC = () => {
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 placeholder="Название товара..."
                             />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Дополнительные коды (UIDs)</Label>
+                            <Input
+                                value={formData.uids}
+                                onChange={(e) => setFormData({ ...formData, uids: e.target.value })}
+                                placeholder="UID1, UID2, UID3..."
+                                className="bg-gray-50"
+                            />
+                            <p className="text-[10px] text-muted-foreground">Введите коды через запятую для группировки.</p>
                         </div>
 
                         {/* Dynamic Characteristics */}

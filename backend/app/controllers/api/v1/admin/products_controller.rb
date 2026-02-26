@@ -9,15 +9,10 @@ module Api
         # Optional param: warehouse_id (to filter products available at that warehouse)
         def index
           if params[:warehouse_id].present?
-            # Join with stocks if filtering by warehouse
-            # Logic: Show products that have stocks in this warehouse OR just all products?
-            # User said: "choose warehouse -> available goods".
-            # So we find WarehouseStocks first, then find corresponding Products.
-            
             stock_skus = WarehouseStock.where(warehouse_id: params[:warehouse_id]).pluck(:product_sku)
-            @products = Product.where(sku: stock_skus)
+            @products = Product.where(sku: stock_skus).where(is_deleted: false)
           else
-            @products = Product.all
+            @products = Product.where(is_deleted: false)
           end
           
           render json: ProductSerializer.new(@products).serializable_hash
@@ -93,8 +88,8 @@ module Api
         # DELETE /api/v1/admin/products/:id
         def destroy
           if @product.order_items.exists?
-            @product.update(is_active: false)
-            render json: { message: "Product deactivated (soft deleted) because it has existing orders." }, status: :ok
+            @product.update(is_deleted: true)
+            render json: { message: "Product hidden (is_deleted: true) because it has existing orders." }, status: :ok
           else
             @product.destroy
             head :no_content
@@ -115,7 +110,8 @@ module Api
             :name, :sku, :price, :category, :is_active, 
             :description, :image_url, :warehouse_location,
             :nomenclature_code,
-            characteristics: {} # Allow any JSON
+            characteristics: {}, # Allow any JSON
+            uids: [] # Allow array of strings
           )
           
           # Compatibility: if frontend sends '1cId' or maps sku to nomenclature_code in a confusing way
