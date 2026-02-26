@@ -40,9 +40,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             setError(null);
             await loginWithPassword(data.email, data.password);
             onClose();
-        } catch (err) {
+        } catch (err: any) {
             console.error("Login failed:", err);
-            setError(err instanceof Error ? err.message : 'Неизвестная ошибка входа');
+            let errorMessage = "Неверный email или пароль. Пожалуйста, проверьте данные и попробуйте снова.";
+
+            if (err.response?.status === 401) {
+                errorMessage = "Неверный email или пароль. Пожалуйста, проверьте данные и попробуйте снова.";
+            } else if (err.message) {
+                if (err.message.includes('network') || err.code === 'ERR_NETWORK') {
+                    errorMessage = "Ошибка сети. Пожалуйста, проверьте интернет-соединение.";
+                }
+            }
+            setError(errorMessage);
         }
     };
 

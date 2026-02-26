@@ -41,7 +41,16 @@ const AdminLoginPage: React.FC = () => {
 
         } catch (err: any) {
             console.error(err);
-            setError(err.message || 'Ошибка входа');
+            let errorMessage = "Неверный email или пароль. Пожалуйста, проверьте данные и попробуйте снова.";
+
+            if (err.response?.status === 401) {
+                errorMessage = "Неверный email или пароль. Пожалуйста, проверьте данные и попробуйте снова.";
+            } else if (err.message) {
+                if (err.message.includes('network') || err.code === 'ERR_NETWORK') {
+                    errorMessage = "Ошибка сети. Пожалуйста, проверьте интернет-соединение.";
+                }
+            }
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
