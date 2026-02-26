@@ -7,6 +7,7 @@ module Api
 
         # GET /api/v1/admin/products
         # Optional param: warehouse_id (to filter products available at that warehouse)
+        def index
           if params[:warehouse_id].present?
             stock_skus = WarehouseStock.where(warehouse_id: params[:warehouse_id]).pluck(:product_sku)
             @products = Product.where(sku: stock_skus).where(is_deleted: false)
