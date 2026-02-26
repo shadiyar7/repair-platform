@@ -21,6 +21,8 @@ interface CartContextType {
     totalPrice: number;
     isCartOpen: boolean;
     setIsCartOpen: (isOpen: boolean) => void;
+    isBuyback: boolean;
+    setIsBuyback: (isBuyback: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -82,19 +84,46 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
     };
 
+    // Drawer State
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isBuyback, setIsBuyback] = useState(false);
+
+    useEffect(() => {
+        const storedBuyback = localStorage.getItem(`${cartKey}_buyback`);
+        if (storedBuyback) {
+            setIsBuyback(JSON.parse(storedBuyback));
+        } else {
+            setIsBuyback(false);
+        }
+    }, [cartKey]);
+
+    useEffect(() => {
+        localStorage.setItem(`${cartKey}_buyback`, JSON.stringify(isBuyback));
+    }, [isBuyback, cartKey]);
+
     const clearCart = () => {
         setItems([]);
+        setIsBuyback(false);
         toast.info("Корзина очищена");
     };
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    // Drawer State
-    const [isCartOpen, setIsCartOpen] = useState(false);
-
     return (
-        <CartContext.Provider value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, isCartOpen, setIsCartOpen }}>
+        <CartContext.Provider value={{
+            items,
+            addToCart,
+            removeFromCart,
+            updateQuantity,
+            clearCart,
+            totalItems,
+            totalPrice,
+            isCartOpen,
+            setIsCartOpen,
+            isBuyback,
+            setIsBuyback
+        }}>
             {children}
         </CartContext.Provider>
     );

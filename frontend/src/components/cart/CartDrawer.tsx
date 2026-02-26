@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Trash2, X, FileDown } from 'lucide-react';
+import { ShoppingCart, Trash2, X, FileDown, ShoppingBag } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import LoginModal from '@/components/auth/LoginModal';
 import api from '@/lib/api';
 
@@ -13,7 +15,7 @@ interface CartDrawerProps {
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
-    const { items, totalPrice, updateQuantity, removeFromCart } = useCart();
+    const { items, totalPrice, updateQuantity, removeFromCart, isBuyback, setIsBuyback } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -127,7 +129,30 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                     <p>Итого</p>
                                     <p>{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(totalPrice)}</p>
                                 </div>
-                                <p className="mt-0.5 text-sm text-gray-500">Доставка и налоги рассчитываются при оформлении.</p>
+
+                                <div className="mt-4 p-4 bg-amber-50 border border-amber-100 rounded-lg">
+                                    <div className="flex items-center space-x-3">
+                                        <Checkbox
+                                            id="drawer-is_buyback"
+                                            checked={isBuyback}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsBuyback(e.target.checked)}
+                                        />
+                                        <div className="flex-1">
+                                            <Label
+                                                htmlFor="drawer-is_buyback"
+                                                className="text-sm font-semibold flex items-center gap-2 text-amber-900 cursor-pointer"
+                                            >
+                                                <ShoppingBag className="h-4 w-4" />
+                                                Хочу оформить с обратным выкупом
+                                            </Label>
+                                            <p className="text-xs text-amber-700 mt-0.5 ml-0">
+                                                Менеджер свяжется для обсуждения условий выкупа запчастей.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="mt-2 text-sm text-gray-500">Доставка и налоги рассчитываются при оформлении.</p>
                                 <div className="mt-6 space-y-3">
                                     <Button onClick={handleCheckout} className="w-full text-base py-6 bg-red-600 hover:bg-red-700">
                                         Оформить заказ
