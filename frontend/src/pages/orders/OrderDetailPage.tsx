@@ -183,7 +183,11 @@ const OrderDetailPage: React.FC = () => {
             fd.append('file', file);
             fd.append('amount', String(order.attributes.total_amount));
             await api.post(`/api/v1/orders/${id}/upload_receipt`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-            toast.success('Чек успешно загружен!', { id: toastId });
+            toast.success('Чек принят!', {
+                id: toastId,
+                description: "Бухгалтер проверяет оплату, пока мы ищем вам водителя.",
+                duration: 6000
+            });
             queryClient.invalidateQueries({ queryKey: ['order', id] });
         } catch (err: any) {
             console.error(err);
@@ -799,8 +803,33 @@ const OrderDetailPage: React.FC = () => {
                                             <DialogContent>
                                                 {/* File Upload Form - Simplified for brevity in this insertion, ideally componentized */}
                                                 <DialogHeader><DialogTitle>Загрузка чека</DialogTitle></DialogHeader>
-                                                <p>Пожалуйста, загрузите чек об оплате.</p>
-                                                <Input type="file" disabled={isScanning} onChange={handleReceiptUpload} />
+                                                <div className="flex flex-col items-center gap-4 py-4">
+                                                    <p className="text-sm text-center text-muted-foreground">
+                                                        Пожалуйста, прикрепите файл чека или скриншот оплаты из приложения банка.
+                                                    </p>
+                                                    <Input
+                                                        id="receipt-file-input"
+                                                        type="file"
+                                                        className="hidden"
+                                                        disabled={isScanning}
+                                                        onChange={handleReceiptUpload}
+                                                        accept="image/*,application/pdf"
+                                                    />
+                                                    <Button
+                                                        asChild
+                                                        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-12"
+                                                        disabled={isScanning}
+                                                    >
+                                                        <label htmlFor="receipt-file-input" className="cursor-pointer flex items-center justify-center w-full h-full">
+                                                            {isScanning ? (
+                                                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                                            ) : (
+                                                                <FileText className="mr-2 h-5 w-5" />
+                                                            )}
+                                                            {isScanning ? 'ОБРАБОТКА...' : 'ВЫБРАТЬ ФАЙЛ ЧЕКА'}
+                                                        </label>
+                                                    </Button>
+                                                </div>
                                             </DialogContent>
                                         </Dialog>
                                     </div>
