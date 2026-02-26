@@ -140,8 +140,8 @@ const AdminProductsPage: React.FC = () => {
     const createFromUnlinked = (item: any) => {
         setEditingProduct(null);
         setFormData({
-            name: `Товар ${item.nomenclature_code}`, // Use nomenclature_code for suggestion
-            sku: `WS-${item.nomenclature_code}`, // Suggest a default internal SKU? Or leave blank?
+            name: item.nomenclature_name || `Товар ${item.nomenclature_code}`, // Suggested name from 1C
+            sku: `WS-${item.nomenclature_code}`,
             nomenclature_code: item.nomenclature_code,
             price: '',
             category: CATEGORIES.WHEELSETS,
@@ -259,6 +259,7 @@ const AdminProductsPage: React.FC = () => {
                                     <TableHead>Код 1C (Nomenclature)</TableHead>
                                     <TableHead>Название</TableHead>
                                     <TableHead>Цена</TableHead>
+                                    <TableHead>Остаток</TableHead>
                                     <TableHead>Категория</TableHead>
                                     <TableHead>Статус</TableHead>
                                     <TableHead className="text-right">Действия</TableHead>
@@ -287,6 +288,11 @@ const AdminProductsPage: React.FC = () => {
                                         </TableCell>
                                         <TableCell>
                                             {new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(product.attributes.price)}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline" className="font-mono">
+                                                {(product.attributes as any).quantity || 0} шт
+                                            </Badge>
                                         </TableCell>
                                         <TableCell>{product.attributes.category}</TableCell>
                                         <TableCell>

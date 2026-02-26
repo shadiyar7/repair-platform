@@ -7,10 +7,19 @@ module Api
 
         # GET /api/v1/admin/products
         # Optional param: warehouse_id (to filter products available at that warehouse)
-        def index
           if params[:warehouse_id].present?
             stock_skus = WarehouseStock.where(warehouse_id: params[:warehouse_id]).pluck(:product_sku)
             @products = Product.where(sku: stock_skus).where(is_deleted: false)
+            
+            # Map products to include quantity for this warehouse
+            stocks_map = WarehouseStock.where(warehouse_id: params[:warehouse_id]).index_by(&:product_sku)
+            
+            serialized = ProductSerializer.new(@products).serializable_hash
+            serialized[:data].each do |p_node|
+              sku = p_node.dig(:attributes, :sku)
+              p_node[:attributes][:quantity] = stocks_map[sku]&.quantity || 0
+            end
+            return render json: serialized
           else
             @products = Product.where(is_deleted: false)
           end
@@ -38,6 +47,7 @@ module Api
             {
               sku: stock.nomenclature_code, # Front expects "sku" key for the ID in the table? 
               nomenclature_code: stock.nomenclature_code,
+              nomenclature_name: stock.nomenclature_name, # Added for frontend suggestion
               quantity: stock.quantity,
               synced_at: stock.synced_at,
               warehouse_id: stock.warehouse_id
@@ -61,10 +71,16 @@ module Api
                  # Or create new one?
                  stock = warehouse.warehouse_stocks.find_or_initialize_by(nomenclature_code: @product.nomenclature_code)
                  # Don't overwrite quantity if it exists, just ensure it exists
-                 stock.synced_at ||= Time.now
-                 stock.quantity ||= 0
-                 stock.save!
-              end
+                  stock.synced_at ||= Time.now
+                  stock.quantity ||= 0
+                  stock.nomenclature_name = @product.name # Sync name from product form
+                  stock.save!
+               end
+            end
+
+            # Always sync nomenclature_name for ALL stocks with this code across all warehouses
+            if @product.nomenclature_code.present?
+              WarehouseStock.where(nomenclature_code: @product.nomenclature_code).update_all(nomenclature_name: @product.name)
             end
 
             render json: ProductSerializer.new(@product).serializable_hash, status: :created
