@@ -55,10 +55,21 @@ const LoginPage: React.FC = () => {
             });
         } catch (err: any) {
             console.error(err);
+            let errorMessage = "Неверный email или пароль. Пожалуйста, проверьте данные и попробуйте снова.";
+
+            if (err.response?.status === 401) {
+                errorMessage = "Неверный email или пароль. Пожалуйста, проверьте данные и попробуйте снова.";
+            } else if (err.message) {
+                // If it's a network error or something else, but not 401
+                if (err.message.includes('network') || err.code === 'ERR_NETWORK') {
+                    errorMessage = "Ошибка сети. Пожалуйста, проверьте интернет-соединение.";
+                }
+            }
+
             toast.error("Ошибка входа", {
-                description: err.message || "Неверный email или пароль"
+                description: errorMessage
             });
-            setError(err.message || 'Ошибка входа');
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
