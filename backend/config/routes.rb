@@ -72,7 +72,7 @@ Rails.application.routes.draw do
           get 'test_stocks', to: 'stocks#test_stocks'
           
           # Payment Integration
-          post 'payment_verified', to: 'payments#verified'
+          match 'payment_verified', to: 'payments#verified', via: [:post, :get]
           post 'test_trigger', to: 'payments#test_trigger'
           post 'real_trigger', to: 'payments#real_trigger'
           post 'debug_trigger', to: 'payments#debug_trigger'
@@ -98,5 +98,5 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root to: proc { [200, {}, ['API is online']] }
   # 1C Integration Alias
-  post '/PaymentVerified', to: 'api/v1/integrations/one_c/payments#verified'
+  match '/PaymentVerified', to: 'api/v1/integrations/one_c/payments#verified', via: [:post, :get]
 end

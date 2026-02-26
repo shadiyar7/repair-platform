@@ -10,8 +10,12 @@ module Api
           # Payload: { "Id": 1, "status": true }
           def verified
             # Logging for debugging
-            Rails.logger.info "📥 [1C Webhook] Payment Verified hit!"
+            Rails.logger.info "📥 [1C Webhook] Payment Verified hit! (#{request.method})"
             Rails.logger.info "📥 Params: #{params.inspect}"
+
+            if request.get?
+              return render json: { code: 200, message: "Webhook is reachable (GET)" }
+            end
             
             # 1C might send 'Id' or 'id', let's be safe
             order_id = params[:Id] || params[:id]
