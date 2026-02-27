@@ -9,16 +9,21 @@ module Api
         # Optional param: warehouse_id (to filter products available at that warehouse)
         def index
           if params[:warehouse_id].present?
-            stock_skus = WarehouseStock.where(warehouse_id: params[:warehouse_id]).pluck(:product_sku)
-            @products = Product.where(sku: stock_skus).where(is_deleted: false)
+            stocks = WarehouseStock.where(warehouse_id: params[:warehouse_id])
+            stock_skus = stocks.pluck(:product_sku).compact
+            stock_codes = stocks.pluck(:nomenclature_code).compact
             
-            # Map products to include quantity for this warehouse
-            stocks_map = WarehouseStock.where(warehouse_id: params[:warehouse_id]).index_by(&:product_sku)
+            @products = Product.where(is_deleted: false).where(
+              "sku IN (:skus) OR nomenclature_code IN (:codes)", skus: stock_skus, codes: stock_codes
+            )
             
             serialized = ProductSerializer.new(@products).serializable_hash
             serialized[:data].each do |p_node|
               sku = p_node.dig(:attributes, :sku)
-              p_node[:attributes][:quantity] = stocks_map[sku]&.quantity || 0
+              code = p_node.dig(:attributes, :nomenclature_code)
+              
+              stock = stocks.find { |s| (s.product_sku.present? && s.product_sku == sku) || (s.nomenclature_code.present? && s.nomenclature_code == code) }
+              p_node[:attributes][:quantity] = stock&.quantity || 0
             end
             return render json: serialized
           else
@@ -34,20 +39,22 @@ module Api
           warehouse_id = params[:warehouse_id]
           
           # Find all entries in WarehouseStock
-          scope = WarehouseStock.select(:nomenclature_code, :quantity, :synced_at, :warehouse_id)
+          scope = WarehouseStock.select(:nomenclature_code, :product_sku, :quantity, :synced_at, :warehouse_id, :nomenclature_name)
           scope = scope.where(warehouse_id: warehouse_id) if warehouse_id.present?
-          scope = scope.where.not(nomenclature_code: nil)
 
-          # Find all existing Product nomenclature_codes
           existing_codes = Product.where.not(nomenclature_code: nil).pluck(:nomenclature_code)
+          existing_skus = Product.where.not(sku: nil).pluck(:sku)
           
-          # Filter stocks where nomenclature_code is NOT in existing_codes
-          unlinked_stocks = scope.where.not(nomenclature_code: existing_codes)
+          unlinked_stocks = scope.to_a.reject do |stock|
+            (stock.nomenclature_code.present? && existing_codes.include?(stock.nomenclature_code)) ||
+            (stock.product_sku.present? && existing_skus.include?(stock.product_sku))
+          end
+          unlinked_stocks.select! { |s| s.nomenclature_code.present? || s.product_sku.present? }
           
           render json: unlinked_stocks.map { |stock|
             {
-              sku: stock.nomenclature_code, # Front expects "sku" key for the ID in the table? 
-              nomenclature_code: stock.nomenclature_code,
+              sku: stock.nomenclature_code || stock.product_sku, # Fallback
+              nomenclature_code: stock.nomenclature_code || stock.product_sku,
               nomenclature_name: stock.nomenclature_name, # Added for frontend suggestion
               quantity: stock.quantity,
               synced_at: stock.synced_at,
@@ -68,15 +75,15 @@ module Api
             if params[:warehouse_id].present?
               warehouse = Warehouse.find_by(id: params[:warehouse_id])
               if warehouse && @product.nomenclature_code.present?
-                 # Try to find existing stock by nomenclature_code (from 1C sync) and link it?
-                 # Or create new one?
-                 stock = warehouse.warehouse_stocks.find_or_initialize_by(nomenclature_code: @product.nomenclature_code)
-                 # Don't overwrite quantity if it exists, just ensure it exists
-                  stock.synced_at ||= Time.now
-                  stock.quantity ||= 0
-                  stock.nomenclature_name = @product.name # Sync name from product form
-                  stock.save!
-               end
+                # Try to find existing stock by nomenclature_code (from 1C sync) and link it?
+                # Or create new one?
+                stock = warehouse.warehouse_stocks.find_or_initialize_by(nomenclature_code: @product.nomenclature_code)
+                # Don't overwrite quantity if it exists, just ensure it exists
+                stock.synced_at ||= Time.now
+                stock.quantity ||= 0
+                stock.nomenclature_name = @product.name # Sync name from product form
+                stock.save!
+              end
             end
 
             # Always sync nomenclature_name for ALL stocks with this code across all warehouses
