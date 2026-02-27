@@ -90,11 +90,10 @@ module Api
             Rails.logger.info "📥 [1C PUSH] Raw Body: #{safe_body.truncate(500)}"
             request.body.rewind # Rewind so standard param parsing still works
 
-            warehouse_id = params[:warehouse_id_1c]
-            items = params[:items]
+            warehouse_id = params[:warehouse_id_1c] || params.dig(:stock, :warehouse_id_1c)
+            items = params[:items] || params.dig(:stock, :items)
 
             Rails.logger.info "📥 [1C PUSH] Incoming sync for Warehouse ID: #{warehouse_id}. Items count: #{items&.size || 0}"
-            # Rails.logger.debug "📥 [1C PUSH] Full Params: #{params.to_unsafe_h.inspect}"
 
             if warehouse_id.blank? || items.nil?
               Rails.logger.error "❌ [1C PUSH] Invalid payload: warehouse_id_1c=#{warehouse_id.inspect}, items_nil=#{items.nil?}"
@@ -114,34 +113,26 @@ module Api
 
             ActiveRecord::Base.transaction do
               synced_now = Time.current
-              
-              # Update Warehouse timestamp
               warehouse.update!(last_synced_at: synced_now)
 
-              items.each_with_index do |item, index|
-                if index == 0
-                  Rails.logger.info "🔍 [1C PUSH] Sample item keys: #{item.keys.inspect}"
-                end
-                next unless item[:nomenclature_code].present? 
-
-                # Find by nomenclature_code instead of product_sku
-                # If product_sku column was used for this before, we should start using nomenclature_code
-                stock = warehouse.warehouse_stocks.find_or_initialize_by(nomenclature_code: item[:nomenclature_code])
+              items.each do |item|
+                # Handle both symbol and string keys
+                item = item.with_indifferent_access if item.respond_to?(:with_indifferent_access)
                 
-                # Also fallback for existing ones? No, user wants clean start or migration?
-                # Let's populate product_sku for legacy compatibility if we can find a product?
-                # Actually, if we switch to nomenclature_code linking, we should stick to it.
+                code = item[:nomenclature_code]
+                next if code.blank?
+
+                stock = warehouse.warehouse_stocks.find_or_initialize_by(nomenclature_code: code)
                 
                 stock.nomenclature_name = item[:nomenclature_name] if item[:nomenclature_name].present?
-                
-                stock.quantity = item[:quantity] || 0
+                stock.quantity = item[:quantity].to_f
                 stock.synced_at = synced_now
-                # Also save the textual product_sku if we can find a product match?
-                # Or just leave product_sku as nil/legacy?
-                # Given user wants "unlinked" logic, we rely on nomenclature_code.
+                
+                # Try to link to a product if possible, for backward compatibility
+                # product = Product.find_by(nomenclature_code: code)
+                # stock.product_sku = product.sku if product
                 
                 stock.save!
-                
                 processed_count += 1
               end
             end
