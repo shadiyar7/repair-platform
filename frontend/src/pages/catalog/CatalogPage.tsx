@@ -63,7 +63,8 @@ const CatalogPage: React.FC = () => {
     const filteredProducts = useMemo(() => {
         return products.filter((p: any) => {
             const attrs = p.attributes;
-            const matchesWarehouse = attrs.warehouse_location === selectedWarehouse;
+            const warehouseStock = attrs.warehouse_stocks_map?.[selectedWarehouse] || 0;
+            const matchesWarehouse = warehouseStock > 0;
             if (!matchesWarehouse) return false;
 
             if (activeTab === 'wheelsets') {
@@ -75,9 +76,8 @@ const CatalogPage: React.FC = () => {
 
             if (activeTab === 'casting') {
                 const isCasting = attrs.category === 'Литье';
-                const isOther = attrs.category === 'Прочие запчасти';
+                const isOther = attrs.category === 'Прочие запчасти' || attrs.category === 'Запчасти' || attrs.category === 'Другое';
 
-                // Show both Casting and Other in this tab? The user grouped them in "Литье и прочие"
                 if (!isCasting && !isOther) return false;
 
                 if (ageFilter) {
@@ -247,8 +247,8 @@ const CatalogPage: React.FC = () => {
                                                                 {new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(attrs.price)}
                                                             </TableCell>
                                                             <TableCell>
-                                                                <span className={attrs.stock > 10 ? "text-green-600" : "text-orange-600"}>
-                                                                    {attrs.stock} шт.
+                                                                <span className={(attrs.warehouse_stocks_map?.[selectedWarehouse] || 0) > 10 ? "text-green-600" : "text-orange-600"}>
+                                                                    {attrs.warehouse_stocks_map?.[selectedWarehouse] || 0} шт.
                                                                 </span>
                                                             </TableCell>
                                                             <TableCell className="text-right">

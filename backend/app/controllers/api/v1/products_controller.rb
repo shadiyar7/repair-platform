@@ -3,7 +3,7 @@ class Api::V1::ProductsController < ApplicationController
   def index
     check_sync_status
 
-    products = Product.where(is_active: true, is_deleted: false)
+    products = Product.includes(warehouse_stocks: :warehouse).where(is_active: true, is_deleted: false)
     render json: ProductSerializer.new(products).serializable_hash
   end
 
