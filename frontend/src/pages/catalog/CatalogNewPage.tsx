@@ -19,16 +19,16 @@ import { RefreshCw, ShoppingCart, FileText, MapPin, Plus, Minus, Filter, ArrowRi
 import { useCart } from '@/context/CartContext';
 
 const WAREHOUSES = [
+    { id: "000000002", name: "Шымкент", region: "юг" },
     { id: "000000001", name: "Павлодар", region: "северо-восток" }, // Main
     { id: "000000003", name: "Атырау", region: "запад" },
     { id: "000000005", name: "Аягоз", region: "восток / юго-восток" },
-    { id: "000000004", name: "Караганда", region: "центр" },
-    { id: "000000002", name: "Шымкент", region: "юг" }
+    { id: "000000004", name: "Караганда", region: "центр" }
 ];
 
 const CatalogNewPage: React.FC = () => {
     const { addToCart, items, updateQuantity, clearCart, setIsCartOpen } = useCart();
-    const [selectedWarehouseId, setSelectedWarehouseId] = useState("000000001");
+    const [selectedWarehouseId, setSelectedWarehouseId] = useState("000000002");
     const [warehouseData, setWarehouseData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -86,7 +86,7 @@ const CatalogNewPage: React.FC = () => {
 
             if (activeTab === 'casting') {
                 const isCasting = item.category === 'Литье';
-                const isOther = item.category === 'Прочие запчасти';
+                const isOther = item.category === 'Прочие запчасти' || item.category === 'Запчасти' || item.category === 'Другое';
                 if (!isCasting && !isOther) return false;
 
                 if (ageFilter) {
