@@ -21,16 +21,16 @@ import { ShoppingCart, Plus, Minus, MapPin, Filter } from 'lucide-react';
 const CatalogPage: React.FC = () => {
     const { addToCart, items, updateQuantity } = useCart();
     const [activeTab, setActiveTab] = useState('wheelsets');
-    const [selectedWarehouse, setSelectedWarehouse] = useState('Атырау');
+    const [selectedWarehouse, setSelectedWarehouse] = useState('Шымкент');
     const [thicknessFilter, setThicknessFilter] = useState<string | null>(null);
     const [ageFilter, setAgeFilter] = useState<string | null>(null);
 
     const warehouses = [
-        { name: 'Атырау', region: 'запад' },
-        { name: 'Кушмурун', region: 'север' },
+        { name: 'Шымкент', region: 'юг' },
         { name: 'Павлодар', region: 'северо-восток' },
+        { name: 'Атырау', region: 'запад' },
         { name: 'Аягоз', region: 'восток / юго-восток' },
-        { name: 'Шымкент', region: 'юг' }
+        { name: 'Караганда', region: 'центр' }
     ];
 
     const thicknessRanges = ['30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '64-69', 'СОНК'];
