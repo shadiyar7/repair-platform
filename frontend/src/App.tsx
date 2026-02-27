@@ -179,7 +179,7 @@ function App() {
 const SupportWidget = () => {
   return (
     <a
-      href="https://wa.me/77761115112"
+      href="https://wa.me/77014264519"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 bg-[#25D366] text-white px-5 py-3 rounded-xl shadow-[0_10px_25px_-5px_rgba(37,211,102,0.4)] hover:shadow-[0_15px_30px_-5px_rgba(37,211,102,0.6)] hover:-translate-y-1 transition-all duration-300 z-50 flex items-center space-x-3 group"
