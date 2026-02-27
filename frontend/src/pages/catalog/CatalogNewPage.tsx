@@ -20,7 +20,7 @@ import { useCart } from '@/context/CartContext';
 
 const WAREHOUSES = [
     { id: "000000002", name: "Шымкент", region: "юг" },
-    { id: "000000001", name: "Павлодар", region: "северо-восток" }, // Main
+    // { id: "000000001", name: "Павлодар", region: "северо-восток" }, // Main - Hidden temporarily as requested
     { id: "000000003", name: "Атырау", region: "запад" },
     { id: "000000005", name: "Аягоз", region: "восток / юго-восток" },
     { id: "000000004", name: "Караганда", region: "центр" }
