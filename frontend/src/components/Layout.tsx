@@ -73,14 +73,14 @@ const Layout: React.FC = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <header className="bg-white shadow-sm sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
+                    <div className="flex justify-between h-20">
                         <div className="flex">
                             <div className="flex-shrink-0 flex items-center">
-                                <Link to="/" className="flex items-center">
+                                <Link to="/" className="flex items-center overflow-hidden h-20 w-48">
                                     <img
                                         src="/logo.jpg"
                                         alt="DYNAMIX"
-                                        className="h-14 w-auto object-contain -my-2"
+                                        className="h-full w-full object-contain scale-[2.2] transform origin-center"
                                     />
                                 </Link>
                             </div>
