@@ -34,8 +34,9 @@ const ContractReviewView: React.FC<ContractReviewViewProps> = ({ order, onConfir
                 </div>
                 <Button
                     variant="outline"
-                    onClick={() => window.open(order.contract_url, '_blank')}
+                    onClick={() => order.contract_url && window.open(order.contract_url, '_blank')}
                     className="flex items-center gap-2"
+                    disabled={!order.contract_url}
                 >
                     <Download className="h-4 w-4" />
                     Скачать договор

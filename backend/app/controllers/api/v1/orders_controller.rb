@@ -93,8 +93,8 @@ class Api::V1::OrdersController < ApplicationController
           @order.order_items.each(&:assign_uids_from_product!)
           @order.checkout! 
         end
-        # Trigger background job
-        GenerateContractJob.perform_later(@order.id)
+        # Trigger background job synchronously to avoid Render missing async jobs
+        GenerateContractJob.perform_now(@order.id)
       rescue => e
         return render json: { error: e.message }, status: :unprocessable_entity
       end
@@ -108,7 +108,7 @@ class Api::V1::OrdersController < ApplicationController
 
   def generate_contract
     authorize @order, :update?
-    GenerateContractJob.perform_later(@order.id)
+    GenerateContractJob.perform_now(@order.id)
     render json: { message: "Contract generation triggered" }
   end
 
