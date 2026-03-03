@@ -55,10 +55,10 @@ module Api
 
               # Only show if product exists, is active
               if product && product.is_active
-                # If product has UIDs, we include it even if 1C quantity is 0
+                # Only include if manually added UIDs exist. 1C quantity is ignored for inclusion.
                 has_uids = product.uids.present? && product.uids.is_a?(Array) && product.uids.size > 0
                 
-                if stock.quantity > 0 || has_uids
+                if has_uids
                   items << {
                     id: product.id,
                     sku: product.sku,

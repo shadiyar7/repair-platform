@@ -304,10 +304,8 @@ const CatalogNewPage: React.FC = () => {
                                         {filteredItems.length > 0 ? (
                                             filteredItems.map((item: any) => {
                                                 const quantity = getItemQuantity(item.id);
-                                                // If product has UIDs, they define the exact available stock. 
-                                                // If no UIDs, we fallback to the raw 1C quantity.
-                                                const hasUids = item.uids && Array.isArray(item.uids) && item.uids.length > 0;
-                                                const stockQty = hasUids ? item.uids.length : (parseFloat(item.quantity) || 0);
+                                                // Strictly use UID count as available stock
+                                                const stockQty = (item.uids && Array.isArray(item.uids)) ? item.uids.length : 0;
                                                 const remainingQty = Math.max(0, stockQty - quantity);
 
                                                 return (
