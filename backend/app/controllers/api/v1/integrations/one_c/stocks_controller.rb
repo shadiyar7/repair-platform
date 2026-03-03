@@ -31,7 +31,7 @@ module Api
             Rails.logger.info "⚡️ [Stocks#index] Enqueued SyncStocksJob for warehouse #{warehouse.name} (#{warehouse.external_id_1c})"
 
             # Get stocks for this specific warehouse
-            stocks = warehouse.warehouse_stocks.where("quantity > 0")
+            stocks = warehouse.warehouse_stocks
             
             # Map stocks to Product details via nomenclature_code
             items = []
@@ -55,20 +55,25 @@ module Api
 
               # Only show if product exists, is active
               if product && product.is_active
-                items << {
-                  id: product.id,
-                  sku: product.sku, # Show the Human Readable SKU (WS-...)
-                  nomenclature_code: product.nomenclature_code, # 1C ID
-                  name: product.name,
-                  category: product.category,
-                  image: product.image_url,
-                  price: product.price,
-                  characteristics: product.characteristics,
-                  quantity: stock.quantity,
-                  synced_at: stock.synced_at,
-                  warehouse_nomenclature_name: stock.nomenclature_name,
-                  uids: product.uids
-                }
+                # If product has UIDs, we include it even if 1C quantity is 0
+                has_uids = product.uids.present? && product.uids.is_a?(Array) && product.uids.size > 0
+                
+                if stock.quantity > 0 || has_uids
+                  items << {
+                    id: product.id,
+                    sku: product.sku,
+                    nomenclature_code: product.nomenclature_code,
+                    name: product.name,
+                    category: product.category,
+                    image: product.image_url,
+                    price: product.price,
+                    characteristics: product.characteristics,
+                    quantity: stock.quantity.to_f,
+                    synced_at: stock.synced_at,
+                    warehouse_nomenclature_name: stock.nomenclature_name,
+                    uids: product.uids
+                  }
+                end
               end
             end
             
