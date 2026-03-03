@@ -18,6 +18,7 @@ import { Plus, ArrowLeft, Trash2, Edit, List } from 'lucide-react';
 import { UsedUidsModal } from '@/components/admin/UsedUidsModal';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from 'lucide-react';
 
 interface ProductData {
     id: string;
@@ -52,6 +53,10 @@ const AdminProductsPage: React.FC = () => {
     const [unlinkedItems, setUnlinkedItems] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [warehouseName, setWarehouseName] = useState('');
+
+    // Filters
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all'); // all | active | inactive
 
     // Modal State
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -233,6 +238,36 @@ const AdminProductsPage: React.FC = () => {
                 </div>
             ) : (
                 <div className="space-y-8">
+                    <div className="bg-white p-4 rounded-lg shadow-sm border space-y-4">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="space-y-2 flex-1">
+                                <Label>Поиск по названию, SKU или Коду 1С</Label>
+                                <div className="relative">
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                                    <Input
+                                        placeholder="Введите текст..."
+                                        className="pl-9"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2 w-full md:w-64">
+                                <Label>Статус товара</Label>
+                                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Все товары" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Все товары</SelectItem>
+                                        <SelectItem value="active">Только активные</SelectItem>
+                                        <SelectItem value="inactive">Только скрытые</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Unlinked Items Section */}
                     {unlinkedItems.length > 0 && (
                         <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
@@ -270,7 +305,20 @@ const AdminProductsPage: React.FC = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {products.map((product) => (
+                                {products.filter((product) => {
+                                    const searchLower = searchQuery.toLowerCase();
+                                    const attrs = product.attributes;
+                                    const matchesSearch =
+                                        attrs.name.toLowerCase().includes(searchLower) ||
+                                        (attrs.sku && attrs.sku.toLowerCase().includes(searchLower)) ||
+                                        ((attrs as any).nomenclature_code && (attrs as any).nomenclature_code.toLowerCase().includes(searchLower));
+
+                                    let matchesStatus = true;
+                                    if (statusFilter === 'active') matchesStatus = attrs.is_active === true;
+                                    if (statusFilter === 'inactive') matchesStatus = attrs.is_active === false;
+
+                                    return matchesSearch && matchesStatus;
+                                }).map((product) => (
                                     <TableRow key={product.id}>
                                         <TableCell>
                                             <Button
@@ -327,13 +375,26 @@ const AdminProductsPage: React.FC = () => {
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {products.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                                            Товары не найдены на этом складе.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
+                                {products.filter((product) => {
+                                    const searchLower = searchQuery.toLowerCase();
+                                    const attrs = product.attributes;
+                                    const matchesSearch =
+                                        attrs.name.toLowerCase().includes(searchLower) ||
+                                        (attrs.sku && attrs.sku.toLowerCase().includes(searchLower)) ||
+                                        ((attrs as any).nomenclature_code && (attrs as any).nomenclature_code.toLowerCase().includes(searchLower));
+
+                                    let matchesStatus = true;
+                                    if (statusFilter === 'active') matchesStatus = attrs.is_active === true;
+                                    if (statusFilter === 'inactive') matchesStatus = attrs.is_active === false;
+
+                                    return matchesSearch && matchesStatus;
+                                }).length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                                Товары не найдены на этом складе.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                             </TableBody>
                         </Table>
                     </div>

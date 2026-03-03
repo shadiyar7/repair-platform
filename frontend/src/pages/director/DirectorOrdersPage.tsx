@@ -12,7 +12,12 @@ import {
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, ArrowLeft } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { FileText, ArrowLeft, Search, FilterX } from 'lucide-react';
+import { useState } from 'react';
 
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ru-KZ', {
@@ -42,8 +47,20 @@ const getStatusBadge = (status: string) => {
     return <Badge className={config.color}>{config.label}</Badge>;
 };
 
+const ALL_STATUSES = [
+    'cart', 'contract_review', 'pending_director_signature', 'payment_review',
+    'paid', 'searching_driver', 'driver_assigned', 'at_warehouse',
+    'in_transit', 'delivered', 'completed', 'cancelled'
+];
+
 const DirectorOrdersPage = () => {
     const navigate = useNavigate();
+
+    const [searchId, setSearchId] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+    const [activeTab, setActiveTab] = useState('all'); // all | active | inactive
 
     const { data: ordersData, isLoading } = useQuery({
         queryKey: ['director', 'all_orders'],
@@ -55,15 +72,112 @@ const DirectorOrdersPage = () => {
 
     const orders = Array.isArray(ordersData?.data) ? ordersData.data : [];
 
+    const clearFilters = () => {
+        setSearchId('');
+        setStatusFilter('all');
+        setDateFrom('');
+        setDateTo('');
+        setActiveTab('all');
+    };
+
+    const filteredOrders = orders.filter((order: any) => {
+        const attrs = order.attributes;
+        const matchesId = searchId ? order.id.toString().includes(searchId) : true;
+        const matchesStatus = statusFilter !== 'all' ? attrs.status === statusFilter : true;
+
+        let matchesDate = true;
+        const orderDate = new Date(attrs.created_at);
+        if (dateFrom) {
+            matchesDate = matchesDate && orderDate >= new Date(dateFrom);
+        }
+        if (dateTo) {
+            const toDate = new Date(dateTo);
+            toDate.setHours(23, 59, 59, 999);
+            matchesDate = matchesDate && orderDate <= toDate;
+        }
+
+        let matchesTab = true;
+        if (activeTab === 'active') {
+            matchesTab = attrs.status !== 'completed' && attrs.status !== 'cancelled';
+        } else if (activeTab === 'inactive') {
+            matchesTab = attrs.status === 'completed' || attrs.status === 'cancelled';
+        }
+
+        return matchesId && matchesStatus && matchesDate && matchesTab;
+    });
+
     return (
-        <div className="container mx-auto p-6 space-y-8">
-            <div className="flex items-center gap-4 mb-6">
+        <div className="container mx-auto p-6 space-y-6">
+            <div className="flex items-center gap-4">
                 <Button variant="outline" size="icon" onClick={() => navigate('/director')}>
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Все заказы</h1>
                     <p className="text-gray-500 mt-1">Полный список заказов компании</p>
+                </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow border space-y-4">
+                <div className="flex flex-col md:flex-row gap-4 items-end">
+                    <div className="space-y-2 flex-1">
+                        <Label>Поиск по номеру заказа (ID)</Label>
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                            <Input
+                                placeholder="Например: 123"
+                                className="pl-9"
+                                value={searchId}
+                                onChange={(e) => setSearchId(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 w-full md:w-48">
+                        <Label>Статус</Label>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Все статусы" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Все статусы</SelectItem>
+                                {ALL_STATUSES.map(s => (
+                                    <SelectItem key={s} value={s}>{getStatusBadge(s).props.children}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2 w-full md:w-36">
+                        <Label>От даты</Label>
+                        <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+                    </div>
+                    <div className="space-y-2 w-full md:w-36">
+                        <Label>До даты</Label>
+                        <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+                    </div>
+
+                    <Button variant="outline" className="gap-2" onClick={clearFilters}>
+                        <FilterX className="h-4 w-4" />
+                        Сбросить
+                    </Button>
+                </div>
+
+                <div className="pt-2 border-t">
+                    <RadioGroup defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex flex-wrap gap-6">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="all" id="r1" />
+                            <Label htmlFor="r1" className="cursor-pointer">Все заказы</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="active" id="r2" />
+                            <Label htmlFor="r2" className="cursor-pointer">Активные (в работе)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="inactive" id="r3" />
+                            <Label htmlFor="r3" className="cursor-pointer">Неактивные (завершенные на 100% / отмененные)</Label>
+                        </div>
+                    </RadioGroup>
                 </div>
             </div>
 
@@ -84,12 +198,12 @@ const DirectorOrdersPage = () => {
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center h-24">Загрузка...</TableCell>
                             </TableRow>
-                        ) : orders.length === 0 ? (
+                        ) : filteredOrders.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center h-24">Заказов не найдено.</TableCell>
                             </TableRow>
                         ) : (
-                            orders.map((order: any) => {
+                            filteredOrders.map((order: any) => {
                                 const attrs = order.attributes;
                                 const companyName = attrs.company_requisite?.company_name || 'Частное лицо';
                                 const bin = attrs.company_requisite?.bin;
