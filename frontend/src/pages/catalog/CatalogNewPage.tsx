@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tabs";
 import { RefreshCw, ShoppingCart, FileText, MapPin, Plus, Minus, Filter, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 
 const WAREHOUSES = [
     { id: "000000002", name: "Шымкент", region: "юг" },
@@ -31,6 +32,8 @@ const CatalogNewPage: React.FC = () => {
     const [selectedWarehouseId, setSelectedWarehouseId] = useState("000000002");
     const [warehouseData, setWarehouseData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const { user } = useAuth();
+    const isClient = (user?.role || (user as any)?.attributes?.role) === 'client';
 
     // UI State
     const [activeTab, setActiveTab] = useState('wheelsets');
@@ -260,7 +263,7 @@ const CatalogNewPage: React.FC = () => {
                             </div>
 
                             {/* Actions Row (Below Filters) */}
-                            {items.length > 0 && (
+                            {items.length > 0 && isClient && (
                                 <div className="flex flex-wrap gap-4 items-center justify-end animate-in fade-in slide-in-from-top-2">
                                     <div className="text-sm text-gray-500 mr-auto">
                                         В корзине: <b>{items.reduce((acc, i) => acc + i.quantity, 0)} товаров</b>
@@ -294,14 +297,16 @@ const CatalogNewPage: React.FC = () => {
                                             <TableHead>Характеристики</TableHead>
                                             <TableHead className="text-right">Цена</TableHead>
                                             <TableHead className="text-right">Остаток</TableHead>
-                                            <TableHead className="text-right w-[150px]">Корзина</TableHead>
+                                            {isClient && <TableHead className="text-right w-[150px]">Корзина</TableHead>}
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {filteredItems.length > 0 ? (
                                             filteredItems.map((item: any) => {
                                                 const quantity = getItemQuantity(item.id);
-                                                const stockQty = parseFloat(item.quantity) || 0;
+                                                // Min of 1C stock quantity and UID array length
+                                                const maxByUid = item.uids ? item.uids.length : 0;
+                                                const stockQty = Math.min(parseFloat(item.quantity) || 0, maxByUid);
                                                 const remainingQty = Math.max(0, stockQty - quantity);
 
                                                 return (
@@ -334,38 +339,42 @@ const CatalogNewPage: React.FC = () => {
                                                                 {remainingQty > 0 ? `${remainingQty} шт.` : "Нет"}
                                                             </span>
                                                         </TableCell>
-                                                        <TableCell className="text-right">
-                                                            {quantity > 0 ? (
-                                                                <div className="flex items-center justify-end space-x-1">
+                                                        {isClient && (
+                                                            <TableCell className="text-right">
+                                                                {quantity > 0 ? (
+                                                                    <div className="flex items-center justify-end space-x-1">
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 rounded-full border-gray-200"
+                                                                            onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, quantity - 1); }}
+                                                                        >
+                                                                            <Minus className="h-3 w-3" />
+                                                                        </Button>
+                                                                        <span className="w-6 text-center text-sm font-medium">{quantity}</span>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 rounded-full border-gray-200"
+                                                                            disabled={remainingQty <= 0}
+                                                                            onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, quantity + 1); }}
+                                                                        >
+                                                                            <Plus className="h-3 w-3" />
+                                                                        </Button>
+                                                                    </div>
+                                                                ) : (
                                                                     <Button
-                                                                        variant="outline"
-                                                                        size="icon"
-                                                                        className="h-8 w-8 rounded-full border-gray-200"
-                                                                        onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, quantity - 1); }}
+                                                                        size="sm"
+                                                                        variant="ghost"
+                                                                        disabled={remainingQty <= 0}
+                                                                        className="h-8 w-8 p-0 rounded-full hover:bg-red-50 hover:text-red-600"
+                                                                        onClick={(e) => { e.stopPropagation(); handleAddToCart(item); }}
                                                                     >
-                                                                        <Minus className="h-3 w-3" />
+                                                                        <ShoppingCart className="w-5 h-5" />
                                                                     </Button>
-                                                                    <span className="w-6 text-center text-sm font-medium">{quantity}</span>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="icon"
-                                                                        className="h-8 w-8 rounded-full border-gray-200"
-                                                                        onClick={(e) => { e.stopPropagation(); updateQuantity(item.id, quantity + 1); }}
-                                                                    >
-                                                                        <Plus className="h-3 w-3" />
-                                                                    </Button>
-                                                                </div>
-                                                            ) : (
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="ghost"
-                                                                    className="h-8 w-8 p-0 rounded-full hover:bg-red-50 hover:text-red-600"
-                                                                    onClick={(e) => { e.stopPropagation(); handleAddToCart(item); }}
-                                                                >
-                                                                    <ShoppingCart className="w-5 h-5" />
-                                                                </Button>
-                                                            )}
-                                                        </TableCell>
+                                                                )}
+                                                            </TableCell>
+                                                        )}
                                                     </TableRow>
                                                 )
                                             })

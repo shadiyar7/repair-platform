@@ -35,8 +35,7 @@ const LoginPage: React.FC = () => {
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 const userData = JSON.parse(storedUser);
-                let userRole = userData.role || (userData.attributes && userData.attributes.role);
-                if (userRole === 'warehouse') {
+                if (userData.role === 'warehouse') {
                     navigate('/warehouse');
                 } else if (userData.role === 'driver') {
                     navigate('/driver');

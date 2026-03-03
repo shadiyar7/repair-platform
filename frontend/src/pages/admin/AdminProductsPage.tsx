@@ -175,7 +175,7 @@ const AdminProductsPage: React.FC = () => {
                     category: formData.category,
                     is_active: formData.is_active,
                     characteristics: characteristics,
-                    uids: formData.uids.split(',').map(s => s.trim()).filter(s => s !== '')
+                    uids: formData.uids.split(/[\s,]+/).map(s => s.trim()).filter(s => s !== '')
                 },
                 warehouse_id: warehouseId
             };
@@ -390,11 +390,11 @@ const AdminProductsPage: React.FC = () => {
 
                         <div className="space-y-2">
                             <Label>Дополнительные коды (UIDs)</Label>
-                            <Input
+                            <textarea
                                 value={formData.uids}
                                 onChange={(e) => setFormData({ ...formData, uids: e.target.value })}
-                                placeholder="UID1, UID2, UID3..."
-                                className="bg-gray-50"
+                                placeholder="UID1, UID2&#10;UID3..."
+                                className="flex min-h-[80px] w-full rounded-md border border-input bg-gray-50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             />
                             <p className="text-[10px] text-muted-foreground">Введите коды через запятую для группировки.</p>
                         </div>

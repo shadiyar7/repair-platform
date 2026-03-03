@@ -62,7 +62,15 @@ class Api::V1::OrdersController < ApplicationController
       
       # Auto-transition if requisites are present
       if @order.company_requisite.present?
-        @order.submit_requisites!
+        begin
+          ActiveRecord::Base.transaction do
+            @order.order_items.each(&:assign_uids_from_product!)
+            @order.submit_requisites!
+          end
+        rescue => e
+          @order.destroy
+          return render json: { error: e.message }, status: :unprocessable_entity
+        end
       end
 
       render json: OrderSerializer.new(@order).serializable_hash, status: :created
@@ -85,9 +93,16 @@ class Api::V1::OrdersController < ApplicationController
     
     # Transition to contract_review if currently in cart
     if @order.cart?
-      @order.checkout! 
-      # Trigger background job
-      GenerateContractJob.perform_later(@order.id)
+      begin
+        ActiveRecord::Base.transaction do
+          @order.order_items.each(&:assign_uids_from_product!)
+          @order.checkout! 
+        end
+        # Trigger background job
+        GenerateContractJob.perform_later(@order.id)
+      rescue => e
+        return render json: { error: e.message }, status: :unprocessable_entity
+      end
     end
 
     render json: { 
