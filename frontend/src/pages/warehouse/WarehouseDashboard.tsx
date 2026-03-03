@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Package, Truck, CheckCircle } from 'lucide-react';
 
 const WarehouseDashboard: React.FC = () => {
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
 
     const { data: orders, isLoading, error } = useQuery({
         queryKey: ['warehouse-orders'],
@@ -77,9 +79,24 @@ const WarehouseDashboard: React.FC = () => {
                                             <p className="text-sm text-gray-500">
                                                 Клиент: {order.attributes.company_requisite?.company_name || 'Частное лицо'}
                                             </p>
-                                            <p className="text-sm text-gray-500">
-                                                Товары: {order.attributes.order_items?.map((i: any) => `${i.product_name} (x${i.quantity})`).join(', ')}
-                                            </p>
+                                            <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded mt-2">
+                                                <p className="font-medium mb-1">Товары:</p>
+                                                <ul className="list-disc list-inside">
+                                                    {order.attributes.order_items?.map((i: any, idx: number) => (
+                                                        <li key={idx} className="truncate max-w-[300px]">
+                                                            {i.product_name} <span className="text-gray-400">(x{i.quantity})</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                            {order.attributes.driver && (
+                                                <div className="mt-2 text-sm text-slate-700 bg-slate-50 p-2 rounded border border-slate-100">
+                                                    <p className="font-semibold text-slate-900 mb-1">Водитель:</p>
+                                                    <p>{order.attributes.driver.first_name} {order.attributes.driver.last_name}</p>
+                                                    <p className="text-slate-500">Машина: {order.attributes.driver.car_model || 'Не указана'} ({order.attributes.driver.car_plate || 'Нет номера'})</p>
+                                                    {order.attributes.driver.phone && <p>Тел: {order.attributes.driver.phone}</p>}
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="flex flex-col gap-2 items-end">
@@ -161,6 +178,15 @@ const WarehouseDashboard: React.FC = () => {
                                                         </Button>
                                                     </>
                                                 )}
+                                            </div>
+                                            <div className="mt-2 text-right">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => navigate(`/orders/${order.id}`)}
+                                                >
+                                                    Подробнее о заказе
+                                                </Button>
                                             </div>
                                         </div>
                                     </div>

@@ -287,6 +287,7 @@ const AnalyticsDashboard = () => {
 
 
 const DirectorDashboard = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = React.useState('signatures');
 
     return (
@@ -296,8 +297,17 @@ const DirectorDashboard = () => {
                     <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Кабинет Директора</h1>
                     <p className="text-gray-500 mt-1">Управление подписями и аналитика</p>
                 </div>
-                <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    DYNAMIX Executive Suite
+                <div className="flex items-center gap-4">
+                    <Button
+                        onClick={() => navigate('/director/orders')}
+                        className="bg-gray-900 hover:bg-gray-800 text-white"
+                    >
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Все заказы
+                    </Button>
+                    <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full hidden md:block">
+                        DYNAMIX Executive Suite
+                    </div>
                 </div>
             </div>
 

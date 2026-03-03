@@ -27,6 +27,7 @@ import TrackingPage from '@/pages/public/TrackingPage';
 
 import SupervisorDashboard from '@/pages/supervisor/SupervisorDashboard';
 import DirectorDashboard from '@/pages/director/DirectorDashboard';
+import DirectorOrdersPage from '@/pages/director/DirectorOrdersPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 
 import { Navigate } from 'react-router-dom';
@@ -151,6 +152,14 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['director', 'admin']}>
                       <DirectorDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="director/orders"
+                  element={
+                    <ProtectedRoute allowedRoles={['director', 'admin']}>
+                      <DirectorOrdersPage />
                     </ProtectedRoute>
                   }
                 />

@@ -62,15 +62,9 @@ const AdminUserManagementPage: React.FC = () => {
         }
     });
 
-    const { data: warehousesData } = useQuery({
-        queryKey: ['warehouses'],
-        queryFn: async () => {
-            const res = await api.get('/api/v1/warehouses'); // Use public or admin route
-            return res.data;
-        }
-    });
 
-    const warehouses = Array.isArray(warehousesData?.data) ? warehousesData.data : [];
+
+
 
     const createMutation = useMutation({
         mutationFn: (data: any) => api.post('/api/v1/admin/users', { user: data }),
@@ -136,7 +130,7 @@ const AdminUserManagementPage: React.FC = () => {
             phone: formData.phone,
             role: formData.role,
             job_title: formData.job_title,
-            warehouse_id: formData.role === 'warehouse' ? formData.warehouse_id : null,
+            warehouse_id: null,
             // Only send password if changed (not implementing password change here for simplicity yet, or handled by API if present)
             ...(formData.password ? { password: formData.password } : {})
         });
@@ -200,24 +194,7 @@ const AdminUserManagementPage: React.FC = () => {
                                 </Select>
                             </div>
 
-                            {formData.role === 'warehouse' && (
-                                <div className="grid gap-2">
-                                    <Label htmlFor="warehouse">Склад *</Label>
-                                    <Select
-                                        value={formData.warehouse_id}
-                                        onValueChange={(val) => setFormData({ ...formData, warehouse_id: val })}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Выберите склад" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {warehouses.map((w: any) => (
-                                                <SelectItem key={w.id} value={w.id.toString()}>{w.attributes.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
+
 
                             <div className="grid gap-2">
                                 <Label htmlFor="job_title">Должность</Label>
@@ -311,24 +288,7 @@ const AdminUserManagementPage: React.FC = () => {
                             </Select>
                         </div>
 
-                        {formData.role === 'warehouse' && (
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-warehouse">Склад</Label>
-                                <Select
-                                    value={formData.warehouse_id}
-                                    onValueChange={(val) => setFormData({ ...formData, warehouse_id: val })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Выберите склад" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {warehouses.map((w: any) => (
-                                            <SelectItem key={w.id} value={w.id.toString()}>{w.attributes.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
+
                         <div className="grid gap-2">
                             <Label htmlFor="edit-job">Должность</Label>
                             <Input id="edit-job" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} />

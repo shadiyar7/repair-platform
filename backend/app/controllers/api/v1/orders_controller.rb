@@ -5,16 +5,11 @@ class Api::V1::OrdersController < ApplicationController
   def index
     orders = case current_user&.role
              when 'warehouse'
-               if current_user.warehouse
-                 # Relaxed filtering: Show all active orders for now to ensure visibility
-                 # TODO: Re-enable strict warehouse filtering once product data is clean
-                 Order.includes(:company_requisite, order_items: :product)
-                      .joins(order_items: :product)
-                      .where(status: ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse', 'in_transit'])
-                      .distinct
-               else
-                 Order.where(status: ['at_warehouse', 'searching_driver', 'driver_assigned', 'paid'])
-               end
+               # Global visibility for all warehouse managers
+               Order.includes(:company_requisite, order_items: :product)
+                    .joins(order_items: :product)
+                    .where(status: ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse', 'in_transit'])
+                    .distinct
              when 'admin', 'supervisor', 'director'
                Order.includes(:company_requisite, order_items: :product).all
              when 'driver'
