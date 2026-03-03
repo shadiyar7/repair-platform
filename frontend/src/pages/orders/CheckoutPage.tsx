@@ -150,9 +150,10 @@ const CheckoutPage: React.FC = () => {
             };
             poll();
 
-        } catch (err) {
+        } catch (err: any) {
             console.error('Order creation failed', err);
-            alert('Не удалось создать заказ. Пожалуйста, попробуйте еще раз.');
+            const backendError = err.response?.data?.error;
+            alert(`Не удалось создать заказ: ${backendError || 'Пожалуйста, попробуйте еще раз.'}`);
             setIsGenerating(false);
             setIsLoading(false);
         }

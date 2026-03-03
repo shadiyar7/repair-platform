@@ -93,14 +93,18 @@ class Api::V1::OrdersController < ApplicationController
           @order.order_items.each(&:assign_uids_from_product!)
           @order.checkout! 
         end
-        # Trigger background job synchronously to avoid Render missing async jobs
-        GenerateContractJob.perform_now(@order.id)
+        # Bypass job wrapper to surface errors directly during sync execution
+        OrderContractService.new(@order).call
       rescue => e
         return render json: { error: e.message }, status: :unprocessable_entity
       end
     elsif @order.contract_review?
       # If somehow already in contract_review (e.g. auto-transitioned in create) but missing contract
-      GenerateContractJob.perform_now(@order.id) unless @order.document.attached?
+      begin
+        OrderContractService.new(@order).call unless @order.document.attached?
+      rescue => e
+        return render json: { error: e.message }, status: :unprocessable_entity
+      end
     end
 
     render json: { 
