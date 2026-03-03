@@ -19,6 +19,7 @@ import {
 import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2, RefreshCw, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import OrderTrackingMap from '@/components/OrderTrackingMap';
+import ContractReviewView from '@/components/orders/ContractReviewView';
 
 
 const OrderDetailPage: React.FC = () => {
@@ -124,6 +125,22 @@ const OrderDetailPage: React.FC = () => {
             });
         }
     });
+
+    const confirmContractMutation = useMutation({
+        mutationFn: () => api.post(`/api/v1/orders/${id}/confirm_contract`),
+        ...mutationOptions,
+        onSuccess: () => {
+            mutationOptions.onSuccess();
+            toast.success("Договор подтвержден!", {
+                description: "Заказ передан на подпись директору."
+            });
+        },
+        onError: (err: any) => {
+            toast.error("Ошибка подтверждения договора", {
+                description: err.response?.data?.error || "Пожалуйста, попробуйте позже"
+            });
+        }
+    });
     // const completeMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/complete`), ...mutationOptions });
 
 
@@ -217,11 +234,10 @@ const OrderDetailPage: React.FC = () => {
     const attributes = order.attributes;
 
     const steps = [
-        // Hidden statuses: cart, requisites_selected
+        { id: 'contract_review', label: 'Ознакомление', icon: FileText },
         { id: 'pending_director_signature', label: 'Подпись Директора', icon: FileText },
         { id: 'pending_signature', label: 'Подписание договора', icon: FileText },
         { id: 'pending_payment', label: 'Оплата', icon: CreditCard },
-        // Hidden visually: payment_review, paid (Merged into Payment or Driver Search flow)
         { id: 'searching_driver', label: 'Поиск водителя', icon: User },
         { id: 'driver_assigned', label: 'Водитель назначен', icon: Truck },
         { id: 'at_warehouse', label: 'На складе', icon: Building },
@@ -249,6 +265,7 @@ const OrderDetailPage: React.FC = () => {
     const getStatusBadge = (status: string) => {
         const config: Record<string, string> = {
             draft: 'bg-gray-100 text-gray-800',
+            contract_review: 'bg-blue-600 text-white',
             pending_director_signature: 'bg-orange-600 text-white',
             pending_signature: 'bg-red-600 text-white',
             pending_payment: 'bg-indigo-600 text-white',
@@ -413,13 +430,14 @@ const OrderDetailPage: React.FC = () => {
         <div className="space-y-4 text-sm">
             <p>Процесс выполнения заказа состоит из следующих этапов:</p>
             <ol className="list-decimal pl-4 space-y-2 text-gray-700">
-                <li><span className="font-semibold">Реквизиты:</span> Выбор компании плательщика.</li>
-                <li><span className="font-semibold">Договор:</span> Генерация и двустороннее подписание.</li>
+                <li><span className="font-semibold">Оформление:</span> Создание заказа и выбор реквизитов.</li>
+                <li><span className="font-semibold">Ознакомление:</span> Проверка договора и уникальных кодов (UID).</li>
+                <li><span className="font-semibold">Подписание:</span> Двустороннее подписание через iDocs.</li>
                 <li><span className="font-semibold">Оплата:</span> Выставление счета (Invoice) и ожидание оплаты.</li>
-                <li><span className="font-semibold">Поиск водителя:</span> Логисты ищут машину через интеграции (Della).</li>
-                <li><span className="font-semibold">Склад:</span> Водитель прибывает, загружается, получает накладные.</li>
+                <li><span className="font-semibold">Поиск водителя:</span> Логисты ищут машину через Della.</li>
+                <li><span className="font-semibold">Склад:</span> Водитель прибывает, загружается.</li>
                 <li><span className="font-semibold">В пути:</span> Отслеживание движения груза.</li>
-                <li><span className="font-semibold">Завершен:</span> Получение груза, обмен закрывающими документами.</li>
+                <li><span className="font-semibold">Завершен:</span> Получение груза.</li>
             </ol>
             <div className="bg-gray-50 p-3 rounded text-xs text-gray-500 mt-4">
                 Примечание: На каждом этапе система уведомляет соответствующих участников (Клиент, Склад, Водитель, Админ).
@@ -496,8 +514,18 @@ const OrderDetailPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Conditional Layout for 'in_transit' vs Standard */}
-            {attributes.status === 'in_transit' ? (
+            {/* Workflow views */}
+            {attributes.status === 'contract_review' ? (
+                <ContractReviewView
+                    order={{
+                        id: order.id,
+                        contract_url: attributes.contract_url,
+                        order_items: attributes.order_items
+                    }}
+                    onConfirm={() => confirmContractMutation.mutate()}
+                    isConfirming={confirmContractMutation.isPending}
+                />
+            ) : attributes.status === 'in_transit' ? (
                 <div className="space-y-6">
                     {/* LARGE MAP SECTION */}
                     <div className="flex flex-col gap-4">

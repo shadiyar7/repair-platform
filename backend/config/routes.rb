@@ -4,6 +4,8 @@ Rails.application.routes.draw do
       resources :orders, only: [:index, :show, :create, :update] do
         member do
           post :checkout
+          post :generate_contract
+          post :confirm_contract
           post :director_sign
           post :sign_contract
           post :sign_contract

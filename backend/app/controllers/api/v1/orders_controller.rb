@@ -82,9 +82,38 @@ class Api::V1::OrdersController < ApplicationController
 
   def checkout
     authorize @order, :update?
-    @order.checkout! if @order.cart?
-    # Simulate contract generation
-    render json: { message: "Contract generated", contract_url: "..." }
+    
+    # Transition to contract_review if currently in cart
+    if @order.cart?
+      @order.checkout! 
+      # Trigger background job
+      GenerateContractJob.perform_later(@order.id)
+    end
+
+    render json: { 
+      message: "Order placed, contract generation started", 
+      order: OrderSerializer.new(@order).serializable_hash 
+    }
+  end
+
+  def generate_contract
+    authorize @order, :update?
+    GenerateContractJob.perform_later(@order.id)
+    render json: { message: "Contract generation triggered" }
+  end
+
+  def confirm_contract
+    @order = Order.find(params[:id])
+    authorize @order, :update?
+
+    if @order.contract_review?
+      @order.confirm_contract!
+      render json: OrderSerializer.new(@order).serializable_hash
+    else
+      render json: { error: "Order is not in contract_review status" }, status: :unprocessable_entity
+    end
+  rescue => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   def upload_receipt

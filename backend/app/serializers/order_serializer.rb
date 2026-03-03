@@ -48,7 +48,8 @@ class OrderSerializer
         quantity: item.quantity,
         price: item.price || item.product&.price,
         sku: item.product&.sku,
-        warehouse: item.product&.warehouse_location # Assuming simple string for now, or fetch warehouse object if needed
+        warehouse: item.product&.warehouse_location,
+        assigned_uids: item.assigned_uids # Added for contract review flow
       }
     end
   end

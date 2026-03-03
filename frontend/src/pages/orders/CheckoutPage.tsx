@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingBag, ArrowLeft, Plus } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Plus, Loader2 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -32,6 +32,8 @@ const CheckoutPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [requisites, setRequisites] = useState<CompanyRequisite[]>([]);
     const [selectedRequisiteId, setSelectedRequisiteId] = useState<string>('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [progress, setProgress] = useState(0);
 
     const [formData, setFormData] = useState({
         city: '',
@@ -65,6 +67,20 @@ const CheckoutPage: React.FC = () => {
             fetchRequisites();
         }
     }, [user]);
+
+    // Progress bar simulation
+    useEffect(() => {
+        let interval: any;
+        if (isGenerating) {
+            interval = setInterval(() => {
+                setProgress(prev => {
+                    if (prev >= 95) return 95;
+                    return prev + (Math.random() * 10);
+                });
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [isGenerating]);
 
     if (items.length === 0) {
         return (
@@ -109,18 +125,76 @@ const CheckoutPage: React.FC = () => {
             const response = await api.post('/api/v1/orders', orderData);
             const orderId = response.data.data.id;
 
+            // Show generating screen
+            setIsGenerating(true);
+            setProgress(5);
+
             // Automatically trigger checkout transition
             await api.post(`/api/v1/orders/${orderId}/checkout`);
 
-            clearCart();
-            navigate(`/orders/${orderId}`);
+            // Poll for contract
+            const poll = async () => {
+                try {
+                    const res = await api.get(`/api/v1/orders/${orderId}`);
+                    const order = res.data.data;
+                    if (order.attributes.contract_url) {
+                        clearCart();
+                        setProgress(100);
+                        setTimeout(() => navigate(`/orders/${orderId}`), 800);
+                    } else {
+                        setTimeout(poll, 2000);
+                    }
+                } catch (e) {
+                    setTimeout(poll, 2000);
+                }
+            };
+            poll();
+
         } catch (err) {
             console.error('Order creation failed', err);
             alert('Не удалось создать заказ. Пожалуйста, попробуйте еще раз.');
-        } finally {
+            setIsGenerating(false);
             setIsLoading(false);
         }
     };
+
+    if (isGenerating) {
+        return (
+            <div className="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+                <div className="w-full max-w-md space-y-8">
+                    <div className="space-y-2">
+                        <div className="relative h-2 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                            <div
+                                className="absolute top-0 left-0 h-full bg-red-600 transition-all duration-500 ease-out shadow-[0_0_15px_rgba(220,38,38,0.5)]"
+                                style={{ width: `${progress}%` }}
+                            />
+                        </div>
+                        <p className="text-sm font-bold text-red-600 animate-pulse">
+                            {Math.round(progress)}%
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="flex justify-center">
+                            <div className="bg-red-50 p-4 rounded-full border border-red-100 shadow-sm">
+                                <Loader2 className="h-10 w-10 text-red-600 animate-spin" />
+                            </div>
+                        </div>
+                        <h2 className="text-2xl font-bold font-display">Генерируем договор...</h2>
+                        <p className="text-gray-500 text-sm max-w-sm mx-auto leading-relaxed">
+                            Мы присваиваем уникальные коды товарам и подготавливаем документы. Это может занять до 30 секунд.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 opacity-40 grayscale">
+                        <div className="h-1 bg-gray-200 rounded"></div>
+                        <div className="h-1 bg-gray-200 rounded"></div>
+                        <div className="h-1 bg-gray-200 rounded"></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">

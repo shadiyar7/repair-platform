@@ -9,8 +9,27 @@ class Order < ApplicationRecord
   belongs_to :company_requisite, optional: true    
   # driver_id foreign key to users is deprecated as drivers are now just text fields (no login)
   # belongs_to :driver, class_name: 'User', optional: true
+  serialize :invoice_base64, coder: JSON
+
   has_many :order_items, dependent: :destroy
   has_many :products, through: :order_items
+
+  enum status: {
+    cart: 0,
+    contract_review: 1,
+    pending_director_signature: 2,
+    pending_signature: 3,
+    pending_payment: 4,
+    payment_review: 5,
+    paid: 6,
+    searching_driver: 7,
+    driver_assigned: 8,
+    at_warehouse: 9,
+    in_transit: 10,
+    delivered: 11,
+    documents_ready: 12,
+    completed: 13
+  }
 
   accepts_nested_attributes_for :order_items
 
@@ -31,8 +50,9 @@ class Order < ApplicationRecord
 
   private
 
-    aasm column: :status do
+    aasm column: :status, enum: true do
       state :cart, initial: true
+      state :contract_review
       state :pending_director_signature
       state :pending_signature
       state :pending_payment
@@ -47,11 +67,15 @@ class Order < ApplicationRecord
       state :completed
 
       event :checkout do
-        transitions from: :cart, to: :pending_director_signature
+        transitions from: :cart, to: :contract_review
       end
 
       event :submit_requisites do
-        transitions from: :cart, to: :pending_director_signature
+        transitions from: :cart, to: :contract_review
+      end
+
+      event :confirm_contract do
+        transitions from: :contract_review, to: :pending_director_signature
       end
 
       # prepare_contract is now redundant if we skip requisites_selected, 
@@ -119,6 +143,18 @@ class Order < ApplicationRecord
         rescue => e
           Rails.logger.error "Failed to send Director email: #{e.message}"
         end
+      end
+    end
+
+    def is_existing_client?
+      # An EXISTING client is a Customer who has at least one previous order that passed the "Client signed" stage.
+      # "Client signed" means status is pending_payment (4) or higher.
+      user.orders.where('status >= ?', 4).where.not(id: self.id).exists?
+    end
+
+    def assigned_uids_map
+      order_items.includes(:product).each_with_object({}) do |item, hash|
+        hash[item.product.name] = item.assigned_uids
       end
     end
 end
