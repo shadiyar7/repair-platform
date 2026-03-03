@@ -14,7 +14,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, ArrowLeft, Trash2, Edit } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, Edit, List } from 'lucide-react';
+import { UsedUidsModal } from '@/components/admin/UsedUidsModal';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -44,6 +45,9 @@ const AGE_RANGES = ['1-5 лет', '6-10 лет', '11-15 лет', '16-20 лет',
 const AdminProductsPage: React.FC = () => {
     const { id: warehouseId } = useParams();
     const navigate = useNavigate();
+
+    const [uidsModalOpen, setUidsModalOpen] = useState(false);
+    const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
     const [products, setProducts] = useState<ProductData[]>([]);
     const [unlinkedItems, setUnlinkedItems] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -255,7 +259,7 @@ const AdminProductsPage: React.FC = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-gray-50/50">
-                                    <TableHead>Артикул (Internal SKU)</TableHead>
+                                    <TableHead>Использованные UIDs</TableHead>
                                     <TableHead>Код 1C (Nomenclature)</TableHead>
                                     <TableHead>Название</TableHead>
                                     <TableHead>Цена</TableHead>
@@ -268,7 +272,19 @@ const AdminProductsPage: React.FC = () => {
                             <TableBody>
                                 {products.map((product) => (
                                     <TableRow key={product.id}>
-                                        <TableCell className="font-mono font-medium text-gray-900">{product.attributes.sku}</TableCell>
+                                        <TableCell>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 text-xs whitespace-nowrap"
+                                                onClick={() => {
+                                                    setSelectedProductId(product.id);
+                                                    setUidsModalOpen(true);
+                                                }}
+                                            >
+                                                <List className="h-3 w-3 mr-1" /> История UID
+                                            </Button>
+                                        </TableCell>
                                         <TableCell className="font-mono text-xs text-gray-500">{(product.attributes as any).nomenclature_code || '-'}</TableCell>
                                         <TableCell>
                                             <div>{product.attributes.name}</div>
@@ -389,15 +405,38 @@ const AdminProductsPage: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Дополнительные коды (UIDs)</Label>
+                            <Label>Дополнительные доступные коды (UIDs)</Label>
                             <textarea
                                 value={formData.uids}
                                 onChange={(e) => setFormData({ ...formData, uids: e.target.value })}
                                 placeholder="UID1, UID2&#10;UID3..."
                                 className="flex min-h-[80px] w-full rounded-md border border-input bg-gray-50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             />
-                            <p className="text-[10px] text-muted-foreground">Введите коды через запятую для группировки.</p>
+                            <p className="text-[10px] text-muted-foreground">Введите коды через запятую для добавления в доступные.</p>
                         </div>
+
+                        {editingProduct && (
+                            <div className="space-y-2">
+                                <Label>Статистика UIDs</Label>
+                                <div className="p-3 bg-gray-50 border border-gray-200 rounded-md flex justify-between items-center text-sm">
+                                    <span className="text-gray-600">История распределения кодов по заказам</span>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setSelectedProductId(editingProduct.id);
+                                            setUidsModalOpen(true);
+                                        }}
+                                        className="h-8 shadow-sm"
+                                    >
+                                        Открыть историю
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
 
                         {/* Dynamic Characteristics */}
                         <div className="p-4 bg-gray-50 rounded-md border border-gray-100 space-y-4">
@@ -463,6 +502,12 @@ const AdminProductsPage: React.FC = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <UsedUidsModal
+                isOpen={uidsModalOpen}
+                onClose={() => setUidsModalOpen(false)}
+                productId={selectedProductId}
+            />
         </div>
     );
 };

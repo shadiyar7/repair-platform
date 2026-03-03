@@ -19,6 +19,7 @@ Rails.application.routes.draw do
           post :complete
           get :download_invoice
           get :download_contract
+          post :cancel
           
           # IDocs Integration
           post 'idocs/prepare', to: 'integrations/idocs#prepare'
@@ -59,6 +60,7 @@ Rails.application.routes.draw do
         resources :warehouses
         resources :products, only: [:index, :create, :update, :destroy] do
           get 'unlinked', on: :collection
+          get 'used_uids', to: 'product_uids#used_uids', on: :member
         end
       end
       

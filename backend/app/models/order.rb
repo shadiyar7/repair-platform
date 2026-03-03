@@ -26,7 +26,8 @@ class Order < ApplicationRecord
     in_transit: 10,
     delivered: 11,
     documents_ready: 12,
-    completed: 13
+    completed: 13,
+    cancelled: 99
   }
 
   accepts_nested_attributes_for :order_items
@@ -63,6 +64,7 @@ class Order < ApplicationRecord
       state :delivered
       state :documents_ready
       state :completed
+      state :cancelled
 
       event :checkout do
         transitions from: :cart, to: :contract_review
@@ -128,6 +130,14 @@ class Order < ApplicationRecord
       event :complete do
         transitions from: :documents_ready, to: :completed
       end
+
+      event :cancel do
+        transitions from: :contract_review, to: :cancelled, after: :release_item_uids
+      end
+    end
+
+    def release_item_uids
+      order_items.each(&:release_uids!)
     end
 
     def set_director_signed_at

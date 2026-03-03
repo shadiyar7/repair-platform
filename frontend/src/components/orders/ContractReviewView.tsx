@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FileText, Download, AlertCircle } from 'lucide-react';
+import { FileText, Download, AlertCircle, Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 interface OrderItem {
     id: string;
@@ -18,10 +20,23 @@ interface ContractReviewViewProps {
         order_items: OrderItem[];
     };
     onConfirm: () => void;
+    onCancel: () => void;
     isConfirming: boolean;
+    isCanceling?: boolean;
 }
 
-const ContractReviewView: React.FC<ContractReviewViewProps> = ({ order, onConfirm, isConfirming }) => {
+const ContractReviewView: React.FC<ContractReviewViewProps> = ({ order, onConfirm, onCancel, isConfirming, isCanceling }) => {
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [cancelText, setCancelText] = useState('');
+
+    const handleCancelSubmit = () => {
+        if (cancelText.trim().toUpperCase() === 'ОТМЕНИТЬ') {
+            onCancel();
+            setIsCancelModalOpen(false);
+            setCancelText('');
+        }
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -32,15 +47,26 @@ const ContractReviewView: React.FC<ContractReviewViewProps> = ({ order, onConfir
                     </h2>
                     <p className="text-muted-foreground mt-1">Пожалуйста, проверьте текст договора и назначенные уникальные коды товаров.</p>
                 </div>
-                <Button
-                    variant="outline"
-                    onClick={() => order.contract_url && window.open(order.contract_url, '_blank')}
-                    className="flex items-center gap-2"
-                    disabled={!order.contract_url}
-                >
-                    <Download className="h-4 w-4" />
-                    Скачать договор
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsCancelModalOpen(true)}
+                        className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                        disabled={isCanceling}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                        Отменить заказ
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => order.contract_url && window.open(order.contract_url, '_blank')}
+                        className="flex items-center gap-2"
+                        disabled={!order.contract_url}
+                    >
+                        <Download className="h-4 w-4" />
+                        Скачать договор
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -131,6 +157,39 @@ const ContractReviewView: React.FC<ContractReviewViewProps> = ({ order, onConfir
                     </Card>
                 </div>
             </div>
+
+            {/* Cancel Order Modal */}
+            <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600">Отмена заказа</DialogTitle>
+                        <DialogDescription>
+                            Вы уверены, что хотите отменить этот заказ? Это действие необратимо. Уникальные коды товаров будут отвязаны и возвращены на склад.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                        <p className="text-sm border-l-4 border-red-500 bg-red-50 p-3 rounded text-red-800">
+                            Для подтверждения отмены, пожалуйста, введите слово <span className="font-bold tracking-widest bg-white px-1 ml-1 rounded">ОТМЕНИТЬ</span>
+                        </p>
+                        <Input
+                            value={cancelText}
+                            onChange={(e) => setCancelText(e.target.value)}
+                            placeholder="ОТМЕНИТЬ"
+                            className="w-full"
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsCancelModalOpen(false)}>Назад</Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleCancelSubmit}
+                            disabled={cancelText.trim().toUpperCase() !== 'ОТМЕНИТЬ' || isCanceling}
+                        >
+                            {isCanceling ? "Отмена..." : "Подтвердить отмену"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

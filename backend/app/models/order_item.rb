@@ -20,6 +20,17 @@ class OrderItem < ApplicationRecord
     end
   end
 
+  def release_uids!
+    return if assigned_uids.blank?
+    
+    product.with_lock do
+      pool = product.uids || []
+      pool.concat(assigned_uids)
+      product.update!(uids: pool)
+      update!(assigned_uids: [])
+    end
+  end
+
   after_save :update_order_total
   after_destroy :update_order_total
 

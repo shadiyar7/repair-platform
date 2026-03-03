@@ -126,6 +126,24 @@ class Api::V1::OrdersController < ApplicationController
     render json: { error: e.message }, status: :unprocessable_entity
   end
 
+  def cancel
+    @order = Order.find(params[:id])
+    authorize @order, :update?
+
+    if @order.contract_review?
+      begin
+        ActiveRecord::Base.transaction do
+          @order.cancel!
+        end
+        render json: { message: "Заказ успешно отменен", order: OrderSerializer.new(@order).serializable_hash }
+      rescue => e
+        render json: { error: e.message }, status: :unprocessable_entity
+      end
+    else
+      render json: { error: "Отменить можно только на этапе ознакомления" }, status: :unprocessable_entity
+    end
+  end
+
   def upload_receipt
     authorize @order, :update?
     

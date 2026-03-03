@@ -142,6 +142,22 @@ const OrderDetailPage: React.FC = () => {
             });
         }
     });
+
+    const cancelOrderMutation = useMutation({
+        mutationFn: () => api.post(`/api/v1/orders/${id}/cancel`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['order', id] });
+            queryClient.invalidateQueries({ queryKey: ['catalog'] });
+            toast.success("Заказ отменен", {
+                description: "Уникальные коды возвращены на склад."
+            });
+        },
+        onError: (err: any) => {
+            toast.error("Ошибка отмены заказа", {
+                description: err.response?.data?.error || "Пожалуйста, попробуйте позже"
+            });
+        }
+    });
     // const completeMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/complete`), ...mutationOptions });
 
 
@@ -530,7 +546,9 @@ const OrderDetailPage: React.FC = () => {
                         order_items: attributes.order_items
                     }}
                     onConfirm={() => confirmContractMutation.mutate()}
+                    onCancel={() => cancelOrderMutation.mutate()}
                     isConfirming={confirmContractMutation.isPending}
+                    isCanceling={cancelOrderMutation.isPending}
                 />
             ) : attributes.status === 'in_transit' ? (
                 <div className="space-y-6">
