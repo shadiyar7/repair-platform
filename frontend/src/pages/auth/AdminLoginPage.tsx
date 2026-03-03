@@ -27,13 +27,17 @@ const AdminLoginPage: React.FC = () => {
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 const userData = JSON.parse(storedUser);
-                if (['admin', 'director', 'warehouse', 'supervisor'].includes(userData.role)) {
-                    if (userData.role === 'admin') navigate('/admin/users');
-                    else if (userData.role === 'warehouse') navigate('/warehouse');
-                    else navigate('/orders'); // Fallback for director/supervisor
+                let userRole = String(userData.role || (userData.attributes && userData.attributes.role) || '').toLowerCase().trim();
+
+                if (['admin', 'director', 'warehouse', 'supervisor', 'driver'].includes(userRole)) {
+                    if (userRole === 'admin') navigate('/admin/users');
+                    else if (userRole === 'warehouse') navigate('/warehouse');
+                    else if (userRole === 'director') navigate('/director');
+                    else if (userRole === 'supervisor') navigate('/supervisor');
+                    else if (userRole === 'driver') navigate('/driver');
+                    else navigate('/orders'); // Fallback
                 } else {
                     setError('Доступ разрешен только сотрудникам. Клиенты должны использовать вход через главную страницу.');
-                    // Logout immediately if client tries to login here? For now just show error.
                 }
             } else {
                 navigate('/');

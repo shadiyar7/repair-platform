@@ -39,6 +39,25 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         try {
             setError(null);
             await loginWithPassword(data.email, data.password);
+
+            // Redirect based on role
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                const userData = JSON.parse(storedUser);
+                let userRole = String(userData.role || (userData.attributes && userData.attributes.role) || '').toLowerCase().trim();
+                if (userRole === 'warehouse') {
+                    navigate('/warehouse');
+                } else if (userRole === 'driver') {
+                    navigate('/driver');
+                } else if (userRole === 'director') {
+                    navigate('/director');
+                } else if (userRole === 'supervisor') {
+                    navigate('/supervisor');
+                } else if (userRole === 'admin') {
+                    navigate('/orders');
+                }
+            }
+
             onClose();
         } catch (err: any) {
             console.error("Login failed:", err);
