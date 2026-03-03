@@ -54,8 +54,6 @@ module Pdf
       buyer_basis = @order.company_requisite&.acting_on_basis.presence || 'Устава'
       
       render_appendix_content(number, day, month, year, buyer_name, buyer_director, buyer_basis)
-      move_down 30
-      render_requisites_and_signatures(buyer_name, buyer_director)
     end
 
     def generate_full_contract(number, day, month, year)
@@ -145,15 +143,23 @@ module Pdf
       i_text "Общая сумма спецификации: #{ActionController::Base.helpers.number_to_currency(total_sum, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}, с НДС.", style: :bold, size: 10
       move_down 10
       i_text "2. Покупатель производит предоплату в размере 100 %.", align: :justify, size: 10
+      
+      move_down 30
+      render_requisites_and_signatures(buyer_name, buyer_director, is_appendix: true)
     end
 
     def render_items_table
       items = @order.order_items.map.with_index(1) do |item, index|
         p_price = item.product&.price || 0
         effective_price = item.price.to_f > 0 ? item.price.to_f : p_price
+        
+        name_str = item.product&.name || ""
+        uids = Array(item.assigned_uids).reject(&:blank?)
+        name_str += "\nUID: #{uids.join(', ')}" if uids.any?
+
         [
           index.to_s,
-          item.product&.name,
+          name_str,
           "шт.",
           item.quantity.to_s,
           ActionController::Base.helpers.number_to_currency(effective_price, unit: "", separator: ",", delimiter: " ", precision: 2).strip,
@@ -174,8 +180,9 @@ module Pdf
       end
     end
 
-    def render_requisites_and_signatures(buyer_name, buyer_director)
-      i_text "10. Реквизиты и подписи Сторон", style: :bold, size: 12, align: :center
+    def render_requisites_and_signatures(buyer_name, buyer_director, is_appendix: false)
+      title = is_appendix ? "Реквизиты и подписи Сторон" : "10. Реквизиты и подписи Сторон"
+      i_text title, style: :bold, size: 12, align: :center
       move_down 15
       y_pos = cursor
       bounding_box([25, y_pos], width: 250) do
