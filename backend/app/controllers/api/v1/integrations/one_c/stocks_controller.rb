@@ -66,7 +66,8 @@ module Api
                   characteristics: product.characteristics,
                   quantity: stock.quantity,
                   synced_at: stock.synced_at,
-                  warehouse_nomenclature_name: stock.nomenclature_name
+                  warehouse_nomenclature_name: stock.nomenclature_name,
+                  uids: product.uids
                 }
               end
             end
