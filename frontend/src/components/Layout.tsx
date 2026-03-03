@@ -80,7 +80,7 @@ const Layout: React.FC = () => {
                                     <img
                                         src="/logo.jpg"
                                         alt="DYNAMIX"
-                                        className="h-10 w-auto object-contain"
+                                        className="h-14 w-auto object-contain -my-2"
                                     />
                                 </Link>
                             </div>
