@@ -26,7 +26,7 @@ interface CompanyRequisite {
 }
 
 const CheckoutPage: React.FC = () => {
-    const { items, totalPrice, clearCart, isBuyback, setIsBuyback } = useCart();
+    const { items, totalPrice, clearCart, isBuyback, setIsBuyback, globalDiscount, discountAmount, finalPrice } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
@@ -332,17 +332,23 @@ const CheckoutPage: React.FC = () => {
                             <CardTitle>Итого</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex justify-between text-base">
-                                <span>Сумма</span>
+                            <div className={`flex justify-between text-base ${discountAmount > 0 ? 'text-gray-500 line-through text-sm' : ''}`}>
+                                <span>Сумма{discountAmount > 0 ? ' без скидки' : ''}</span>
                                 <span>{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(totalPrice)}</span>
                             </div>
+                            {discountAmount > 0 && (
+                                <div className="flex justify-between text-base font-medium text-red-600">
+                                    <span>Скидка ({globalDiscount?.percent}%)</span>
+                                    <span>- {new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(discountAmount)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between text-base">
                                 <span>Доставка</span>
                                 <span className="text-green-600 font-medium">Бесплатно</span>
                             </div>
                             <div className="border-t pt-4 flex justify-between text-xl font-bold">
                                 <span>К оплате</span>
-                                <span className="text-red-600">{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(totalPrice)}</span>
+                                <span className="text-red-600">{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(finalPrice)}</span>
                             </div>
                         </CardContent>
                         <CardFooter>

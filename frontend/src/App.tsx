@@ -21,6 +21,7 @@ import AdminWarehousesPage from '@/pages/admin/AdminWarehousesPage';
 import AdminProductsPage from '@/pages/admin/AdminProductsPage';
 import AdminUserManagementPage from '@/pages/admin/AdminUserManagementPage';
 import AdminLoginPage from '@/pages/auth/AdminLoginPage';
+import AdminDiscountsPage from '@/pages/admin/AdminDiscountsPage';
 
 import SmartLinkPage from '@/pages/driver/SmartLinkPage';
 import TrackingPage from '@/pages/public/TrackingPage';
@@ -135,6 +136,14 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
                       <AdminProductsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="admin/discounts"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AdminDiscountsPage />
                     </ProtectedRoute>
                   }
                 />

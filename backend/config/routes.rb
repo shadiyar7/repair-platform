@@ -31,6 +31,7 @@ Rails.application.routes.draw do
       resources :warehouses, only: [:index, :show]
       resources :company_requisites
       get 'orders/by_token/:token', to: 'orders#by_token'
+      resource :global_discount, only: [:show]
 
       # Auth
       namespace :auth do
@@ -56,6 +57,7 @@ Rails.application.routes.draw do
 
       # Admin Namespace
       namespace :admin do
+        resource :global_discount, only: [:show, :create]
         resources :users, only: [:index, :create, :update, :destroy] # Staff management
         resources :warehouses
         resources :products, only: [:index, :create, :update, :destroy] do

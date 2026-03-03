@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
+import api from '@/lib/api';
+
+export interface GlobalDiscount {
+    percent: number;
+    active: boolean;
+    valid_until: string | null;
+}
 
 export interface CartItem {
     id: string;
@@ -23,6 +30,9 @@ interface CartContextType {
     setIsCartOpen: (isOpen: boolean) => void;
     isBuyback: boolean;
     setIsBuyback: (isBuyback: boolean) => void;
+    globalDiscount: GlobalDiscount | null;
+    discountAmount: number;
+    finalPrice: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -30,6 +40,13 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
     const [items, setItems] = useState<CartItem[]>([]);
+    const [globalDiscount, setGlobalDiscount] = useState<GlobalDiscount | null>(null);
+
+    useEffect(() => {
+        api.get('/api/v1/global_discount')
+            .then(res => setGlobalDiscount(res.data))
+            .catch(err => console.error("Failed to fetch global discount", err));
+    }, []);
 
     const cartKey = user ? `cart_${user.id}` : 'cart_guest';
 
@@ -109,6 +126,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const discountAmount = globalDiscount?.active && globalDiscount.percent > 0
+        ? totalPrice * (globalDiscount.percent / 100)
+        : 0;
+    const finalPrice = totalPrice - discountAmount;
 
     return (
         <CartContext.Provider value={{
@@ -122,7 +143,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isCartOpen,
             setIsCartOpen,
             isBuyback,
-            setIsBuyback
+            setIsBuyback,
+            globalDiscount,
+            discountAmount,
+            finalPrice
         }}>
             {children}
         </CartContext.Provider>

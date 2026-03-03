@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_27_104234) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_03_234438) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -58,6 +58,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_27_104234) do
     t.index ["user_id"], name: "index_company_requisites_on_user_id"
   end
 
+  create_table "global_discounts", force: :cascade do |t|
+    t.decimal "percent"
+    t.datetime "valid_until"
+    t.boolean "active"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "order_items", force: :cascade do |t|
     t.integer "order_id", null: false
     t.integer "product_id", null: false
@@ -96,6 +104,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_27_104234) do
     t.string "idocs_status"
     t.boolean "is_buyback", default: false
     t.integer "status", default: 0
+    t.decimal "discount_percent"
+    t.decimal "discount_amount"
     t.index ["company_requisite_id"], name: "index_orders_on_company_requisite_id"
     t.index ["smart_link_token"], name: "index_orders_on_smart_link_token"
     t.index ["user_id"], name: "index_orders_on_user_id"

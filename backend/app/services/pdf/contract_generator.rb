@@ -140,7 +140,14 @@ module Pdf
 
       move_down 10
       total_sum = @order.total_amount
-      i_text "Общая сумма спецификации: #{ActionController::Base.helpers.number_to_currency(total_sum, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}, с НДС.", style: :bold, size: 10
+      
+      if @order.discount_amount.to_f > 0
+        original_sum = total_sum + @order.discount_amount
+        i_text "Сумма без скидки: #{ActionController::Base.helpers.number_to_currency(original_sum, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}", size: 10
+        i_text "Скидка (#{@order.discount_percent}%): -#{ActionController::Base.helpers.number_to_currency(@order.discount_amount, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}", size: 10
+      end
+
+      i_text "Общая сумма спецификации (к оплате): #{ActionController::Base.helpers.number_to_currency(total_sum, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}, с НДС.", style: :bold, size: 10
       move_down 10
       i_text "2. Покупатель производит предоплату в размере 100 %.", align: :justify, size: 10
       

@@ -15,7 +15,7 @@ interface CartDrawerProps {
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
-    const { items, totalPrice, updateQuantity, removeFromCart, isBuyback, setIsBuyback } = useCart();
+    const { items, totalPrice, updateQuantity, removeFromCart, isBuyback, setIsBuyback, globalDiscount, discountAmount, finalPrice } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -125,9 +125,23 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
                         {items.length > 0 && (
                             <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
-                                <div className="flex justify-between text-base font-medium text-gray-900">
-                                    <p>Итого</p>
-                                    <p>{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(totalPrice)}</p>
+                                <div className="space-y-1">
+                                    <div className={`flex justify-between text-base font-medium ${discountAmount > 0 ? 'text-gray-500 line-through text-sm' : 'text-gray-900'}`}>
+                                        <p>Сумма{discountAmount > 0 ? ' без скидки' : ''}</p>
+                                        <p>{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(totalPrice)}</p>
+                                    </div>
+                                    {discountAmount > 0 && (
+                                        <div className="flex justify-between text-base font-medium text-red-600">
+                                            <p>Скидка ({globalDiscount?.percent}%)</p>
+                                            <p>- {new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(discountAmount)}</p>
+                                        </div>
+                                    )}
+                                    {discountAmount > 0 && (
+                                        <div className="flex justify-between text-lg font-bold text-gray-900 border-t pt-2 mt-2">
+                                            <p>Итого</p>
+                                            <p>{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(finalPrice)}</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="mt-4 p-4 bg-amber-50 border border-amber-100 rounded-lg">

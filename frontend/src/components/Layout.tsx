@@ -8,7 +8,7 @@ import LoginModal from '@/components/auth/LoginModal';
 
 const Layout: React.FC = () => {
     const { user, logout } = useAuth();
-    const { totalItems, isCartOpen, setIsCartOpen } = useCart();
+    const { totalItems, isCartOpen, setIsCartOpen, globalDiscount } = useCart();
     const navigate = useNavigate();
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -71,6 +71,11 @@ const Layout: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
+            {globalDiscount?.active && globalDiscount.percent > 0 && (
+                <div className="bg-red-600 text-white text-center py-2 px-4 text-sm font-medium sticky top-0 z-[60]">
+                    Акция! Скидка {globalDiscount.percent}% на все товары{globalDiscount.valid_until ? ` до ${new Date(globalDiscount.valid_until).toLocaleDateString()}` : ''}. Скидка применяется автоматически в корзине.
+                </div>
+            )}
             <header className="bg-white shadow-sm sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-20">
