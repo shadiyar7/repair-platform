@@ -38,11 +38,11 @@ const LoginPage: React.FC = () => {
                 let userRole = userData.role || (userData.attributes && userData.attributes.role);
                 if (userRole === 'warehouse') {
                     navigate('/warehouse');
-                } else if (userData.role === 'driver') {
+                } else if (userRole === 'driver') {
                     navigate('/driver');
-                } else if (userData.role === 'director') {
+                } else if (userRole === 'director') {
                     navigate('/director');
-                } else if (userData.role === 'supervisor') {
+                } else if (userRole === 'supervisor') {
                     navigate('/supervisor');
                 } else {
                     navigate('/'); // Catalog is at root for Client
