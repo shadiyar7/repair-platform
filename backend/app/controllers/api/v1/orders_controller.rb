@@ -137,7 +137,7 @@ class Api::V1::OrdersController < ApplicationController
     @order = Order.find(params[:id])
     authorize @order, :update?
 
-    if @order.contract_review?
+    if @order.contract_review? || @order.pending_director_signature?
       begin
         ActiveRecord::Base.transaction do
           @order.cancel!
@@ -147,7 +147,7 @@ class Api::V1::OrdersController < ApplicationController
         render json: { error: e.message }, status: :unprocessable_entity
       end
     else
-      render json: { error: "Отменить можно только на этапе ознакомления" }, status: :unprocessable_entity
+      render json: { error: "Отменить запрос можно только на этапе ознакомления или подписания" }, status: :unprocessable_entity
     end
   end
 

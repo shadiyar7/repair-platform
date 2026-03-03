@@ -132,7 +132,7 @@ class Order < ApplicationRecord
       end
 
       event :cancel do
-        transitions from: :contract_review, to: :cancelled, after: :release_item_uids
+        transitions from: [:contract_review, :pending_director_signature], to: :cancelled, after: :release_item_uids
       end
     end
 

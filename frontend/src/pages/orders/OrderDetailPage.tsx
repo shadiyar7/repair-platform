@@ -14,9 +14,10 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2, RefreshCw, ShoppingBag } from 'lucide-react';
+import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2, RefreshCw, ShoppingBag, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import OrderTrackingMap from '@/components/OrderTrackingMap';
@@ -163,6 +164,8 @@ const OrderDetailPage: React.FC = () => {
 
     const [isIdocsSigning, setIsIdocsSigning] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [cancelConfirmationText, setCancelConfirmationText] = useState('');
 
     const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -488,7 +491,20 @@ const OrderDetailPage: React.FC = () => {
                             </DialogContent>
                         </Dialog>
                     </div>
-                    <p className="text-muted-foreground">Оформлен {new Date(attributes.created_at).toLocaleDateString()}</p>
+                    <div className="flex items-center gap-4">
+                        <p className="text-muted-foreground">Оформлен {new Date(attributes.created_at).toLocaleDateString()}</p>
+                        {attributes.contract_url && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(attributes.contract_url, '_blank')}
+                                className="h-7 text-xs flex items-center gap-1.5"
+                            >
+                                <Download className="h-3.5 w-3.5" />
+                                Скачать договор
+                            </Button>
+                        )}
+                    </div>
                 </div>
                 {getStatusBadge(attributes.status)}
             </div>
@@ -749,6 +765,20 @@ const OrderDetailPage: React.FC = () => {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {getActionBanner()}
+
+                                {attributes.status === 'pending_director_signature' && user?.role === 'client' && (
+                                    <div className="flex justify-start pt-2">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setIsCancelModalOpen(true)}
+                                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                            disabled={cancelOrderMutation.isPending}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                            Отменить заказ
+                                        </Button>
+                                    </div>
+                                )}
 
                                 {/* DEBUG BUTTON - Global for Admin/Warehouse */}
                                 {(user?.role === 'admin' || user?.role === 'warehouse') && (
@@ -1084,6 +1114,50 @@ const OrderDetailPage: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600">Отмена заказа</DialogTitle>
+                        <DialogDescription>
+                            Вы уверены, что хотите отменить этот заказ? Это действие необратимо. Уникальные коды товаров будут отвязаны и возвращены на склад.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                        <p className="text-sm border-l-4 border-red-500 bg-red-50 p-3 rounded text-red-800">
+                            Для подтверждения отмены введите слово <strong>ОТМЕНИТЬ</strong> в поле ниже:
+                        </p>
+                        <Input
+                            value={cancelConfirmationText}
+                            onChange={(e) => setCancelConfirmationText(e.target.value)}
+                            placeholder="ОТМЕНИТЬ"
+                            className="uppercase"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setIsCancelModalOpen(false);
+                                setCancelConfirmationText('');
+                            }}
+                            disabled={cancelOrderMutation.isPending}
+                        >
+                            Я передумал(а)
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={() => {
+                                cancelOrderMutation.mutate();
+                                setIsCancelModalOpen(false);
+                            }}
+                            disabled={cancelConfirmationText !== 'ОТМЕНИТЬ' || cancelOrderMutation.isPending}
+                        >
+                            {cancelOrderMutation.isPending ? 'Отмена...' : 'Подтвердить отмену'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
