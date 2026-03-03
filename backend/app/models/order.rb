@@ -153,6 +153,8 @@ class Order < ApplicationRecord
         end
       end
     end
+    
+  public
 
     def is_existing_client?
       # An EXISTING client is a Customer who has at least one previous order that passed the "Client signed" stage.
