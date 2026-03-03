@@ -98,6 +98,9 @@ class Api::V1::OrdersController < ApplicationController
       rescue => e
         return render json: { error: e.message }, status: :unprocessable_entity
       end
+    elsif @order.contract_review?
+      # If somehow already in contract_review (e.g. auto-transitioned in create) but missing contract
+      GenerateContractJob.perform_now(@order.id) if @order.contract_url.blank?
     end
 
     render json: { 
