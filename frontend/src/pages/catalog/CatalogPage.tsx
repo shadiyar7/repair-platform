@@ -221,7 +221,6 @@ const CatalogPage: React.FC = () => {
                                                         <TableRow key={product.id}>
                                                             <TableCell className="font-medium">
                                                                 {attrs.name}
-                                                                <div className="text-xs text-gray-400 font-normal mt-1">SKU: {attrs.sku}</div>
                                                             </TableCell>
                                                             <TableCell>
                                                                 {attrs.characteristics?.thickness && (

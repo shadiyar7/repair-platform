@@ -292,7 +292,6 @@ const CatalogNewPage: React.FC = () => {
                                         <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
                                             <TableHead>Наименование</TableHead>
                                             <TableHead>Характеристики</TableHead>
-                                            <TableHead>Артикул</TableHead>
                                             <TableHead className="text-right">Цена</TableHead>
                                             <TableHead className="text-right">Остаток</TableHead>
                                             <TableHead className="text-right w-[150px]">Корзина</TableHead>
@@ -327,7 +326,6 @@ const CatalogNewPage: React.FC = () => {
                                                                 )}
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell className="font-mono text-xs text-gray-500">{item.sku}</TableCell>
                                                         <TableCell className="text-right font-semibold text-red-600">
                                                             {new Intl.NumberFormat('ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(item.price)}
                                                         </TableCell>
@@ -373,7 +371,7 @@ const CatalogNewPage: React.FC = () => {
                                             })
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={6} className="text-center py-12 text-gray-500">
+                                                <TableCell colSpan={5} className="text-center py-12 text-gray-500">
                                                     Нет товаров по выбранным фильтрам
                                                 </TableCell>
                                             </TableRow>

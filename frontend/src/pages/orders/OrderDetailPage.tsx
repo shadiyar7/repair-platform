@@ -17,6 +17,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2, RefreshCw, ShoppingBag } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import OrderTrackingMap from '@/components/OrderTrackingMap';
 import ContractReviewView from '@/components/orders/ContractReviewView';
@@ -263,30 +264,36 @@ const OrderDetailPage: React.FC = () => {
     }
 
     const getStatusBadge = (status: string) => {
-        const config: Record<string, string> = {
-            draft: 'bg-gray-100 text-gray-800',
-            contract_review: 'bg-blue-600 text-white',
-            pending_director_signature: 'bg-orange-600 text-white',
-            pending_signature: 'bg-red-600 text-white',
-            pending_payment: 'bg-indigo-600 text-white',
-            payment_review: 'bg-yellow-500 text-white',
-            paid: 'bg-green-100 text-green-800',
-            searching_driver: 'bg-purple-100 text-purple-800',
-            driver_assigned: 'bg-indigo-100 text-indigo-800',
-            at_warehouse: 'bg-yellow-100 text-yellow-800',
-            in_transit: 'bg-blue-500 text-white',
-            delivered: 'bg-green-500 text-white',
-            completed: 'bg-gray-900 text-white',
-            cancelled: 'bg-red-100 text-red-800'
+        const config: Record<string, { label: string, color: string }> = {
+            draft: { label: 'Черновик', color: 'bg-gray-100 text-gray-800' },
+            contract_review: { label: 'Ознакомление', color: 'bg-blue-600 text-white shadow-[0_0_10px_rgba(37,99,235,0.2)]' },
+            pending_director_signature: { label: 'Подпись компании', color: 'bg-orange-600 text-white' },
+            pending_signature: { label: 'Ожидание вашей подписи', color: 'bg-red-600 text-white' },
+            pending_payment: { label: 'Ожидание оплаты', color: 'bg-indigo-600 text-white' },
+            payment_review: { label: 'Проверка оплаты', color: 'bg-yellow-500 text-white' },
+            paid: { label: 'Оплачено', color: 'bg-green-100 text-green-800' },
+            searching_driver: { label: 'Поиск водителя', color: 'bg-purple-100 text-purple-800' },
+            driver_assigned: { label: 'Водитель назначен', color: 'bg-indigo-100 text-indigo-800' },
+            at_warehouse: { label: 'На складе', color: 'bg-yellow-100 text-yellow-800' },
+            in_transit: { label: 'В пути', color: 'bg-blue-500 text-white' },
+            delivered: { label: 'Доставлено', color: 'bg-green-500 text-white' },
+            documents_ready: { label: 'Документы готовы', color: 'bg-green-100 text-green-800' },
+            completed: { label: 'Завершено', color: 'bg-gray-900 text-white' },
+            cancelled: { label: 'Отменено', color: 'bg-red-100 text-red-800' }
         };
-        const color = config[status] || 'bg-gray-100';
+        const statusConfig = config[status] || { label: status, color: 'bg-gray-100' };
 
-        // Friendly Label Logic
-        let label = status.toUpperCase();
-        if (status === 'pending_director_signature') label = 'ПОДПИСАНИЕ КОМПАНИЕЙ';
-        if (status === 'pending_signature') label = 'ОЖИДАНИЕ ВАШЕЙ ПОДПИСИ';
-
-        return <Badge className={color}>{label}</Badge>;
+        return (
+            <Badge
+                variant="outline"
+                className={cn(
+                    "border-none shadow-sm pointer-events-none whitespace-nowrap",
+                    statusConfig.color
+                )}
+            >
+                {statusConfig.label.toUpperCase()}
+            </Badge>
+        );
     };
 
     const downloadFile = async (type: 'invoice' | 'contract') => {
