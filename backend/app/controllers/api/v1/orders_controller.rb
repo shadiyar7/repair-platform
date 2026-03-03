@@ -100,7 +100,7 @@ class Api::V1::OrdersController < ApplicationController
       end
     elsif @order.contract_review?
       # If somehow already in contract_review (e.g. auto-transitioned in create) but missing contract
-      GenerateContractJob.perform_now(@order.id) if @order.contract_url.blank?
+      GenerateContractJob.perform_now(@order.id) unless @order.document.attached?
     end
 
     render json: { 
