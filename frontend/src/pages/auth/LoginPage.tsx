@@ -35,7 +35,7 @@ const LoginPage: React.FC = () => {
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 const userData = JSON.parse(storedUser);
-                let userRole = userData.role || (userData.attributes && userData.attributes.role);
+                let userRole = String(userData.role || (userData.attributes && userData.attributes.role) || '').toLowerCase().trim();
                 if (userRole === 'warehouse') {
                     navigate('/warehouse');
                 } else if (userRole === 'driver') {
@@ -44,6 +44,8 @@ const LoginPage: React.FC = () => {
                     navigate('/director');
                 } else if (userRole === 'supervisor') {
                     navigate('/supervisor');
+                } else if (userRole === 'admin') {
+                    navigate('/orders'); // Admin-панель "Заказы"
                 } else {
                     navigate('/'); // Catalog is at root for Client
                 }

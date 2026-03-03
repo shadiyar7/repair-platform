@@ -76,6 +76,12 @@ const Layout: React.FC = () => {
                                         <Link to="/admin/users" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                                             Сотрудники
                                         </Link>
+                                        <Link to="/director" className="border-transparent text-purple-600 hover:border-purple-300 hover:text-purple-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                            [ТЕСТ] Кабинет Директора
+                                        </Link>
+                                        <Link to="/director/orders" className="border-transparent text-purple-600 hover:border-purple-300 hover:text-purple-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                            [ТЕСТ] Все заказы
+                                        </Link>
                                     </>
                                 )}
                             </div>
