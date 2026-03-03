@@ -76,8 +76,12 @@ const Layout: React.FC = () => {
                     <div className="flex justify-between h-16">
                         <div className="flex">
                             <div className="flex-shrink-0 flex items-center">
-                                <Link to="/" className="text-2xl font-black tracking-tighter text-red-600 hover:text-red-700 transition-colors">
-                                    DYNAMIX
+                                <Link to="/" className="flex items-center">
+                                    <img
+                                        src="/logo.jpg"
+                                        alt="DYNAMIX"
+                                        className="h-10 w-auto object-contain"
+                                    />
                                 </Link>
                             </div>
                             {/* Desktop Nav */}
