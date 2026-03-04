@@ -766,7 +766,7 @@ const OrderDetailPage: React.FC = () => {
                             <CardContent className="space-y-4">
                                 {getActionBanner()}
 
-                                {attributes.status === 'pending_director_signature' && user?.role === 'client' && (
+                                {(attributes.status === 'pending_director_signature' || attributes.status === 'contract_review') && ['client', 'admin', 'director'].includes(user?.role || '') && (
                                     <div className="flex justify-start pt-2">
                                         <Button
                                             variant="outline"
