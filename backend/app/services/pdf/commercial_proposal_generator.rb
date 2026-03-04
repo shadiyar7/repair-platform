@@ -177,18 +177,31 @@ module Pdf
       pdf.move_down 30
 
       # --- Signature Section ---
-      pdf.text "С уважением,", size: 11
-      pdf.move_down 5
-      pdf.text "Адилет Командиров", size: 11, style: :bold
-      pdf.text "Директор ТОО “Komandeer Supply”", size: 11
-      
-      pdf.move_down 20
-      pdf.font "Arial", style: :bold do
-        pdf.text "DYNAMIX by Komandeer Supply", size: 11
+      y_position = pdf.cursor
+
+      pdf.bounding_box([0, y_position], width: 300) do
+        pdf.text "С уважением,", size: 11
+        pdf.move_down 5
+        pdf.text "Адилет Командиров", size: 11, style: :bold
+        pdf.text "Директор ТОО “Komandeer Supply”", size: 11
+        
+        pdf.move_down 20
+        pdf.font "Arial", style: :bold do
+          pdf.text "DYNAMIX by Komandeer Supply", size: 11
+        end
       end
-      
-      pdf.stroke_color "000000"
-      pdf.line_width 1
+
+      # Add signature and stamp images to the right
+      signature_path = Rails.root.join("app/assets/images/pdf/signature.jpg")
+      stamp_path = Rails.root.join("app/assets/images/pdf/stamp.jpg")
+
+      if File.exist?(signature_path)
+        pdf.image signature_path, at: [280, y_position + 15], width: 120
+      end
+
+      if File.exist?(stamp_path)
+        pdf.image stamp_path, at: [350, y_position + 30], width: 140
+      end
 
       pdf.render
     end
