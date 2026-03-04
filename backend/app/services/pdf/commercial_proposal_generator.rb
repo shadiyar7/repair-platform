@@ -179,7 +179,7 @@ module Pdf
       # --- Signature Section ---
       y_position = pdf.cursor
 
-      pdf.bounding_box([0, y_position], width: 300) do
+      pdf.bounding_box([0, y_position], width: 250) do
         pdf.text "С уважением,", size: 11
         pdf.move_down 5
         pdf.text "Адилет Командиров", size: 11, style: :bold
@@ -192,15 +192,15 @@ module Pdf
       end
 
       # Add signature and stamp images to the right
-      signature_path = Rails.root.join("app/assets/images/pdf/signature.jpg")
-      stamp_path = Rails.root.join("app/assets/images/pdf/stamp.jpg")
+      signature_path = Rails.root.join("app/assets/images/pdf/signature.png")
+      stamp_path = Rails.root.join("app/assets/images/pdf/stamp.png")
 
       if File.exist?(signature_path)
-        pdf.image signature_path, at: [280, y_position + 15], width: 120
+        pdf.image signature_path, at: [250, y_position + 20], width: 100
       end
 
       if File.exist?(stamp_path)
-        pdf.image stamp_path, at: [350, y_position + 30], width: 140
+        pdf.image stamp_path, at: [330, y_position + 30], width: 110
       end
 
       pdf.render
