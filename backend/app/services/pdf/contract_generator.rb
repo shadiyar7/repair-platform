@@ -139,13 +139,18 @@ module Pdf
       render_items_table
 
       move_down 10
-      total_sum = @order.total_amount
+      total_sum = @order.total_amount.to_f
+      base_sum = @order.base_amount.to_f > 0 ? @order.base_amount.to_f : (total_sum + @order.discount_amount.to_f)
+      vat_amount = @order.vat_amount.to_f
+      discount_amount = @order.discount_amount.to_f
       
-      if @order.discount_amount.to_f > 0
-        original_sum = total_sum + @order.discount_amount
-        i_text "Сумма без скидки: #{ActionController::Base.helpers.number_to_currency(original_sum, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}", size: 10
-        i_text "Скидка (#{@order.discount_percent}%): -#{ActionController::Base.helpers.number_to_currency(@order.discount_amount, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}", size: 10
+      i_text "Итого (без НДС): #{ActionController::Base.helpers.number_to_currency(base_sum, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}", size: 10
+      
+      if discount_amount > 0
+        i_text "Скидка (#{@order.discount_percent.to_i}%): -#{ActionController::Base.helpers.number_to_currency(discount_amount, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}", size: 10
       end
+
+      i_text "НДС (16%): #{ActionController::Base.helpers.number_to_currency(vat_amount, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}", size: 10
 
       i_text "Общая сумма спецификации (к оплате): #{ActionController::Base.helpers.number_to_currency(total_sum, unit: "тенге", separator: ",", delimiter: " ", format: "%n %u")}, с НДС.", style: :bold, size: 10
       move_down 10
@@ -173,7 +178,7 @@ module Pdf
           ActionController::Base.helpers.number_to_currency(item.quantity * effective_price, unit: "", separator: ",", delimiter: " ", precision: 2).strip
         ]
       end
-      items_data = [["№", "Наименование", "Ед. изм.", "Кол-во", "Цена (тг)", "Сумма (тг)"]] + items
+      items_data = [["№", "Наименование", "Ед. изм.", "Кол-во", "Цена без НДС (тг)", "Сумма без НДС (тг)"]] + items
       indent(25) do
         table(items_data, header: true, width: 495) do
           row(0).style(font_style: :bold, background_color: "EEEEEE", align: :center, size: 9)

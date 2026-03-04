@@ -101,7 +101,7 @@ export const UsedUidsModal: React.FC<UsedUidsModalProps> = ({ productId, isOpen,
                                         <TableHead className="w-[160px]">UID</TableHead>
                                         <TableHead className="w-[100px]">Заказ</TableHead>
                                         <TableHead>Клиент</TableHead>
-                                        <TableHead className="w-[140px]">Цена</TableHead>
+                                        <TableHead className="w-[140px]">Цена без НДС</TableHead>
                                         <TableHead className="w-[160px]">Статус</TableHead>
                                         <TableHead className="text-right w-[160px]">Назначен</TableHead>
                                     </TableRow>

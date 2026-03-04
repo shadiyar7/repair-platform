@@ -297,7 +297,7 @@ const AdminProductsPage: React.FC = () => {
                                     <TableHead>Использованные UIDs</TableHead>
                                     <TableHead>Код 1C (Nomenclature)</TableHead>
                                     <TableHead>Название</TableHead>
-                                    <TableHead>Цена</TableHead>
+                                    <TableHead>Цена без НДС</TableHead>
                                     <TableHead>Остаток</TableHead>
                                     <TableHead>Категория</TableHead>
                                     <TableHead>Статус</TableHead>
@@ -430,7 +430,7 @@ const AdminProductsPage: React.FC = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>Цена</Label>
+                                <Label>Цена без НДС</Label>
                                 <Input
                                     type="number"
                                     value={formData.price}

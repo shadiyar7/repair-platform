@@ -295,7 +295,7 @@ const CatalogNewPage: React.FC = () => {
                                         <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
                                             <TableHead>Наименование</TableHead>
                                             <TableHead>Характеристики</TableHead>
-                                            <TableHead className="text-right">Цена</TableHead>
+                                            <TableHead className="text-right">Цена без НДС</TableHead>
                                             <TableHead className="text-right">Остаток</TableHead>
                                             {isClient && <TableHead className="text-right w-[150px]">Корзина</TableHead>}
                                         </TableRow>

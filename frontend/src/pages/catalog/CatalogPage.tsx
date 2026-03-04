@@ -207,7 +207,7 @@ const CatalogPage: React.FC = () => {
                                             <TableRow className="bg-gray-50/50">
                                                 <TableHead className="w-[40%]">Наименование</TableHead>
                                                 <TableHead>Характеристики</TableHead>
-                                                <TableHead>Цена</TableHead>
+                                                <TableHead>Цена без НДС</TableHead>
                                                 <TableHead>Наличие</TableHead>
                                                 <TableHead className="text-right">Действие</TableHead>
                                             </TableRow>

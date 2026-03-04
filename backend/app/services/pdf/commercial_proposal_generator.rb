@@ -129,10 +129,34 @@ module Pdf
         ]
       end
 
-      # Total row
+      # Calculation Breakdowns
+      discount_percent = GlobalDiscount.current&.active ? GlobalDiscount.current.percent.to_f : 0.0
+      discount_amount = total_sum * (discount_percent / 100.0)
+      discounted_base = total_sum - discount_amount
+      vat_amount = discounted_base * 0.16
+      final_total = discounted_base + vat_amount
+
+      # Total rows
       table_data << [
-        { content: "Итого:", colspan: 4, align: :right, font_style: :bold },
+        { content: "Итого (без НДС):", colspan: 4, align: :right, font_style: :bold },
         { content: number_with_precision(total_sum, precision: 0, delimiter: ' '), align: :right, font_style: :bold }
+      ]
+
+      if discount_amount > 0
+        table_data << [
+          { content: "Скидка (#{discount_percent.to_i}%):", colspan: 4, align: :right, font_style: :italic },
+          { content: "-#{number_with_precision(discount_amount, precision: 0, delimiter: ' ')}", align: :right, font_style: :bold, text_color: "228B22" }
+        ]
+      end
+
+      table_data << [
+        { content: "НДС (16%):", colspan: 4, align: :right, font_style: :bold },
+        { content: number_with_precision(vat_amount, precision: 0, delimiter: ' '), align: :right, font_style: :bold }
+      ]
+
+      table_data << [
+        { content: "Итого к оплате (с НДС):", colspan: 4, align: :right, font_style: :bold },
+        { content: number_with_precision(final_total, precision: 0, delimiter: ' '), align: :right, font_style: :bold, text_color: "FF0000" }
       ]
 
       # Draw table

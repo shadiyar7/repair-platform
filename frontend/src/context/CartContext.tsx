@@ -32,6 +32,8 @@ interface CartContextType {
     setIsBuyback: (isBuyback: boolean) => void;
     globalDiscount: GlobalDiscount | null;
     discountAmount: number;
+    basePrice: number;
+    vatAmount: number;
     finalPrice: number;
 }
 
@@ -125,11 +127,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const basePrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const discountAmount = globalDiscount?.active && globalDiscount.percent > 0
-        ? totalPrice * (globalDiscount.percent / 100)
+        ? basePrice * (globalDiscount.percent / 100)
         : 0;
-    const finalPrice = totalPrice - discountAmount;
+
+    const discountedBase = basePrice - discountAmount;
+    const vatAmount = discountedBase * 0.16;
+    const finalPrice = discountedBase + vatAmount;
 
     return (
         <CartContext.Provider value={{
@@ -139,13 +144,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             updateQuantity,
             clearCart,
             totalItems,
-            totalPrice,
+            totalPrice: basePrice, // Keep totalPrice alias for backwards compatibility
+            basePrice,
             isCartOpen,
             setIsCartOpen,
             isBuyback,
             setIsBuyback,
             globalDiscount,
             discountAmount,
+            vatAmount,
             finalPrice
         }}>
             {children}

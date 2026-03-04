@@ -39,7 +39,7 @@ class Order < ApplicationRecord
   end
 
   def calculate_total_amount
-    base_total = order_items.sum { |item| (item.price || item.product&.price || 0) * (item.quantity || 0) }
+    self.base_amount = order_items.sum { |item| (item.price || item.product&.price || 0) * (item.quantity || 0) }
     
     # Apply global discount if order is in cart, or if not yet saved
     if (new_record? || cart?) && GlobalDiscount.current
@@ -47,12 +47,14 @@ class Order < ApplicationRecord
     end
 
     if self.discount_percent.to_f > 0
-      self.discount_amount = base_total * (self.discount_percent / 100.0)
-      self.total_amount = base_total - self.discount_amount
+      self.discount_amount = self.base_amount * (self.discount_percent / 100.0)
     else
       self.discount_amount = 0
-      self.total_amount = base_total
     end
+
+    discounted_base = self.base_amount - self.discount_amount
+    self.vat_amount = discounted_base * 0.16
+    self.total_amount = discounted_base + self.vat_amount
   end
 
   def update_total!
