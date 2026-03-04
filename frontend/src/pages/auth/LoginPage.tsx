@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -17,6 +17,15 @@ const LoginPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const { loginWithPassword } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (sessionStorage.getItem('session_expired')) {
+            toast.error("Время сессии истекло", {
+                description: "Пожалуйста, авторизуйтесь заново в целях безопасности."
+            });
+            sessionStorage.removeItem('session_expired');
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
