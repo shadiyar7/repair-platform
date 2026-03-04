@@ -72,6 +72,11 @@ const Layout: React.FC = () => {
             to: "/admin/users",
             label: "Сотрудники",
             show: user?.role === 'admin'
+        },
+        {
+            to: "/admin/discounts",
+            label: "Акции",
+            show: user?.role === 'admin'
         }
     ];
 

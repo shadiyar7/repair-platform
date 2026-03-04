@@ -725,9 +725,23 @@ const OrderDetailPage: React.FC = () => {
                                         </li>
                                     ))}
                                 </ul>
-                                <div className="border-t mt-4 pt-4 flex justify-between text-lg font-bold">
-                                    <span>Итоговая сумма</span>
-                                    <span className="text-red-600">{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(attributes.total_amount)}</span>
+                                <div className="border-t mt-4 pt-4 space-y-2">
+                                    {attributes.discount_amount > 0 && (
+                                        <>
+                                            <div className="flex justify-between text-gray-500">
+                                                <span>Сумма без скидки</span>
+                                                <span className="line-through">{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(Number(attributes.total_amount) + Number(attributes.discount_amount))}</span>
+                                            </div>
+                                            <div className="flex justify-between text-green-600 font-medium whitespace-nowrap">
+                                                <span>Скидка ({attributes.discount_percent}%)</span>
+                                                <span>-{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(attributes.discount_amount)}</span>
+                                            </div>
+                                        </>
+                                    )}
+                                    <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-100">
+                                        <span>Итого к оплате</span>
+                                        <span className="text-red-600">{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(attributes.total_amount)}</span>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
