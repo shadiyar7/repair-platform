@@ -144,7 +144,7 @@ module Pdf
 
       if discount_amount > 0
         table_data << [
-          { content: "Скидка (#{discount_percent.to_i}%):", colspan: 4, align: :right, font_style: :italic },
+          { content: "Скидка (#{discount_percent.to_i}%):", colspan: 4, align: :right, font_style: :normal },
           { content: "-#{number_with_precision(discount_amount, precision: 0, delimiter: ' ')}", align: :right, font_style: :bold, text_color: "228B22" }
         ]
       end
