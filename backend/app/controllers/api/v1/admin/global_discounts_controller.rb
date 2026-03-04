@@ -2,7 +2,7 @@ module Api
   module V1
     module Admin
       class GlobalDiscountsController < ApplicationController
-        before_action :authenticate_request!
+        before_action :authenticate_user!
         before_action :authorize_admin!
 
         def show
@@ -26,7 +26,7 @@ module Api
         end
 
         def authorize_admin!
-          unless @current_user&.admin? || @current_user&.director?
+          unless current_user&.admin? || current_user&.director?
             render json: { error: 'Access denied' }, status: :forbidden
           end
         end
