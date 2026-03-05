@@ -159,13 +159,36 @@ class Order < ApplicationRecord
       touch(:director_signed_at)
     end
 
-    after_commit do
-      if saved_change_to_status? && status == 'pending_director_signature'
-        begin
-          DirectorMailer.signature_request(self).deliver_later
-        rescue => e
-          Rails.logger.error "Failed to send Director email: #{e.message}"
+    after_commit :send_status_emails, on: :update, if: :saved_change_to_status?
+
+    private
+
+    def send_status_emails
+      begin
+        case status
+        when 'contract_review'
+          # If transitioning from cart -> contract_review, order is placed.
+          if saved_change_to_status[0] == 'cart'
+            OrderMailer.with(order: self).order_created.deliver_later
+          end
+        when 'pending_director_signature'
+          OrderMailer.with(order: self).pending_director_signature.deliver_later
+        when 'pending_payment'
+          # Client has signed
+          OrderMailer.with(order: self).client_signed.deliver_later
+        when 'searching_driver'
+          # Searching driver is reached via upload_receipt or confirm_payment.
+          # We don't send emails here to avoid duplicates.
+          # upload_receipt sends receipt_uploaded manually.
+          # confirm_payment sends payment_confirmed manually.
+        when 'driver_assigned', 'at_warehouse', 'in_transit'
+          OrderMailer.with(order: self).driver_status_update.deliver_later
+        when 'delivered'
+          OrderMailer.with(order: self).order_delivered.deliver_later
         end
+      rescue => e
+        Rails.logger.error "Failed to send status email for order ##{id} (status: #{status}): #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
       end
     end
     

@@ -173,9 +173,9 @@ class Api::V1::OrdersController < ApplicationController
     if @order.pending_payment?
       @order.upload_receipt!
       
-      # Notify Supervisor
+      # Notify Supervisor and Accounting
       begin
-        SupervisorMailer.new_payment_receipt(@order).deliver_later
+        OrderMailer.with(order: @order).receipt_uploaded.deliver_later
       rescue => e
         Rails.logger.error "Failed to send email: #{e.message}"
       end
@@ -196,7 +196,10 @@ class Api::V1::OrdersController < ApplicationController
     @order.update(is_verified: true)
     
     # Try to transition if applicable, but don't error if already searching
-    @order.confirm_payment! if @order.may_confirm_payment?
+    if @order.may_confirm_payment?
+      @order.confirm_payment!
+      OrderMailer.with(order: @order).payment_confirmed.deliver_later
+    end
 
     render json: OrderSerializer.new(@order).serializable_hash
   end
