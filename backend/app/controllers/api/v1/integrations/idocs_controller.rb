@@ -67,7 +67,12 @@ module Api
           Rails.logger.info "iDocs sign: order=#{order.id} client_bin=#{client_bin} client_email=#{client_email}"
 
           document_name   = "Договор поставки №#{order.contract_number || "CTR-#{Time.now.year}-#{order.id}"}"
-          document_number = order.contract_number || "CTR-#{Time.now.year}-#{order.id}"
+          
+          # In iDocs Prod API, if we send the exact same DocumentNumber twice it might cause a fatal 500 error 
+          # deep inside their ASP.NET stack (the Telegram logger crash we see). 
+          # To make it safe to retry, we append a short timestamp hash to the number for the API.
+          base_number = order.contract_number || "CTR-#{Time.now.year}-#{order.id}"
+          document_number = "#{base_number}-#{Time.now.to_i.to_s[-5..-1]}"
 
           # Re-generate PDF
           pdf_data = Pdf::ContractGenerator.new(order).generate

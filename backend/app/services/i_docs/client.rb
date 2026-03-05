@@ -205,8 +205,15 @@ module IDocs
           { 'raw' => body }
         end
       else
-        Rails.logger.error "IDocs API Error: #{response.status} - #{response.body}"
-        raise "IDocs API Error: #{response.status} - #{response.body}"
+        error_msg = response.body.to_s
+        # iDocs sometimes returns raw ASP.NET 500 HTML pages instead of JSON
+        if error_msg.include?('<!DOCTYPE html>') && error_msg.include?('titleerror')
+          title = error_msg.match(/<div class="titleerror">(.*?)<\/div>/)&.captures&.first
+          stack = error_msg.match(/<pre class="rawExceptionStackTrace">(.*?)<\/pre>/m)&.captures&.first
+          error_msg = "iDocs Internal Server Error: #{title || 'Unknown HTML Error'}. Stack: #{(stack || '')[0..200]}"
+        end
+        Rails.logger.error "IDocs API Error: #{response.status} - #{error_msg[0..500]}"
+        raise "IDocs API Error: #{response.status} - #{error_msg[0..500]}"
       end
     end
   end
