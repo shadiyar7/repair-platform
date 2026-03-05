@@ -193,6 +193,7 @@ module IDocs
             employeeId: sender_employee_id,
             route: {
                 external: {
+                    isSenderPayer: true,
                     isSignRequiredBySender: true,
                     nodes: [
                         {
