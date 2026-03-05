@@ -22,9 +22,10 @@ Rails.application.routes.draw do
           post :cancel
           
           # IDocs Integration
-          post 'idocs/prepare', to: 'integrations/idocs#prepare'
-          post 'idocs/sign', to: 'integrations/idocs#sign'
-          get :check_idocs_status
+          post 'idocs/prepare',     to: 'integrations/idocs#prepare'
+          post 'idocs/sign',        to: 'integrations/idocs#sign'
+          post 'idocs/client_sign', to: 'integrations/idocs#client_sign'
+          get  :check_idocs_status
         end
       end
       resources :products, only: [:index, :show]
