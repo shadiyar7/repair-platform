@@ -166,10 +166,6 @@ class Order < ApplicationRecord
       current_month = Date.today.month
       current_year = Date.today.year
 
-      # Lock the table to prevent race conditions when finding the max sequence
-      # A safer approach for high concurrency is using a dedicated sequence table or Postgres sequences,
-      # but for this scale, locking the max query within the transaction is sufficient.
-      
       max_sequence = Order.where(
         "EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ?",
         current_month, current_year
