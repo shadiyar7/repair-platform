@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '@/lib/api';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -143,7 +144,7 @@ const CatalogNewPage: React.FC = () => {
     // CP Logic (Based on Cart)
     const handleGetCP = async () => {
         if (items.length === 0) {
-            alert("Корзина пуста. Добавьте товары для генерации КП.");
+            toast.warning("Корзина пуста", { description: "Добавьте товары для генерации КП." });
             return;
         }
 
@@ -161,12 +162,17 @@ const CatalogNewPage: React.FC = () => {
             document.body.appendChild(link);
             link.click();
             link.remove();
+
+            const totalAmount = items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+            toast.success("Коммерческое предложение успешно сформировано!", {
+                description: `Итоговая сумма: ${new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(totalAmount)}. Файл скачан на ваше устройство.`,
+            });
         } catch (error: any) {
             console.error("Failed to generate CP", error);
             if (error.response && error.response.status === 401) {
-                alert("Пожалуйста, авторизуйтесь для скачивания КП");
+                toast.error("Необходимо авторизоваться", { description: "Пожалуйста, войдите в систему для скачивания КП" });
             } else {
-                alert("Ошибка генерации КП");
+                toast.error("Ошибка при генерации коммерческого предложения");
             }
         }
     };
