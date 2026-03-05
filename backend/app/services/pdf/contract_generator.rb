@@ -33,7 +33,7 @@ module Pdf
       day = Date.today.strftime('%d')
       month = months_ru[Date.today.month]
       year = Date.today.year
-      number = "KS-#{@order.id}-#{year}-#{Date.today.strftime('%m')}"
+      number = @order.contract_number || "KS-#{@order.id}-#{year}-#{Date.today.strftime('%m')}"
 
       if @order.is_existing_client?
         generate_recurrent_contract(number, day, month, year)

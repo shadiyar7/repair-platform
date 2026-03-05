@@ -90,7 +90,7 @@ class Order < ApplicationRecord
       end
 
       event :confirm_contract do
-        transitions from: :contract_review, to: :pending_director_signature
+        transitions from: :contract_review, to: :pending_director_signature, after: :assign_contract_number
       end
 
       # prepare_contract is now redundant if we skip requisites_selected, 
@@ -157,6 +157,28 @@ class Order < ApplicationRecord
 
     def set_director_signed_at
       touch(:director_signed_at)
+    end
+
+    def assign_contract_number
+      return if self.contract_number.present? || is_existing_client?
+
+      # Calculate the next sequence for the current month and year
+      current_month = Date.today.month
+      current_year = Date.today.year
+
+      # Lock the table to prevent race conditions when finding the max sequence
+      # A safer approach for high concurrency is using a dedicated sequence table or Postgres sequences,
+      # but for this scale, locking the max query within the transaction is sufficient.
+      
+      max_sequence = Order.where(
+        "EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ?",
+        current_month, current_year
+      ).maximum(:new_client_contract_sequence) || 0
+
+      next_sequence = max_sequence + 1
+
+      self.new_client_contract_sequence = next_sequence
+      self.contract_number = "DM-#{current_month.to_s.rjust(2, '0')}-#{current_year}-#{next_sequence}"
     end
 
     after_commit :send_status_emails, on: :update, if: :saved_change_to_status?

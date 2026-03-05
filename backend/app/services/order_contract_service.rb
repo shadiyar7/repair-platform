@@ -9,6 +9,12 @@ class OrderContractService
       # This allows safe retries of the job
       assign_uids! unless uids_already_assigned?
       
+      # Generates order contract number if needed
+      if @order.contract_number.blank?
+        @order.assign_contract_number
+        @order.save!
+      end
+
       # Generate and attach PDF
       generate_and_attach_contract!
     end
