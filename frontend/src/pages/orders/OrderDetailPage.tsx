@@ -848,18 +848,13 @@ const OrderDetailPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* DEBUG BUTTON - Global for Admin/Warehouse */}
-                                {(user?.role === 'admin' || user?.role === 'warehouse') && (
+                                {/* Открыть Счет - Visible when invoice exists */}
+                                {attributes.invoice_base64 && (
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="w-full mb-4 text-xs text-blue-600 border-blue-200 bg-blue-50"
+                                        className="w-full mb-4 text-xs text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100"
                                         onClick={() => {
-                                            if (!attributes.invoice_base64) {
-                                                alert("В текущем заказе нет сохраненного счета (Base64). Нажмите 'Тест 1С', чтобы получить его.");
-                                                return;
-                                            }
-
                                             try {
                                                 const byteCharacters = atob(attributes.invoice_base64);
                                                 const byteNumbers = new Array(byteCharacters.length);
@@ -872,12 +867,12 @@ const OrderDetailPage: React.FC = () => {
                                                 window.open(url, '_blank');
                                             } catch (e) {
                                                 console.error(e);
-                                                alert("Ошибка при открытии счета (Base64).");
+                                                toast.error("Ошибка при открытии счета.");
                                             }
                                         }}
                                     >
-                                        <FileText className="mr-1 h-3.5 w-3.5" />
-                                        DEBUG: Открыть Счет (Текущий заказ)
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        Открыть счет
                                     </Button>
                                 )}
 
