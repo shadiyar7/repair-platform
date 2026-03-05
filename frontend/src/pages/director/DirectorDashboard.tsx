@@ -1,21 +1,19 @@
-import React, { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
-import { NCALayer } from '@/lib/ncalayer';
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
     LineChart, Line, PieChart, Pie, Cell
 } from 'recharts';
 import {
     TrendingUp, DollarSign, CheckCircle,
-    AlertCircle, Activity, PenTool, ExternalLink, Loader2
+    AlertCircle, Activity, ExternalLink, PenTool
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
 
 // --- Helper ---
 const formatCurrency = (value: number) => {
@@ -43,9 +41,7 @@ const KPICard = ({ title, value, icon: Icon, description }: { title: string, val
 );
 
 const SignaturesList = () => {
-    const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const [signingId, setSigningId] = useState<string | null>(null);
 
     const { data: ordersData, isLoading } = useQuery({
         queryKey: ['orders', 'pending_director_signature'],
@@ -56,31 +52,6 @@ const SignaturesList = () => {
     const rawOrders = ordersData?.data?.data;
     const ordersList = Array.isArray(rawOrders) ? rawOrders : [];
     const orders = ordersList.filter((o: any) => o.attributes.status === 'pending_director_signature');
-
-    const handleIdocsSign = async (orderId: string) => {
-        setSigningId(orderId);
-        try {
-            await NCALayer.connect();
-
-            toast.loading('Подготовка документа...', { id: 'idocs-sign' });
-            const prepareRes = await api.post(`/api/v1/orders/${orderId}/idocs/prepare`);
-            const { contentToSign, documentId } = prepareRes.data;
-
-            toast.loading('Ожидание подписи (NCALayer)...', { id: 'idocs-sign' });
-            const signature = await NCALayer.createCms(contentToSign);
-
-            toast.loading('Отправка подписи...', { id: 'idocs-sign' });
-            await api.post(`/api/v1/orders/${orderId}/idocs/sign`, { documentId, signature });
-
-            toast.success('Документ подписан и отправлен клиенту!', { id: 'idocs-sign' });
-            queryClient.invalidateQueries({ queryKey: ['orders'] });
-        } catch (error: any) {
-            toast.error(error.message || 'Ошибка при подписании', { id: 'idocs-sign' });
-        } finally {
-            setSigningId(null);
-        }
-    };
-
     if (isLoading) return <div>Загрузка...</div>;
 
     return (
@@ -96,7 +67,6 @@ const SignaturesList = () => {
                     const attrs = order.attributes;
                     const companyName = attrs.company_requisite?.company_name || 'Частное лицо';
                     const bin = attrs.company_requisite?.bin;
-                    const isSigning = signingId === order.id;
 
                     return (
                         <Card key={order.id} className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">
@@ -136,26 +106,12 @@ const SignaturesList = () => {
                                 </div>
 
                                 <div className="flex flex-wrap justify-end gap-3">
-                                    {/* Open in order detail page */}
                                     <Button
                                         variant="outline"
                                         onClick={() => navigate(`/orders/${order.id}`)}
                                     >
                                         <ExternalLink className="mr-2 h-4 w-4" />
                                         Открыть заказ
-                                    </Button>
-
-                                    {/* iDocs sign directly from dashboard */}
-                                    <Button
-                                        onClick={() => handleIdocsSign(order.id)}
-                                        disabled={isSigning}
-                                        className="bg-blue-600 hover:bg-blue-700"
-                                    >
-                                        {isSigning ? (
-                                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Подписание...</>
-                                        ) : (
-                                            <><PenTool className="mr-2 h-4 w-4" />Подписать ЭЦП (iDocs)</>
-                                        )}
                                     </Button>
                                 </div>
                             </CardContent>
