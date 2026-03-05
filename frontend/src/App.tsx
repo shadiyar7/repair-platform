@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
+import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
@@ -190,6 +191,7 @@ function App() {
         </CartProvider>
       </AuthProvider>
       <SupportWidget />
+      <Toaster position="top-center" richColors expand={true} />
     </QueryClientProvider>
   );
 }
