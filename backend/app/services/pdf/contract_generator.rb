@@ -202,25 +202,6 @@ module Pdf
         text "ТОО «Komandeer Supply»", size: 9
         text "БИН: 100740004791", size: 9
         move_down 15
-        
-        signature_path = Rails.root.join("app/assets/images/pdf/signature.png")
-        stamp_path = Rails.root.join("app/assets/images/pdf/stamp.png")
-
-        if File.exist?(signature_path) || File.exist?(stamp_path)
-          current_y = cursor
-          
-          if File.exist?(signature_path)
-            image signature_path, at: [40, current_y + 20], width: 60
-          end
-          
-          if File.exist?(stamp_path)
-            image stamp_path, at: [-10, current_y + 30], width: 80
-          end
-          
-          # Adjust cursor to account for images 
-          move_down 50
-        end
-
         text "Директор _____________ Командиров А.М.", size: 9
       end
       bounding_box([290, y_pos], width: 250) do
