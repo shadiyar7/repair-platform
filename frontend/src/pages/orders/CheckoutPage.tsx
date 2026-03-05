@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ShoppingBag, ArrowLeft, Plus, Loader2 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from 'sonner';
 import {
     Select,
     SelectContent,
@@ -140,6 +141,10 @@ const CheckoutPage: React.FC = () => {
                     if (order.attributes.contract_url) {
                         clearCart();
                         setProgress(100);
+                        toast.success("Заказ успешно оформлен ✅", {
+                            description: "Благодарим вас за покупку! В настоящее время мы подписываем договор со своей стороны. После этого вам поступит уведомление от iDocs электронный адрес для подписания документа. А пока вы можете заранее ознакомиться с шаблоном договора, чтобы предварительно изучить условия.",
+                            duration: 10000
+                        });
                         setTimeout(() => navigate(`/orders/${orderId}`), 800);
                     } else {
                         setTimeout(poll, 2000);
@@ -153,7 +158,9 @@ const CheckoutPage: React.FC = () => {
         } catch (err: any) {
             console.error('Order creation failed', err);
             const backendError = err.response?.data?.error;
-            alert(`Не удалось создать заказ: ${backendError || 'Пожалуйста, попробуйте еще раз.'}`);
+            toast.error("Ошибка оформления заказа", {
+                description: backendError || 'Пожалуйста, обратитесь в чат поддержки.'
+            });
             setIsGenerating(false);
             setIsLoading(false);
         }

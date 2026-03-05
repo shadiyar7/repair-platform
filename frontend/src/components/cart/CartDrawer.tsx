@@ -4,6 +4,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Trash2, X, FileDown, ShoppingBag } from 'lucide-react';
+import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import LoginModal from '@/components/auth/LoginModal';
@@ -38,9 +39,16 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
             document.body.appendChild(link);
             link.click();
             link.remove();
+
+            const formattedPrice = new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(finalPrice);
+            toast.success("Коммерческое предложение", {
+                description: `Вы сформировали КП на сумму ${formattedPrice}. Вы можете скачать его во вложении к этому окну.`
+            });
         } catch (error) {
             console.error('Error downloading KP:', error);
-            alert('Ошибка при скачивании КП');
+            toast.error('Ошибка при скачивании КП', {
+                description: 'Пожалуйста, обратитесь в чат поддержки.'
+            });
         } finally {
             setIsKpLoading(false);
         }

@@ -68,6 +68,18 @@ const SmartLinkPage: React.FC = () => {
         <div className="min-h-screen bg-gray-50 p-4 font-sans">
             <div className="max-w-md mx-auto space-y-6">
 
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Navigation className="h-5 w-5 text-blue-600" />
+                        <h3 className="text-blue-800 font-bold text-lg">Новый заказ №{order.id} 🚚</h3>
+                    </div>
+                    <div className="text-blue-700 space-y-2 text-sm">
+                        <p>Вы назначены на заказ.</p>
+                        <p>Откройте смарт-ссылку, чтобы увидеть адрес доставки и включить отслеживание.</p>
+                        <p className="font-semibold underline">Держите окно открытым и обновляйте каждые 30 минут.</p>
+                    </div>
+                </div>
+
                 {/* Header */}
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                     <div>

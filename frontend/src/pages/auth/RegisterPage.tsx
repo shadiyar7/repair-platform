@@ -64,8 +64,8 @@ const RegisterPage: React.FC = () => {
             } else {
                 // Should not happen with new config, but fallback to auto-login
                 await loginWithPassword(formData.email, formData.password);
-                toast.success("Регистрация успешна!", {
-                    description: "Добро пожаловать в DYNAMIX"
+                toast.success("Благодарим за регистрацию", {
+                    description: "Теперь вам доступен полный каталог запчастей и возможность формирования коммерческих предложений."
                 });
                 navigate('/');
             }

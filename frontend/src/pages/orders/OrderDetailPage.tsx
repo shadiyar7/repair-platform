@@ -17,7 +17,7 @@ import {
     DialogDescription,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2, RefreshCw, ShoppingBag, Trash2 } from 'lucide-react';
+import { Download, CheckCircle, CreditCard, Truck, Clock, MapPin, FileText, User, Info, AlertCircle, Building, Navigation, Loader, Loader2, RefreshCw, ShoppingBag, Trash2, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import OrderTrackingMap from '@/components/OrderTrackingMap';
@@ -59,7 +59,10 @@ const OrderDetailPage: React.FC = () => {
         mutationFn: () => api.get(`/api/v1/orders/${id}/check_idocs_status`),
         onSuccess: (response: any) => {
             if (response.data.status === 'completed') {
-                toast.success(response.data.message || "Документ успешно подписан обеими сторонами!");
+                toast.success("Договор успешно подписан!", {
+                    description: "Счёт на оплату уже сформирован и доступен для скачивания. Пожалуйста, оплатите счёт и загрузите платёжное поручение.",
+                    duration: 10000
+                });
                 queryClient.invalidateQueries({ queryKey: ['order', id] });
             } else if (response.data.status === 'pending') {
                 toast.info(response.data.message || "Ожидание подписания клиентом...");
@@ -81,7 +84,10 @@ const OrderDetailPage: React.FC = () => {
         ...mutationOptions,
         onSuccess: () => {
             mutationOptions.onSuccess();
-            toast.success("Оплата подтверждена!");
+            toast.success("Оплата прошла успешно!", {
+                description: "Мы уже ищем подходящего водителя для вашего заказа. Как только водитель будет найден, вы получите уведомление.",
+                duration: 8000
+            });
         }
     });
 
@@ -92,7 +98,10 @@ const OrderDetailPage: React.FC = () => {
         onSuccess: () => {
             mutationOptions.onSuccess();
             setIsDriverModalOpen(false);
-            toast.success("Водитель успешно назначен!");
+            toast.success("Отличные новости — водитель уже назначен!", {
+                description: "Ваш заказ подготовлен и ожидает передачи водителю. Мы отправим уведомление, как только водитель заберёт заказ.",
+                duration: 8000
+            });
         },
         onError: (err: any) => {
             toast.error("Ошибка назначения водителя", {
@@ -114,7 +123,14 @@ const OrderDetailPage: React.FC = () => {
         ...mutationOptions,
         onSuccess: () => {
             mutationOptions.onSuccess();
-            toast.info("Заказ переведен в статус 'В пути'");
+            toast.success("Ваш заказ уже в дороге!", {
+                description: "Водитель забрал отправление, и доставка началась. Вы можете наблюдать за маршрутом в реальном времени.",
+                duration: 8000,
+                action: {
+                    label: 'Открыть отслеживание',
+                    onClick: () => window.open(`/smart-link/${order.attributes.smart_link_token}`, '_blank')
+                }
+            });
         }
     });
     const deliverMutation = useMutation({
@@ -197,10 +213,10 @@ const OrderDetailPage: React.FC = () => {
             fd.append('file', file);
             fd.append('amount', String(order.attributes.total_amount));
             await api.post(`/api/v1/orders/${id}/upload_receipt`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-            toast.success('Чек принят!', {
+            toast.success('Оплата на проверке', {
                 id: toastId,
-                description: "Бухгалтер проверяет оплату, пока мы ищем вам водителя.",
-                duration: 6000
+                description: "Ваш платёжный документ получен и проверяется. Ожидайте подтверждения — мы уведомим вас о результате.",
+                duration: 8000
             });
             queryClient.invalidateQueries({ queryKey: ['order', id] });
         } catch (err: any) {
@@ -237,7 +253,11 @@ const OrderDetailPage: React.FC = () => {
                 idempotencyTicket   // required by iDocs quick-sign/save
             });
 
-            toast.success("Документ успешно подписан и отправлен!", { id: "idocs-sign" });
+            toast.success("Договор подготовлен и подписан с нашей стороны ✅", {
+                id: "idocs-sign",
+                description: "Документ уже доступен вам для подписания в системе iDocs. Пожалуйста, перейдите по ссылке и подпишите договор, чтобы мы могли приступить к дальнейшей работе. Проверьте свою почту - поступит уведомление от iDocs электронный адрес для подписания документа.",
+                duration: 10000
+            });
             queryClient.invalidateQueries({ queryKey: ['order', id] });
 
         } catch (error: any) {
@@ -473,6 +493,36 @@ const OrderDetailPage: React.FC = () => {
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
+            {user?.role === 'warehouse' && attributes.status === 'searching_driver' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 shadow-sm mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                        <Package className="h-6 w-6 text-blue-600" />
+                        <h3 className="text-blue-900 font-bold text-lg">Поступил новый заказ №{id?.slice(0, 8)} 📦</h3>
+                    </div>
+
+                    <div className="text-blue-900 space-y-3 text-sm">
+                        <div className="bg-white/60 p-3 rounded border border-blue-100 space-y-2">
+                            <p><span className="font-semibold text-gray-500 uppercase text-xs">Компания:</span><br /> {attributes.company_requisite?.company_name || 'Ожидание'}</p>
+                            <p><span className="font-semibold text-gray-500 uppercase text-xs">Адрес доставки:</span><br /> {attributes.delivery_address}</p>
+                        </div>
+
+                        <div>
+                            <span className="font-semibold block mb-2 text-blue-900">Состав заказа:</span>
+                            <div className="space-y-1 pl-2 border-l-2 border-blue-300">
+                                {attributes.order_items?.map((item: any, idx: number) => (
+                                    <p key={idx} className="font-medium">• {item.quantity} × {item.product_name}</p>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-600 text-white p-3 rounded shadow-sm mt-4 font-medium flex flex-col gap-1">
+                            <p>Пожалуйста, приступите к сборке заказа.</p>
+                            <p className="text-blue-100 text-xs text-opacity-80">После завершения отметьте статус ниже.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex justify-between items-center">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
