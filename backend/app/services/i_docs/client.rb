@@ -1,16 +1,15 @@
 module IDocs
   class Client
-    # URL and token are configurable via environment variables (set in Render dashboard)
-    # IDOCS_BASE_URL: Production = 'https://ext-edo-integration.idocs.kz/api/v3'
-    #                 Beta       = 'https://beta-ext-edo-integration.idocs.kz/api/v3'
-    # IDOCS_TOKEN: Bearer token from iDocs account manager
-    BASE_URL = ENV.fetch('IDOCS_BASE_URL', 'https://beta-ext-edo-integration.idocs.kz/api/v3')
-    TOKEN    = ENV.fetch('IDOCS_TOKEN', nil)
+    # Production environment (external.idocs.kz)
+    # Swagger: https://external.idocs.kz/swagger/index.html
+    BASE_URL = ENV.fetch('IDOCS_BASE_URL', 'https://external.idocs.kz/api/v1')
+    TOKEN    = ENV.fetch('IDOCS_TOKEN', 'eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZDQkMtSFM1MTIiLCJraWQiOiJCNEVFQjMzNkREMDQ0MzkwM0EyQzQwNzVDMDJGNzg2RTEzRjQ2QUIwIiwidHlwIjoiYXQrand0In0.J1tut9vYW1atAnPjzVLYJFPv1zCvO08nE8JleifMErgKiM87l9fvZQuQrPzcQNoAR2sj4stWK4UAPzVYaL_t79FlF-rafmO3uZ_hfwvprUa-uW2OWwhHnNrdT1HIwY9JZLIHKpwAz9wkDewLw2tVORFUErFi5VAeocwjRbZxU3EJwjcepWu1huMTqMGJpgGLUJP6ICTluqb2Uw3EsyN3E0zzWHWR0nvpq_kdkgQY7sFU1ExeajGXZUU9EzahLUo3ix6axTwWr8JgchQKVftFOTSaI_gwJ8QY8bAk4GqyBGAvfadXrz10dbtEewx2xvhNjKCFVJWIqWwqbEmm1Ldrxg.39E2XhhVaLp3gLxJ8r-dKA.GWPhE-BUrRU1jijujdqSBImUtVOLCEwqIAfSg8pxYJvi2ONJjNulcwOObBVq9zHzRqKMfPZEQvAVuYhnX4ai7a23DMSNLIhIB8KcpC5lMiWL3XYofjeu1Z_3ELFkJBC_NKaKXxpp5F72ATFhoGlkZPrXN2f0Vf1h5OVdEjNiwtCskNE4Zl6AMkGYuu6E6V0pogP1Ens2vOXDWQjXPR2nS1ZEaWRS6e391EECSjDJPxUXFl20dyo3syNoctgqg_f8pp3WW8ZrHuvVgw7u2wcDZ27GqUR03KJK4pom1_0jR8y_k7Obf3FBI-i0ysKabSh4Arz_aeZF0JV_OOzhW0LnD-OpGQWXfVkxnnK8CSiBF2uVPadtlKGdpXvM5Rdf2Z6eYJ3ObArqam2S7t8naQKn8hZYs26CrPWmKMeka0p3l-phzhVX4xOo1FV1TOusN7Bpzae1bO5-EwuohBLAmnwNlA0Ew4ekYfz-gpV2AeDs-x3h1BQ6C3wyvQNIVkS1bXLU35dietVc77Sqbos7ZwJlzm-Vj8oW0WWPYR943imu-TWNg1iVTCTmPG7qG78rFjKjw1k8VqT7X5WjZ5g0jFFPfPcg-U6k0ePmh8fAg_zrCV5UKZXpVkEsAmYSQVPEpZmyeNKHvzIXLx9g6mRvTIh6cP4T9kmFUBJGHOjo3j5qpoR5EOu_xBxKmauCIB561kwWL-K4vGOlad6PTJzWcn8EH-Ba1CaG8zJVz_xDhFo9RSkMmbiUwnOxPPMptToD2A9PwhkMI1CvVCcG9T_YB3eGzda5LVw--o_Pt3fYiGmsVO3x_21rCoIljYxoEa5cFJ0raTQcyws66wuQ4_JeAWMbB94SO4P-_qC03doq3dUStTniWfKIBFj67EvJPUHfw4lcAY8Bbl3PXrPfG6f7kHQntMiZJOWvwDTLbUFW3H-v3mMEFvBqQBWRKkXnZmytgTE30lSC2VGN_Ymn7mldKs0WI_hKYQmdDHxqueVc4-WB_EwboLjIS97w01rt82GMiHBIKfhXE0F74Mxn2qCqRhJRkm05WxoFfvfrBOaiyK3-fHMLWSsex7eOBY2EGkT0JbWXZuurHVQAjSk4lLm7d4K3w_ZyHnwhaJeizGgrTTXpO1-3d42OFRZJuLquGylRerzvlUczfFbpsRUSYgu99Q5asgD5w6Ic8yd4YOVPxO3j2Rfe6VICACkEGUs9POpNh8vyb2UORZ5H1m8cWtnwEHXA0auCUdcduNiO2IlxS3GsauWh9LpfQSMh8M3wF85pFblUNcHChowF71PgyvwzuDSaZcTVTPfQUmn2DOW_be57yc0AoRXZO6fgNXpmsGFodk3ZF7LCWeo5tB735TPtqyb4bW3qcXt9zpX45QMcbTlh4YOwLb-VhvuTxhkpp0ItkxBYdDPNHHRNZjNHPOoVjO6-iRqEkfWDOwYEoyHci50jxU8SXhcQyrzCfAlMSiDDN7uw399mfT2pnF-ceNuY8skaDMdWj3tAuHU2yYJHX5L2fPqPAR6Aj1etN89TBlQYur4AJCt87Zjue1ix2u8RBKDjjJEy4yhf0sbV23RBKTVPepwihe9aeKoAqekW-2CyqIr_9Hj9r8C-O9pWWuwtyZwK3ArhlklqlC1UjPXpdMfHLYrX1LEYbBiAyWoQtJPS48pq8KGZj-xiWLFFVh2Ls_CAqXO-VQ914WwLUX0lYKcajMAAaTiF84NNK6nkoduGQrI_OS4spLGIYD7ddTJacD4MAg0p2v1rUKwd5aNGiYJCGoFC4H4-m3e9Yo-6b4xWBnQkRGb1QVz0cwzVYnZVsIXCyW9pV5Qf9y6guyYvyfDJOnsquxH3rQ6eF3eBisGpuwIfSwcPJQ_bW4Hz76CtZ1Y_bA.M5IzFFX39VabUUoslEOJbqdqPSVVx6FJcZcta_eIrKY')
 
-    # Real EmployeeIDs retrieved from company-employees API
-    # These will differ between beta and production environments — set via ENV as well
-    DIRECTOR_EMPLOYEE_ID = ENV.fetch('IDOCS_DIRECTOR_EMPLOYEE_ID', '08e9f2df-1b6d-447d-3db0-08de6cc71a03')
-    ADMIN_EMPLOYEE_ID    = ENV.fetch('IDOCS_ADMIN_EMPLOYEE_ID', '5477bb14-63b0-4545-deca-08de6e1521ce')
+    # Employee IDs from production iDocs account (retrieved via GET /api/v1/Employees)
+    # КОМАНДИРОВ АДИЛЕТ МУРАТОВИЧ — Первый руководитель (Директор)
+    DIRECTOR_EMPLOYEE_ID = ENV.fetch('IDOCS_DIRECTOR_EMPLOYEE_ID', '346fd4e7-5e7e-4d54-df9e-08de023003c0')
+    # Admin employee ID — not yet retrieved from production, update if needed
+    ADMIN_EMPLOYEE_ID    = ENV.fetch('IDOCS_ADMIN_EMPLOYEE_ID', '346fd4e7-5e7e-4d54-df9e-08de023003c0')
 
     def initialize
       # JSON connection — for all API calls (create_document, save_signature, etc.)
