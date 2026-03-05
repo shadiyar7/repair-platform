@@ -92,17 +92,25 @@ module IDocs
     # max_attempts / delay_sec: polling config
     # Returns: document_id string or raises after timeout
     def wait_for_document_id(process_key, max_attempts: 15, delay_sec: 2)
+      # iDocs often returns 500 Internal Server Error if we poll WorkflowInfo too quickly.
+      # So we need to sleep before the first poll just to be safe.
+      sleep 2
+
       max_attempts.times do |i|
-        info = get_workflow_info(process_key)
-        Rails.logger.info "iDocs WorkflowInfo [#{i+1}/#{max_attempts}]: #{info.inspect}"
-
-        doc_id = info.dig('documentId') || info.dig('DocumentId') ||
-                 info.dig('data', 'documentId') || info['id']
-        return doc_id if doc_id.present?
-
-        # Check for error state
-        status = info['status'] || info['Status'] || ''
-        raise "iDocs workflow failed with status: #{status}" if status.to_s.downcase.include?('error')
+        begin
+          info = get_workflow_info(process_key)
+          Rails.logger.info "iDocs WorkflowInfo [#{i+1}/#{max_attempts}]: #{info.inspect}"
+  
+          doc_id = info.dig('documentId') || info.dig('DocumentId') ||
+                   info.dig('data', 'documentId') || info['id'] || info.dig('Data', 'DocumentId')
+          return doc_id if doc_id.present?
+  
+          # Check for error state
+          status = info['status'] || info['Status'] || ''
+          raise "iDocs workflow failed with status: #{status}" if status.to_s.downcase.include?('error')
+        rescue => e
+          Rails.logger.warn "iDocs wait_for_document_id (attempt #{i+1}/#{max_attempts}) soft-failed: #{e.message}"
+        end
 
         sleep delay_sec
       end
