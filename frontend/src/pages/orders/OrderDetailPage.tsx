@@ -238,19 +238,22 @@ const OrderDetailPage: React.FC = () => {
             toast.loading("Подготовка документа...", { id: "idocs-sign" });
             const prepareRes = await api.post(`/api/v1/orders/${id}/idocs/prepare`);
             console.log('IDocs prepare response:', prepareRes.data);
-            const { contentToSign, documentId, idempotencyTicket } = prepareRes.data;
+            const { pdfBase64 } = prepareRes.data;
 
-            // 3. Sign in Browser
+            // 3. Sign in Browser (NCALayer expects the SHA256 hash or the raw base64 depending on its mode,
+            // but for iDocs integration we must sign the PDF itself or its hash. 
+            // In iDocs API v1, DocumentFromFileStepPostModel says we should get checksum (SHA256) and sign it.)
             toast.loading("Ожидание подписи (проверьте окно NCALayer)...", { id: "idocs-sign" });
-            console.log('Calling NCALayer with content length:', contentToSign?.length);
-            const signature = await NCALayer.createCms(contentToSign);
+            console.log('Calling NCALayer with PDF SHA256 hash');
+            // We pass the pdfBase64 to NCALayer to be signed (true flag = attached data if required, or false)
+            // iDocs says "dont forget to enable attaching content to the sign"
+            // The NCALayer createCms usually takes base64 data to sign
+            const signature = await NCALayer.createCms(pdfBase64, true);
 
             // 4. Send Signature to Backend
             toast.loading("Отправка подписанного документа...", { id: "idocs-sign" });
             await api.post(`/api/v1/orders/${id}/idocs/sign`, {
-                documentId,
-                signature,
-                idempotencyTicket   // required by iDocs quick-sign/save
+                signature
             });
 
             toast.success("Договор подготовлен и подписан с нашей стороны ✅", {

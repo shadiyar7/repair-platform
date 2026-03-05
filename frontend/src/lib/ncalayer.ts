@@ -24,7 +24,7 @@ export const NCALayer = {
         });
     },
 
-    createCms: (data: string): Promise<string> => {
+    createCms: (data: string, isAttached: boolean = true): Promise<string> => {
         return new Promise((resolve, reject) => {
             if (!NCALayer.socket || NCALayer.socket.readyState !== WebSocket.OPEN) {
                 reject(new Error('NCALayer не подключен (проверьте, запущено ли приложение NCALayer)'));
@@ -36,7 +36,7 @@ export const NCALayer = {
             const request = {
                 module: 'kz.gov.pki.knca.commonUtils',
                 method: 'createCMSSignatureFromBase64',
-                args: ['PKCS12', 'SIGNATURE', data, true] // storage, keyType, base64Data, isAttached (true for attached)
+                args: ['PKCS12', 'KEY_SIGN', data, isAttached] // storage, keyType, base64Data, isAttached
             };
 
             // Note: If you have a physical token (Kaztoken, etc.), use 'AKKaztoken Store' or similar.
