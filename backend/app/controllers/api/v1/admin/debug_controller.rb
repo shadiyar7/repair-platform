@@ -2,7 +2,7 @@ module Api
   module V1
     module Admin
       class DebugController < ApplicationController
-        before_action :authenticate_request!
+        before_action :authenticate_user!
         before_action :authorize_admin!
 
         def send_test_emails
@@ -33,7 +33,7 @@ module Api
         private
 
         def authorize_admin!
-          unless @current_user&.role == 'admin'
+          unless current_user&.role == 'admin'
             render json: { error: 'Access denied' }, status: :forbidden
           end
         end
