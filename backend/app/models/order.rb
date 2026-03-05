@@ -159,23 +159,6 @@ class Order < ApplicationRecord
       touch(:director_signed_at)
     end
 
-    def assign_contract_number
-      return if self.contract_number.present? || is_existing_client?
-
-      # Calculate the next sequence for the current month and year
-      current_month = Date.today.month
-      current_year = Date.today.year
-
-      max_sequence = Order.where(
-        "EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ?",
-        current_month, current_year
-      ).maximum(:new_client_contract_sequence) || 0
-
-      next_sequence = max_sequence + 1
-
-      self.new_client_contract_sequence = next_sequence
-      self.contract_number = "DM-#{current_month.to_s.rjust(2, '0')}-#{current_year}-#{next_sequence}"
-    end
 
     after_commit :send_status_emails, on: :update, if: :saved_change_to_status?
 
@@ -222,5 +205,22 @@ class Order < ApplicationRecord
       order_items.includes(:product).each_with_object({}) do |item, hash|
         hash[item.product.name] = item.assigned_uids
       end
+    end
+
+    def assign_contract_number
+      return if self.contract_number.present? || is_existing_client?
+
+      current_month = Date.today.month
+      current_year = Date.today.year
+
+      max_sequence = Order.where(
+        "EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ?",
+        current_month, current_year
+      ).maximum(:new_client_contract_sequence) || 0
+
+      next_sequence = max_sequence + 1
+
+      self.new_client_contract_sequence = next_sequence
+      self.contract_number = "DM-#{current_month.to_s.rjust(2, '0')}-#{current_year}-#{next_sequence}"
     end
 end
