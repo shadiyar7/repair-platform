@@ -1,0 +1,26 @@
+<h1>Новый заказ №<%= @order.id %> принят в обработку</h1>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="info-label">Заказ №</span>
+    <span class="info-value"><%= @order.id %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Клиент</span>
+    <span class="info-value"><%= @order.user&.company_name || @order.user&.name || 'Неизвестен' %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Сумма</span>
+    <span class="info-value"><%= number_to_currency(@order.total_amount, unit: '₸', format: '%n %u', precision: 0) %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Дата</span>
+    <span class="info-value"><%= @order.created_at.strftime("%d.%m.%Y %H:%M") %></span>
+  </div>
+</div>
+
+<p>Поступил новый заказ в системе DYNAMIX. В настоящее время ожидается подготовка и формирование электронного договора.</p>
+
+<div class="action-container">
+  <a href="<%= Rails.application.routes.default_url_options[:host] %>/admin" class="button">Открыть в CRM</a>
+</div>

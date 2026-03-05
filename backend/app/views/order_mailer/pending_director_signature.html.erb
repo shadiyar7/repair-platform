@@ -1,0 +1,22 @@
+<h1>Требуется ваша подпись (Заказ №<%= @order.id %>)</h1>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="info-label">Заказ №</span>
+    <span class="info-value"><%= @order.id %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Клиент</span>
+    <span class="info-value"><%= @order.user&.company_name || @order.user&.name || 'Неизвестен' %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Сумма</span>
+    <span class="info-value"><%= number_to_currency(@order.total_amount, unit: '₸', format: '%n %u', precision: 0) %></span>
+  </div>
+</div>
+
+<p>Договор с клиентом сгенерирован и ожидает подписи со стороны Директора. Пожалуйста, зайдите в платформу, чтобы подписать договор, после чего он будет автоматически отправлен клиенту в iDocs.</p>
+
+<div class="action-container">
+  <a href="<%= Rails.application.routes.default_url_options[:host] %>/director" class="button">Перейти к подписанию</a>
+</div>

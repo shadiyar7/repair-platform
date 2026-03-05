@@ -1,0 +1,24 @@
+<h1>Оплата получена. Заказ №<%= @order.id %> передан логистам</h1>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="info-label">Заказ №</span>
+    <span class="info-value"><%= @order.id %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Клиент</span>
+    <span class="info-value"><%= @order.user&.company_name || @order.user&.name || 'Неизвестен' %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Сумма</span>
+    <span class="info-value"><%= number_to_currency(@order.total_amount, unit: '₸', format: '%n %u', precision: 0) %></span>
+  </div>
+</div>
+
+<p>Бухгалтер 100% подтвердил оплату по данному заказу.</p>
+<p>Заказ переведен в статус <strong>«Поиск водителя»</strong>. Логистам необходимо начать поиск машины через биржи и внутреннюю базу.</p>
+<p>Склад также уведомлен о необходимости начать сборку и подготовку груза.</p>
+
+<div class="action-container">
+  <a href="<%= Rails.application.routes.default_url_options[:host] %>/admin" class="button">Открыть логистику</a>
+</div>

@@ -1,0 +1,24 @@
+<h1>Загружена платежка по заказу №<%= @order.id %></h1>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="info-label">Заказ №</span>
+    <span class="info-value"><%= @order.id %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Клиент</span>
+    <span class="info-value"><%= @order.user&.company_name || @order.user&.name || 'Неизвестен' %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">К оплате</span>
+    <span class="info-value"><%= number_to_currency(@order.total_amount, unit: '₸', format: '%n %u', precision: 0) %></span>
+  </div>
+</div>
+
+<p>Вниманию Бухгалтерии:</p>
+<p>Клиент загрузил документ об оплате (чек / платежное поручение) в деталях заказа. Пожалуйста, проверьте поступление средств на расчетный счет.</p>
+<p>Если оплата поступила, нажмите кнопку "Подтвердить" в карточке заказа, чтобы начать поиск водителя.</p>
+
+<div class="action-container">
+  <a href="<%= Rails.application.routes.default_url_options[:host] %>/admin" class="button">Проверить оплату</a>
+</div>

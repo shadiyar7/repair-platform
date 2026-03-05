@@ -5,6 +5,8 @@ import { useCart } from '@/context/CartContext';
 import { ShoppingCart, Menu, X } from 'lucide-react';
 import CartDrawer from '@/components/cart/CartDrawer';
 import LoginModal from '@/components/auth/LoginModal';
+import api from '@/lib/api';
+import { toast } from 'sonner';
 
 const Layout: React.FC = () => {
     const { user, logout } = useAuth();
@@ -17,6 +19,17 @@ const Layout: React.FC = () => {
         logout();
         navigate('/');
         setIsMobileMenuOpen(false);
+    };
+
+    const handleTestEmail = async () => {
+        toast.promise(
+            api.post('/api/v1/admin/debug/send_test_emails'),
+            {
+                loading: 'Отправка тестовых писем...',
+                success: '7 тестовых писем успешно отправлены на shadiyar.alakhan@gmail.com',
+                error: 'Ошибка при отправке тестовых писем'
+            }
+        );
     };
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -156,6 +169,14 @@ const Layout: React.FC = () => {
                                     <span className="text-sm text-gray-700 font-medium">
                                         {user.company_name || user.email}
                                     </span>
+                                    {user.role === 'admin' && (
+                                        <button
+                                            onClick={handleTestEmail}
+                                            className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-md shadow-sm transition-all"
+                                        >
+                                            Тест Email
+                                        </button>
+                                    )}
                                     <Link to="/profile" className="text-sm text-gray-500 hover:text-gray-700">
                                         Профиль
                                     </Link>

@@ -1,0 +1,19 @@
+<h1>Клиент подписал договор (Заказ №<%= @order.id %>)</h1>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="info-label">Заказ №</span>
+    <span class="info-value"><%= @order.id %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Клиент</span>
+    <span class="info-value"><%= @order.user&.company_name || @order.user&.name || 'Неизвестен' %></span>
+  </div>
+</div>
+
+<p>Юридическая часть оформления заказа завершена. Клиент успешно подписал договор через iDocs со своей ЭЦП.</p>
+<p>Счет на оплату выставлен. Ожидаем загрузку чека или платежного поручения от клиента в систему.</p>
+
+<div class="action-container">
+  <a href="<%= Rails.application.routes.default_url_options[:host] %>/admin" class="button">Детали заказа</a>
+</div>

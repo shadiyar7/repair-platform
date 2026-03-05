@@ -2,65 +2,137 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      /* Reset & Basics */
-      body { margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-text-size-adjust: 100%; }
-      table { border-spacing: 0; width: 100%; }
-      td { padding: 0; }
-      img { border: 0; }
-      
-      /* Colors */
-      .bg-primary { background-color: #2563EB; } /* Corporate Blue */
-      .text-primary { color: #2563EB; }
-      .bg-gray { background-color: #f3f4f6; }
-      .bg-white { background-color: #ffffff; }
-      
-      /* Components */
-      .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-      .header { padding: 24px; text-align: center; }
-      .content { padding: 32px 24px; color: #374151; line-height: 1.6; font-size: 16px; }
-      .footer { padding: 24px; text-align: center; color: #6b7280; font-size: 12px; background-color: #f9fafb; margin-top: 20px;}
-      
-      /* Button */
-      .btn { display: inline-block; padding: 12px 24px; background-color: #2563EB; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
-      
-      /* Typography */
-      h1 { color: #111827; font-size: 24px; margin-bottom: 16px; font-weight: 700; }
-      p { margin-bottom: 16px; }
-      a { color: #2563EB; text-decoration: none; }
+      body {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        background-color: #f3f4f6;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+      .email-wrapper {
+        width: 100%;
+        background-color: #f3f4f6;
+        padding: 20px 0;
+      }
+      .email-content {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      .email-header {
+        background-color: #dc2626; /* DYNAMIX Red */
+        padding: 24px 20px;
+        text-align: center;
+      }
+      .dynamix-logo {
+        color: #ffffff;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin: 0;
+        font-family: inherit;
+        text-transform: uppercase;
+      }
+      .email-body {
+        padding: 32px 24px;
+        color: #374151;
+        line-height: 1.6;
+      }
+      .email-body h1 {
+        color: #111827;
+        font-size: 20px;
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      .info-box {
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 16px;
+        margin: 24px 0;
+      }
+      .info-row {
+        margin-bottom: 8px;
+      }
+      .info-row:last-child {
+        margin-bottom: 0;
+      }
+      .info-label {
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 14px;
+        width: 140px;
+        display: inline-block;
+      }
+      .info-value {
+        color: #111827;
+        font-weight: 500;
+      }
+      .action-container {
+        text-align: center;
+        margin: 32px 0 16px;
+      }
+      .button {
+        display: inline-block;
+        background-color: #dc2626;
+        color: #ffffff !important;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 16px;
+      }
+      .email-footer {
+        background-color: #f9fafb;
+        padding: 24px;
+        text-align: center;
+        border-top: 1px solid #e5e7eb;
+        color: #9ca3af;
+        font-size: 13px;
+      }
+      .footer-link {
+        color: #6b7280;
+        text-decoration: underline;
+      }
+      .test-badge {
+        background-color: #fef08a;
+        color: #854d0e;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 8px;
+        display: inline-block;
+      }
     </style>
   </head>
-  <body class="bg-gray">
-    <table role="presentation" class="bg-gray" style="width: 100%;">
-      <tr>
-        <td style="padding: 40px 0;">
-          <div class="container">
-            <!-- Header -->
-            <table role="presentation" style="width: 100%;">
-              <tr>
-                <td class="header bg-primary">
-                  <!-- Logo or Brand Name -->
-                  <h2 style="margin: 0; color: #ffffff; font-size: 24px; letter-spacing: 1px;">REPAIR PLATFORM</h2>
-                </td>
-              </tr>
-            </table>
-
-            <!-- Main Content -->
-            <div class="content">
-              <%= yield %>
+  <body>
+    <div class="email-wrapper">
+      <div class="email-content">
+        <div class="email-header">
+          <h1 class="dynamix-logo">DYNAMIX</h1>
+        </div>
+        
+        <div class="email-body">
+          <% if @is_test %>
+            <div style="text-align: center; margin-bottom: 20px;">
+              <span class="test-badge">ТЕСТОВЫЙ РЕЖИМ</span>
             </div>
+          <% end %>
 
-            <!-- Footer -->
-            <div class="footer">
-              <p>&copy; <%= Time.now.year %> Repair Platform. All rights reserved.</p>
-              <p>
-                Sent securely by the platform.
-              </p>
-            </div>
-          </div>
-        </td>
-      </tr>
-    </table>
+          <%= yield %>
+        </div>
+
+        <div class="email-footer">
+          <p style="margin: 0 0 12px 0;">Уведомление отправлено системой DYNAMIX ERP.</p>
+          <p style="margin: 0;">Служба поддержки: <a href="tel:+77014264519" style="color: #6b7280; text-decoration: none;">+7 701 426 4519</a></p>
+          <p style="margin: 12px 0 0 0;"><a href="https://dynamix.kz" class="footer-link">dynamix.kz</a></p>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

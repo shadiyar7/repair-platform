@@ -1,0 +1,27 @@
+<h1>Заказ №<%= @order.id %> успешно доставлен!</h1>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="info-label">Заказ №</span>
+    <span class="info-value"><%= @order.id %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Клиент</span>
+    <span class="info-value"><%= @order.user&.company_name || @order.user&.name || 'Неизвестен' %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Водитель</span>
+    <span class="info-value"><%= @order.driver_name || 'Неизвестен' %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Город назначения</span>
+    <span class="info-value"><%= @order.city %></span>
+  </div>
+</div>
+
+<p>Отличная работа! Сделка успешно закрыта, и отгрузка клиенту завершена.</p>
+<p>Водитель подтвердил доставку до конечной точки. Вы можете закрыть сделку в финансовых отчетах.</p>
+
+<div class="action-container">
+  <a href="<%= Rails.application.routes.default_url_options[:host] %>/admin" class="button">Перейти к архиву заказов</a>
+</div>

@@ -1,0 +1,27 @@
+<h1><%= @status_text %> - Заказ №<%= @order.id %></h1>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="info-label">Заказ №</span>
+    <span class="info-value"><%= @order.id %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Клиент</span>
+    <span class="info-value"><%= @order.user&.company_name || @order.user&.name || 'Неизвестен' %></span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Водитель</span>
+    <span class="info-value"><%= @order.driver_name || 'Не назначен' %> (<%= @order.driver_phone %>)</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Автомобиль</span>
+    <span class="info-value"><%= @order.driver_car_number || 'Не указан' %></span>
+  </div>
+</div>
+
+<p>Внимание! По заказу №<%= @order.id %> изменился статус логистики.</p>
+<p><strong>Новое состояние:</strong> <%= @status_text %></p>
+
+<div class="action-container">
+  <a href="<%= Rails.application.routes.default_url_options[:host] %>/admin" class="button">Детали доставки</a>
+</div>

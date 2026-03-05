@@ -58,6 +58,7 @@ Rails.application.routes.draw do
       # Admin Namespace
       namespace :admin do
         resource :global_discount, only: [:show, :create]
+        post 'debug/send_test_emails', to: 'debug#send_test_emails'
         resources :users, only: [:index, :create, :update, :destroy] # Staff management
         resources :warehouses
         resources :products, only: [:index, :create, :update, :destroy] do
