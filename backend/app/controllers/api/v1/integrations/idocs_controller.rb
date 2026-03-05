@@ -84,9 +84,15 @@ module Api
           )
           Rails.logger.info "iDocs create_and_sign result: #{create_result.inspect}"
 
-          process_key = create_result['processKey'] || create_result['ProcessKey'] ||
-                        create_result['key'] || create_result['Key'] ||
-                        create_result.dig('raw')
+          # The API returns the UUID as a raw JSON string
+          process_key = if create_result.is_a?(String)
+                          create_result
+                        elsif create_result.is_a?(Hash)
+                          create_result['processKey'] || create_result['ProcessKey'] ||
+                          create_result['key'] || create_result['Key'] ||
+                          create_result['raw']
+                        end
+
           raise "iDocs: no processKey returned. Response: #{create_result.inspect}" if process_key.blank?
 
           Rails.logger.info "iDocs: got processKey=#{process_key}, polling for documentId..."
