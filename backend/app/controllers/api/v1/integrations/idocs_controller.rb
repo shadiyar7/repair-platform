@@ -41,11 +41,15 @@ module Api
           client_bin   = order.company_requisite&.bin || order.user&.inn
           client_email = order.user&.email
 
+          Rails.logger.info "iDocs route check: client_bin=#{client_bin.inspect}, client_email=#{client_email.inspect}, requisite=#{order.company_requisite&.id}"
+
           if client_bin.present? && client_email.present?
             Rails.logger.info "iDocs creating quick route: doc=#{document_id}, bin=#{client_bin}, email=#{client_email}"
-            client.create_quick_route(document_id, director_id, client_bin, client_email)
+            route_response = client.create_quick_route(document_id, director_id, client_bin, client_email)
+            Rails.logger.info "iDocs quick route created: #{route_response.inspect}"
           else
-            Rails.logger.warn "iDocs: skipping quick route — client BIN or email missing"
+            Rails.logger.warn "iDocs: SKIPPING quick route — client BIN or email missing! bin=#{client_bin.inspect} email=#{client_email.inspect}"
+            # Still continue — route creation is optional but signature may fail without it
           end
 
           # 5. Get content-to-sign metadata (returns downloadLink + idempotencyTicket)
