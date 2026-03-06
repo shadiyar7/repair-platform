@@ -851,33 +851,7 @@ const OrderDetailPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Открыть Счет - Visible when invoice exists */}
-                                {attributes.invoice_base64 && (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full mb-4 text-xs text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100"
-                                        onClick={() => {
-                                            try {
-                                                const byteCharacters = atob(attributes.invoice_base64);
-                                                const byteNumbers = new Array(byteCharacters.length);
-                                                for (let i = 0; i < byteCharacters.length; i++) {
-                                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                                                }
-                                                const byteArray = new Uint8Array(byteNumbers);
-                                                const blob = new Blob([byteArray], { type: 'application/pdf' });
-                                                const url = URL.createObjectURL(blob);
-                                                window.open(url, '_blank');
-                                            } catch (e) {
-                                                console.error(e);
-                                                toast.error("Ошибка при открытии счета.");
-                                            }
-                                        }}
-                                    >
-                                        <FileText className="mr-2 h-4 w-4" />
-                                        Открыть счет
-                                    </Button>
-                                )}
+                                {/* Открыть Счет - Removed to consolidate with bottom document section */}
 
                                 {/* Director / Admin: iDocs Signature — visible for any order */}
                                 {(user?.role === 'director' || user?.role === 'admin') && (
@@ -937,11 +911,7 @@ const OrderDetailPage: React.FC = () => {
 
                                 {attributes.status === 'pending_payment' && (user?.role === 'client' || user?.role === 'admin') && (
                                     <div className="space-y-4">
-                                        {attributes.invoice_base64 && (
-                                            <Button variant="outline" className="w-full" onClick={() => downloadFile('invoice')}>
-                                                <Download className="mr-2 h-4 w-4" /> Скачать счет
-                                            </Button>
-                                        )}
+
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <Button className="w-full bg-blue-600 hover:bg-blue-700">
@@ -1158,16 +1128,18 @@ const OrderDetailPage: React.FC = () => {
                                 )}
 
                                 {/* Common Doc Downloads */}
-                                {!['cart', 'requisites_selected', 'pending_director_signature', 'pending_signature'].includes(attributes.status) && (
-                                    <div className="space-y-2 pt-4 border-t">
+                                <div className="space-y-2 pt-4 border-t">
+                                    {attributes.invoice_base64 && (
                                         <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => downloadFile('invoice')}>
-                                            <FileText className="mr-2 h-4 w-4" /> Счет на оплату
+                                            <Download className="mr-2 h-4 w-4 text-blue-600" /> Скачать счет на оплату
                                         </Button>
+                                    )}
+                                    {!['cart', 'requisites_selected', 'pending_director_signature', 'pending_signature'].includes(attributes.status) && (
                                         <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => downloadFile('contract')}>
                                             <FileText className="mr-2 h-4 w-4" /> {attributes.idocs_status ? "Скачать договор (iDocs)" : "Договор"}
                                         </Button>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
