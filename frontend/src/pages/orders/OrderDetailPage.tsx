@@ -919,19 +919,12 @@ const OrderDetailPage: React.FC = () => {
                                     <div className="space-y-4">
                                         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
                                             Контрагент (Клиент) должен подписать этот документ в системе iDocs.
-                                            Проверьте почту или перейдите на портал iDocs для подписания.
-                                            После подписания нажмите "Проверить статус".
+                                            Проверьте свою почту — вам была отправлена ссылка для подписания.
+                                            После подписания по ссылке из письма вернитесь сюда и нажмите "Проверить статус".
                                         </div>
                                         <div className="flex space-x-2">
                                             <Button
-                                                variant="outline"
-                                                className="w-1/2 bg-white"
-                                                onClick={() => window.open('https://beta.idocs.kz/', '_blank')}
-                                            >
-                                                Перейти в iDocs
-                                            </Button>
-                                            <Button
-                                                className="w-1/2 bg-blue-600 hover:bg-blue-700 font-semibold"
+                                                className="w-full bg-blue-600 hover:bg-blue-700 font-semibold"
                                                 onClick={() => checkIdocsStatusMutation.mutate()}
                                                 disabled={checkIdocsStatusMutation.isPending}
                                             >
