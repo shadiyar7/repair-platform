@@ -137,7 +137,10 @@ class Api::V1::OrdersController < ApplicationController
     @order = Order.find(params[:id])
     authorize @order, :update?
 
-    if @order.contract_review? || @order.pending_director_signature?
+    # Admins can cancel at any time. Others only during review/director sign phases.
+    can_cancel = current_user.admin? || @order.contract_review? || @order.pending_director_signature?
+
+    if can_cancel
       begin
         ActiveRecord::Base.transaction do
           @order.cancel!

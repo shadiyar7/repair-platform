@@ -837,7 +837,7 @@ const OrderDetailPage: React.FC = () => {
                             <CardContent className="space-y-4">
                                 {getActionBanner()}
 
-                                {(attributes.status === 'pending_director_signature' || attributes.status === 'contract_review') && ['client', 'admin', 'director'].includes(user?.role || '') && (
+                                {((attributes.status === 'pending_director_signature' || attributes.status === 'contract_review') && ['client', 'director'].includes(user?.role || '')) || (user?.role === 'admin' && attributes.status !== 'cancelled') ? (
                                     <div className="flex justify-start pt-2">
                                         <Button
                                             variant="outline"
@@ -849,7 +849,7 @@ const OrderDetailPage: React.FC = () => {
                                             Отменить заказ
                                         </Button>
                                     </div>
-                                )}
+                                ) : null}
 
                                 {/* Открыть Счет - Removed to consolidate with bottom document section */}
 
