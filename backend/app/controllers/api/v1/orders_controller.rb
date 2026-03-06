@@ -279,10 +279,11 @@ class Api::V1::OrdersController < ApplicationController
 
     begin
       client = IDocs::Client.new
-      status_response = client.get_document_status(@order.idocs_document_id)
-      doc_status = status_response["documentStatus"] || status_response.dig("response", "documentStatus") || status_response["raw"]
+      status_response = client.get_document(@order.idocs_document_id)
+      
+      doc_status = status_response["SystemDocumentStatus"] || status_response["systemDocumentStatus"]
 
-      if doc_status == "FINISHED" || doc_status == "FINISHED_BY_COMPANY" || status_response["raw"] == "10" || status_response["raw"] == "16" || status_response == 10 || status_response == 16
+      if doc_status.to_s.casecmp?("completed")
         # Download the final signed document
         begin
           pdf_content = client.get_best_pdf(@order.idocs_document_id)
@@ -316,8 +317,8 @@ class Api::V1::OrdersController < ApplicationController
           message: "Документ успешно подписан обеими сторонами", 
           order: OrderSerializer.new(@order).serializable_hash 
         }
-      elsif doc_status == "REJECTED_BY_RECIPIENT" || doc_status == "REJECTED_BY_COMPANY"
-        render json: { success: false, status: 'rejected', message: "Документ был отклонен контрагентом в iDocs" }
+      elsif doc_status.to_s.casecmp?("rejected") || doc_status.to_s.casecmp?("canceled")
+        render json: { success: false, status: 'rejected', message: "Документ был отклонен или отменен в iDocs" }
       else
         render json: { success: true, status: 'pending', idocs_api_status: doc_status, message: "Ожидание подписания клиентом..." }
       end

@@ -150,6 +150,12 @@ module IDocs
       handle_response(response)
     end
 
+    # Fetch document metadata and status by ID
+    def get_document(document_id)
+      response = @conn.get("ExternalDocuments/#{document_id}")
+      handle_response(response)
+    end
+
     # Get employees list from production account
     def get_employees
       response = @conn.get('Employees')
