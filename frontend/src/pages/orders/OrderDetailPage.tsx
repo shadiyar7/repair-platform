@@ -694,6 +694,17 @@ const OrderDetailPage: React.FC = () => {
                                         <CheckCircle className="mr-2 h-4 w-4" /> Подтвердить доставку
                                     </Button>
                                 )}
+
+                                {attributes.status === 'in_transit' && ['client', 'director', 'warehouse', 'admin'].includes(user?.role || '') && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsCancelModalOpen(true)}
+                                        className="w-full mt-4 flex items-center justify-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                        disabled={cancelOrderMutation.isPending}
+                                    >
+                                        <Trash2 className="h-4 w-4" /> Отменить заказ
+                                    </Button>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -849,7 +860,7 @@ const OrderDetailPage: React.FC = () => {
                             <CardContent className="space-y-4">
                                 {getActionBanner()}
 
-                                {((attributes.status === 'pending_director_signature' || attributes.status === 'contract_review' || attributes.status === 'in_transit') && ['client', 'director', 'warehouse'].includes(user?.role || '')) || (user?.role === 'admin' && attributes.status !== 'cancelled') ? (
+                                {((attributes.status === 'pending_director_signature' || attributes.status === 'contract_review' || attributes.status === 'in_transit') && ['client', 'director', 'warehouse', 'admin'].includes(user?.role || '')) || (user?.role === 'admin' && attributes.status !== 'cancelled') ? (
                                     <div className="flex justify-start pt-2">
                                         <Button
                                             variant="outline"
