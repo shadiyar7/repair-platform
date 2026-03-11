@@ -8,6 +8,7 @@ class Order < ApplicationRecord
   belongs_to :company_requisite, optional: true
   # driver_id foreign key to users is deprecated as drivers are now just text fields (no login)
   # belongs_to :driver, class_name: 'User', optional: true
+  belongs_to :completed_by, class_name: 'User', optional: true
 
   has_many :order_items, dependent: :destroy
   has_many :products, through: :order_items
@@ -143,7 +144,7 @@ class Order < ApplicationRecord
       end
 
       event :complete do
-        transitions from: :documents_ready, to: :completed
+        transitions from: [:in_transit, :delivered, :documents_ready], to: :completed
       end
 
       event :cancel do

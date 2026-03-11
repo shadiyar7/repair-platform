@@ -175,8 +175,20 @@ const OrderDetailPage: React.FC = () => {
             });
         }
     });
-    // const completeMutation = useMutation({ mutationFn: () => api.post(`/api/v1/orders/${id}/complete`), ...mutationOptions });
-
+    const completeMutation = useMutation({
+        mutationFn: () => api.post(`/api/v1/orders/${id}/complete`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['order', id] });
+            toast.success("Заказ успешно завершен", {
+                description: "Сделка закрыта."
+            });
+        },
+        onError: (err: any) => {
+            toast.error("Ошибка завершения заказа", {
+                description: err.response?.data?.error || "Пожалуйста, попробуйте позже"
+            });
+        }
+    });
 
     const [isIdocsSigning, setIsIdocsSigning] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
@@ -1127,8 +1139,30 @@ const OrderDetailPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Common Doc Downloads */}
-                                <div className="space-y-2 pt-4 border-t">
+                                {['in_transit', 'delivered', 'documents_ready'].includes(attributes.status) && (user?.role === 'warehouse' || user?.role === 'director' || user?.role === 'admin') && (
+                                    <div className="space-y-4 pt-4 border-t border-gray-100">
+                                        <Button
+                                            className="w-full bg-gray-900 hover:bg-black text-white"
+                                            onClick={() => {
+                                                if (window.confirm("Вы уверены, что хотите завершить этот заказ? Убедитесь, что заказ реально закрыт.")) {
+                                                    completeMutation.mutate();
+                                                }
+                                            }}
+                                            disabled={completeMutation.isPending}
+                                        >
+                                            <CheckCircle className="mr-2 h-4 w-4" /> Завершить заказ
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {attributes.status === 'completed' && attributes.completed_by_name && (
+                                    <div className="p-4 bg-gray-50 border border-gray-200 text-gray-800 rounded-md text-sm mt-4">
+                                        <p className="font-bold mb-1 flex items-center"><CheckCircle className="h-4 w-4 mr-2 text-green-600" /> Заказ завершен</p>
+                                        <p>Кем: {attributes.completed_by_name} ({attributes.completed_by_email})</p>
+                                        {attributes.completed_at && <p>Время: {new Date(attributes.completed_at).toLocaleString('ru-RU')}</p>}
+                                    </div>
+                                )}
+                                <div className="space-y-2 pt-4 border-t mt-4">
                                     {attributes.invoice_base64 && (
                                         <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => downloadFile('invoice')}>
                                             <Download className="mr-2 h-4 w-4 text-blue-600" /> Скачать счет на оплату
@@ -1144,7 +1178,8 @@ const OrderDetailPage: React.FC = () => {
                         </Card>
                     </div>
                 </div>
-            )}
+            )
+            }
 
             <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
                 <DialogContent>
@@ -1189,7 +1224,7 @@ const OrderDetailPage: React.FC = () => {
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 };
 

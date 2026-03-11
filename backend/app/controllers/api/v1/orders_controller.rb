@@ -8,7 +8,7 @@ class Api::V1::OrdersController < ApplicationController
                # Global visibility for all warehouse managers
                Order.includes(:company_requisite, order_items: :product)
                     .joins(order_items: :product)
-                    .where(status: ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse', 'in_transit'])
+                    .where(status: ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse', 'in_transit', 'delivered', 'documents_ready'])
                     .distinct
              when 'admin', 'supervisor', 'director'
                Order.includes(:company_requisite, order_items: :product).all
@@ -335,6 +335,22 @@ class Api::V1::OrdersController < ApplicationController
     authorize @order, :show?
     pdf = OneC::InvoiceGenerator.new(@order).send(:generate_pdf)
     send_data pdf, filename: "invoice_#{@order.id}.pdf", type: "application/pdf"
+  end
+
+  def complete
+    authorize @order, :update?
+    
+    unless current_user.director? || current_user.warehouse?
+      return render json: { error: "Данное действие недоступно для вашей роли" }, status: :forbidden
+    end
+
+    if @order.may_complete?
+      @order.update(completed_by: current_user, completed_at: Time.current)
+      @order.complete!
+      render json: OrderSerializer.new(@order).serializable_hash
+    else
+      render json: { error: "Невозможно завершить заказ из статуса #{@order.status}" }, status: :unprocessable_entity
+    end
   end
 
   def download_contract

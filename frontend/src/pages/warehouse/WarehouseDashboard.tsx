@@ -31,7 +31,7 @@ const WarehouseDashboard: React.FC = () => {
     // Filter orders relevant for warehouse
     const ordersList = Array.isArray(orders) ? orders : [];
     const relevantOrders = ordersList.filter((order: any) =>
-        ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse'].includes(order.attributes.status)
+        ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse', 'in_transit', 'delivered', 'documents_ready'].includes(order.attributes.status)
     );
 
     const getStatusBadge = (status: string) => {
@@ -40,6 +40,9 @@ const WarehouseDashboard: React.FC = () => {
             searching_driver: { label: 'Поиск водителя', color: 'bg-purple-100 text-purple-800' },
             driver_assigned: { label: 'Водитель назначен', color: 'bg-indigo-100 text-indigo-800' },
             at_warehouse: { label: 'На складе', color: 'bg-orange-100 text-orange-800' },
+            in_transit: { label: 'В пути', color: 'bg-blue-500 text-white' },
+            delivered: { label: 'Доставлено', color: 'bg-green-500 text-white' },
+            documents_ready: { label: 'Документы готовы', color: 'bg-green-100 text-green-800' },
         };
         const config = statusMap[status] || { label: status, color: 'bg-gray-100' };
         return <Badge className={config.color}>{config.label.toUpperCase()}</Badge>;
@@ -177,6 +180,22 @@ const WarehouseDashboard: React.FC = () => {
                                                             Отправить в путь
                                                         </Button>
                                                     </>
+                                                )}
+
+                                                {['in_transit', 'delivered', 'documents_ready'].includes(order.attributes.status) && (
+                                                    <Button
+                                                        variant="default"
+                                                        className="bg-gray-900 hover:bg-black text-white"
+                                                        onClick={() => {
+                                                            if (window.confirm('Вы уверены, что хотите завершить этот заказ? Убедитесь, что все документы подписаны и заказ реально закрыт.')) {
+                                                                updateStatusMutation.mutate({ id: order.id, action: 'complete' });
+                                                            }
+                                                        }}
+                                                        disabled={updateStatusMutation.isPending}
+                                                    >
+                                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                                        Завершить заказ
+                                                    </Button>
                                                 )}
                                             </div>
                                             <div className="mt-2 text-right">

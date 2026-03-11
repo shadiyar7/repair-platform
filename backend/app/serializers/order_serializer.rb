@@ -4,7 +4,15 @@ class OrderSerializer
              :driver_name, :driver_phone, :driver_car_number, :driver_arrival_time, :driver_comment, :delivery_price,
              :director_signed_at, :smart_link_token, :invoice_base64, :is_verified, :origin_city,
              :idocs_status, :idocs_document_id, :is_buyback, :discount_percent, :discount_amount, :base_amount, :vat_amount,
-             :contract_number
+             :contract_number, :completed_at
+
+  attribute :completed_by_name do |object|
+    object.completed_by ? "#{object.completed_by.first_name} #{object.completed_by.last_name}".strip : nil
+  end
+
+  attribute :completed_by_email do |object|
+    object.completed_by&.email
+  end
 
   attribute :origin_city do |object|
     # Assuming all items in an order come from the same warehouse for now, or just taking the first one.
