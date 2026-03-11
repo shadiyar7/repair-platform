@@ -86,7 +86,7 @@ function App() {
                 <Route
                   path="orders/:id"
                   element={
-                    <ProtectedRoute allowedRoles={['client', 'admin', 'warehouse', 'driver', 'director']}>
+                    <ProtectedRoute allowedRoles={['client', 'admin', 'warehouse', 'driver', 'director', 'supervisor']}>
                       <OrderDetailPage />
                     </ProtectedRoute>
                   }
