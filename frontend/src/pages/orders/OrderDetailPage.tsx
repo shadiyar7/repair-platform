@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -50,6 +50,32 @@ const OrderDetailPage: React.FC = () => {
             return response.data.data;
         }
     });
+
+    useEffect(() => {
+        if (order?.attributes && order.attributes.status !== 'searching_driver') {
+            const arrDateTimeStr = order.attributes.driver_arrival_time;
+            let date = '';
+            let time = '';
+            if (arrDateTimeStr) {
+                const arrDate = new Date(arrDateTimeStr);
+                date = arrDate.toISOString().split('T')[0];
+                time = arrDate.toTimeString().slice(0, 5);
+            } else {
+                const now = new Date();
+                date = now.toISOString().split('T')[0];
+                time = now.toTimeString().slice(0, 5);
+            }
+
+            setDriverForm({
+                name: order.attributes.driver_name || '',
+                phone: order.attributes.driver_phone || '',
+                car: order.attributes.driver_car_number || '',
+                date: date,
+                time: time,
+                comment: order.attributes.driver_comment || ''
+            });
+        }
+    }, [order]);
 
     const mutationOptions = {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['order', id] })
@@ -508,7 +534,7 @@ const OrderDetailPage: React.FC = () => {
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
-            {user?.role === 'warehouse' && attributes.status === 'searching_driver' && (
+            {['warehouse', 'supervisor'].includes(user?.role || '') && ['searching_driver', 'driver_assigned', 'at_warehouse'].includes(attributes.status) && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 shadow-sm mb-6">
                     <div className="flex items-center gap-2 mb-3">
                         <Package className="h-6 w-6 text-blue-600" />
@@ -677,7 +703,7 @@ const OrderDetailPage: React.FC = () => {
                                     <p className="text-sm text-gray-500">{attributes.driver_phone}</p>
                                 </div>
 
-                                {(user?.role === 'admin' || user?.role === 'driver' || user?.role === 'warehouse') && (
+                                {['admin', 'driver', 'warehouse', 'supervisor'].includes(user?.role || '') && (
                                     <div className="pt-2 border-t border-blue-200">
                                         <p className="text-xs font-bold text-blue-900 mb-2">Ссылка для водителя</p>
                                         <div className="flex items-center gap-2">
@@ -695,7 +721,7 @@ const OrderDetailPage: React.FC = () => {
                                     </Button>
                                 )}
 
-                                {attributes.status === 'in_transit' && ['client', 'director', 'warehouse', 'admin'].includes(user?.role || '') && (
+                                {attributes.status === 'in_transit' && ['client', 'director', 'warehouse', 'supervisor', 'admin'].includes(user?.role || '') && (
                                     <Button
                                         variant="outline"
                                         onClick={() => setIsCancelModalOpen(true)}
@@ -860,7 +886,7 @@ const OrderDetailPage: React.FC = () => {
                             <CardContent className="space-y-4">
                                 {getActionBanner()}
 
-                                {((attributes.status === 'pending_director_signature' || attributes.status === 'contract_review' || attributes.status === 'in_transit') && ['client', 'director', 'warehouse', 'admin'].includes(user?.role || '')) || (user?.role === 'admin' && attributes.status !== 'cancelled') ? (
+                                {((attributes.status === 'pending_director_signature' || attributes.status === 'contract_review' || attributes.status === 'in_transit') && ['client', 'director', 'warehouse', 'supervisor', 'admin'].includes(user?.role || '')) || (user?.role === 'admin' && attributes.status !== 'cancelled') ? (
                                     <div className="flex justify-start pt-2">
                                         <Button
                                             variant="outline"
@@ -1007,7 +1033,7 @@ const OrderDetailPage: React.FC = () => {
                                             )}
 
                                             {/* Admin Confirmation Button (Only if not verified yet) */}
-                                            {!attributes.is_verified && (user?.role === 'admin' || user?.role === 'warehouse') && (
+                                            {!attributes.is_verified && ['admin', 'warehouse', 'supervisor'].includes(user?.role || '') && (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -1021,11 +1047,11 @@ const OrderDetailPage: React.FC = () => {
                                         </div>
 
                                         {/* Driver Assignment Block for Admin/Warehouse */}
-                                        {(user?.role === 'admin' || user?.role === 'warehouse') && (
+                                        {['admin', 'warehouse', 'supervisor'].includes(user?.role || '') && (
                                             <Dialog open={isDriverModalOpen} onOpenChange={setIsDriverModalOpen}>
                                                 <DialogTrigger asChild>
                                                     <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                                                        <User className="mr-2 h-4 w-4" /> Водитель найден (Назначить вручную)
+                                                        <User className="mr-2 h-4 w-4" /> Назначить / Изменить водителя
                                                     </Button>
                                                 </DialogTrigger>
                                                 <DialogContent>
@@ -1125,7 +1151,7 @@ const OrderDetailPage: React.FC = () => {
                                             <p>{attributes.driver_name} ({attributes.driver_car_number})</p>
                                             <p>{attributes.driver_phone}</p>
                                         </div>
-                                        {(user?.role === 'warehouse' || user?.role === 'admin') && (
+                                        {['warehouse', 'supervisor', 'admin'].includes(user?.role || '') && (
                                             <Button className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={() => arriveMutation.mutate()}>
                                                 <Truck className="mr-2 h-4 w-4" /> Водитель прибыл
                                             </Button>
@@ -1136,7 +1162,7 @@ const OrderDetailPage: React.FC = () => {
                                 {attributes.status === 'at_warehouse' && (
                                     <div className="space-y-4">
                                         <div className="p-4 bg-yellow-50 text-yellow-800 text-sm rounded">Машина на загрузке</div>
-                                        {(user?.role === 'warehouse' || user?.role === 'admin') && (
+                                        {['warehouse', 'supervisor', 'admin'].includes(user?.role || '') && (
                                             <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => transitMutation.mutate()}>
                                                 <Navigation className="mr-2 h-4 w-4" /> Начать поездку
                                             </Button>
@@ -1150,7 +1176,7 @@ const OrderDetailPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                {['in_transit', 'delivered', 'documents_ready'].includes(attributes.status) && (user?.role === 'warehouse' || user?.role === 'director' || user?.role === 'admin') && (
+                                {['in_transit', 'delivered', 'documents_ready'].includes(attributes.status) && ['warehouse', 'director', 'supervisor', 'admin'].includes(user?.role || '') && (
                                     <div className="space-y-4 pt-4 border-t border-gray-100">
                                         <Button
                                             className="w-full bg-gray-900 hover:bg-black text-white"

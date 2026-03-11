@@ -5,13 +5,13 @@ class Api::V1::OrdersController < ApplicationController
 
   def index
     orders = case current_user&.role
-             when 'warehouse'
-               # Global visibility for all warehouse managers
+             when 'warehouse', 'supervisor'
+               # Global visibility for all warehouse managers and supervisors
                Order.includes(:company_requisite, order_items: :product)
                     .left_outer_joins(order_items: :product)
                     .where(status: ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse', 'in_transit', 'delivered', 'documents_ready'])
                     .distinct
-             when 'admin', 'supervisor', 'director'
+             when 'admin', 'director'
                Order.includes(:company_requisite, order_items: :product).all
              when 'driver'
                # Drivers see orders that are either explicitly 'searching_driver' OR 'payment_review' (Pre-search)
@@ -211,7 +211,7 @@ class Api::V1::OrdersController < ApplicationController
   def assign_driver
     authorize @order, :update?
     
-    @order.assign_driver!
+    @order.assign_driver! if @order.may_assign_driver?
     @order.update(
       driver_name: params[:driver_name],
       driver_phone: params[:driver_phone],
@@ -341,7 +341,7 @@ class Api::V1::OrdersController < ApplicationController
   def complete
     authorize @order, :update?
     
-    unless current_user.director? || current_user.warehouse?
+    unless current_user.director? || current_user.warehouse? || current_user.supervisor?
       return render json: { error: "Данное действие недоступно для вашей роли" }, status: :forbidden
     end
 

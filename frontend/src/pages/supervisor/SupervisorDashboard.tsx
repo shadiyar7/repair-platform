@@ -50,19 +50,19 @@ const SupervisorDashboard: React.FC = () => {
     });
 
     const handleAssignClick = (order: any) => {
-        const now = new Date();
-        const date = now.toISOString().split('T')[0];
-        const time = now.toTimeString().slice(0, 5);
+        const arrivalDateTime = order.attributes?.driver_arrival_time ? new Date(order.attributes.driver_arrival_time) : new Date();
+        const arrivalDateStr = arrivalDateTime.toISOString().split('T')[0];
+        const arrivalTimeStr = arrivalDateTime.toTimeString().slice(0, 5);
 
         setSelectedOrder(order);
         setFormData({
-            driver_name: '',
-            driver_phone: '',
-            driver_car_number: '',
-            driver_arrival_date: date,
-            driver_arrival_time: time,
-            delivery_price: '',
-            driver_comment: ''
+            driver_name: order.attributes?.driver_name || '',
+            driver_phone: order.attributes?.driver_phone || '',
+            driver_car_number: order.attributes?.driver_car_number || '',
+            driver_arrival_date: arrivalDateStr,
+            driver_arrival_time: arrivalTimeStr,
+            delivery_price: order.attributes?.delivery_price || '',
+            driver_comment: order.attributes?.driver_comment || ''
         });
         setIsAssignModalOpen(true);
     };
@@ -86,9 +86,9 @@ const SupervisorDashboard: React.FC = () => {
     // Filter only orders waiting for driver
     const ordersList = Array.isArray(ordersData?.data) ? ordersData.data : [];
 
-    // Filter orders waiting for driver (including legacy statuses to be safe)
+    // Filter active orders to include all stages so supervisor can see and edit them until completed
     const activeOrders = ordersList.filter((order: any) =>
-        ['searching_driver', 'payment_review', 'paid'].includes(order.attributes.status)
+        ['searching_driver', 'payment_review', 'paid', 'driver_assigned', 'at_warehouse', 'in_transit', 'delivered', 'documents_ready'].includes(order.attributes.status)
     );
 
     if (isLoading) return <div className="p-8 text-center">Загрузка заявок...</div>;
@@ -142,7 +142,7 @@ const SupervisorDashboard: React.FC = () => {
                             </CardContent>
                             <CardFooter className="flex gap-2">
                                 <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => handleAssignClick(order)}>
-                                    <Truck className="mr-2 h-4 w-4" /> Найти водителя
+                                    <Truck className="mr-2 h-4 w-4" /> Назначить/Изменить водителя
                                 </Button>
                                 <Button variant="outline" className="flex-none" asChild>
                                     <Link to={`/orders/${order.id}`}>

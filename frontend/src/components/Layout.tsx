@@ -54,7 +54,7 @@ const Layout: React.FC = () => {
         {
             to: "/warehouse",
             label: "Панель склада",
-            show: user?.role === 'warehouse'
+            show: user?.role === 'warehouse' || user?.role === 'supervisor'
         },
         {
             to: "/driver",
