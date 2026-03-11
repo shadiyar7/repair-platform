@@ -33,8 +33,9 @@ api.interceptors.response.use(
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
 
-                // Only redirect if we're not already on the login page
-                if (!window.location.pathname.includes('/login')) {
+                // Only redirect if we're not already on the login page and not on a public tracking link
+                const currentPath = window.location.pathname;
+                if (!currentPath.includes('/login') && !currentPath.startsWith('/track/')) {
                     sessionStorage.setItem('session_expired', 'true');
                     window.location.href = '/login';
                 }

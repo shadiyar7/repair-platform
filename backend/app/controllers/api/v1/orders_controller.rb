@@ -1,5 +1,6 @@
 class Api::V1::OrdersController < ApplicationController
-  before_action :authenticate_user!, except: [:by_token]
+  skip_before_action :authenticate_user!, only: [:by_token]
+  # Remove before_action :authenticate_user! since it's already in ApplicationController
   before_action :set_order, only: %i[show update checkout sign_contract director_sign pay find_driver assign_driver driver_arrived start_trip deliver complete download_invoice download_contract upload_receipt confirm_payment check_idocs_status]
 
   def index
