@@ -435,7 +435,7 @@ const OrderDetailPage: React.FC = () => {
                 break;
             case 'searching_driver':
                 title = 'Поиск водителя';
-                description = 'Логисты ищут подходящего водителя через Della.kz.';
+                description = 'Логисты ищут подходящего водителя для доставки вашего груза.';
                 type = 'info';
                 break;
             case 'driver_assigned':
