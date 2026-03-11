@@ -78,19 +78,21 @@ const OrdersPage: React.FC = () => {
     };
 
     const filteredOrders = orders.filter((order: any) => {
-        const attrs = order.attributes;
-        const matchesId = searchId ? order.id.toString().includes(searchId) : true;
+        const attrs = order.attributes || {};
+        const matchesId = searchId ? String(order.id || '').includes(searchId) : true;
         const matchesStatus = statusFilter !== 'all' ? attrs.status === statusFilter : true;
 
         let matchesDate = true;
-        const orderDate = new Date(attrs.created_at);
-        if (dateFrom) {
-            matchesDate = matchesDate && orderDate >= new Date(dateFrom);
-        }
-        if (dateTo) {
-            const toDate = new Date(dateTo);
-            toDate.setHours(23, 59, 59, 999);
-            matchesDate = matchesDate && orderDate <= toDate;
+        if (attrs.created_at) {
+            const orderDate = new Date(attrs.created_at);
+            if (dateFrom) {
+                matchesDate = matchesDate && orderDate >= new Date(dateFrom);
+            }
+            if (dateTo) {
+                const toDate = new Date(dateTo);
+                toDate.setHours(23, 59, 59, 999);
+                matchesDate = matchesDate && orderDate <= toDate;
+            }
         }
 
         let matchesTab = true;
@@ -197,10 +199,10 @@ const OrdersPage: React.FC = () => {
                                         </div>
                                         <div className="flex items-center space-x-4">
                                             <div className="text-right mr-4">
-                                                <p className="font-bold text-red-600">{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(order.attributes.total_amount)}</p>
-                                                <p className="text-xs text-gray-500">{order.attributes.order_items?.length} поз.</p>
+                                                <p className="font-bold text-red-600">{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(order.attributes?.total_amount || 0)}</p>
+                                                <p className="text-xs text-gray-500">{order.attributes?.order_items?.length || 0} поз.</p>
                                             </div>
-                                            {getStatusBadge(order.attributes.status)}
+                                            {getStatusBadge(order.attributes?.status || 'unknown')}
                                             <ChevronRight className="h-5 w-5 text-gray-400" />
                                         </div>
                                     </div>
