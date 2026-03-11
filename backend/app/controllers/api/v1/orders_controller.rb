@@ -138,8 +138,8 @@ class Api::V1::OrdersController < ApplicationController
     @order = Order.find(params[:id])
     authorize @order, :update?
 
-    # Admins can cancel at any time. Others only during review/director sign phases.
-    can_cancel = current_user.admin? || @order.contract_review? || @order.pending_director_signature?
+    # Admins can cancel at any time. Others only during review/director sign phases, or temporarily during in_transit.
+    can_cancel = current_user.admin? || @order.contract_review? || @order.pending_director_signature? || @order.in_transit?
 
     if can_cancel
       begin
@@ -151,7 +151,7 @@ class Api::V1::OrdersController < ApplicationController
         render json: { error: e.message }, status: :unprocessable_entity
       end
     else
-      render json: { error: "Отменить запрос можно только на этапе ознакомления или подписания" }, status: :unprocessable_entity
+      render json: { error: "Отменить запрос на данном этапе невозможно" }, status: :unprocessable_entity
     end
   end
 
