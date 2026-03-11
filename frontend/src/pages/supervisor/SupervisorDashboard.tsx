@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Truck, MapPin, Clock, DollarSign, User, Phone } from 'lucide-react';
+import { Link } from 'react-router-dom';
 // import { useAuth } from '@/context/AuthContext';
 
 const SupervisorDashboard: React.FC = () => {
@@ -139,9 +140,14 @@ const SupervisorDashboard: React.FC = () => {
                                     </div>
                                 )}
                             </CardContent>
-                            <CardFooter>
-                                <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => handleAssignClick(order)}>
+                            <CardFooter className="flex gap-2">
+                                <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => handleAssignClick(order)}>
                                     <Truck className="mr-2 h-4 w-4" /> Найти водителя
+                                </Button>
+                                <Button variant="outline" className="flex-none" asChild>
+                                    <Link to={`/orders/${order.id}`}>
+                                        Подробнее
+                                    </Link>
                                 </Button>
                             </CardFooter>
                         </Card >
