@@ -181,11 +181,8 @@ const AdminWarehousesPage: React.FC = () => {
                                     <p className="text-sm text-gray-500">ID 1C: {wh.external_id_1c}</p>
                                 </div>
                             </div>
-                            <div className="text-sm text-gray-600 mb-6">
-                                {wh.address || 'Адрес не указан'}
-                            </div>
                             <Button
-                                className="w-full"
+                                className="w-full mt-4"
                                 variant="secondary"
                                 onClick={() => navigate(`/admin/warehouses/${wh.id}`)}
                             >
