@@ -31,13 +31,16 @@ class OneCPaymentTrigger
 
   def build_items
     order.order_items.map do |item|
-      price = item.price.to_f
-      price = item.product&.price.to_f if price.zero?
+      base_price = item.price.to_f
+      base_price = item.product&.price.to_f if base_price.zero?
+      
+      discounted_price = base_price - (base_price * (order.discount_percent.to_f / 100.0))
+      price_with_vat_and_discount = discounted_price * 1.16
 
       {
         "nomenclature_code" => item.product&.nomenclature_code.presence || item.product&.sku || "NO_SKU",
         "quantity" => item.quantity,
-        "price" => price
+        "price" => price_with_vat_and_discount.round(2)
       }
     end
   end

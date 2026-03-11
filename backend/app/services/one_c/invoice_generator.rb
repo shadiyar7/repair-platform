@@ -60,10 +60,16 @@ module OneC
 
         @order.order_items.each_with_index do |item, index|
           product_name = item.product&.name || "Товар"
-          price = item.price || 0
+          
+          base_price = item.price.to_f
+          base_price = item.product&.price.to_f if base_price.zero?
+          
+          discounted_price = base_price - (base_price * (@order.discount_percent.to_f / 100.0))
+          price_with_vat = discounted_price * 1.16
+
           quantity = item.quantity || 0
-          total = price * quantity
-          pdf.text "#{index + 1} | #{product_name} | #{quantity} | #{price} | #{total}"
+          total = price_with_vat * quantity
+          pdf.text "#{index + 1} | #{product_name} | #{quantity} | #{price_with_vat.round(2)} | #{total.round(2)}"
           pdf.move_down 2
         end
 

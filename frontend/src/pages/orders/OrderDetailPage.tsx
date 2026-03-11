@@ -781,7 +781,7 @@ const OrderDetailPage: React.FC = () => {
                                 <div className="border-t mt-4 pt-4 space-y-2">
                                     <div className="flex justify-between text-gray-700">
                                         <span>Сумма (без НДС)</span>
-                                        <span>{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(attributes.base_amount || (Number(attributes.total_amount) + Number(attributes.discount_amount || 0)))}</span>
+                                        <span>{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(attributes.base_amount || 0)}</span>
                                     </div>
                                     {attributes.discount_amount > 0 && (
                                         <div className="flex justify-between text-green-600 font-medium whitespace-nowrap">
@@ -797,7 +797,7 @@ const OrderDetailPage: React.FC = () => {
                                     )}
                                     <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-100">
                                         <span>Итого к оплате</span>
-                                        <span className="text-red-600">{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(attributes.total_amount)}</span>
+                                        <span className="text-red-600">{new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(attributes.total_amount || 0)}</span>
                                     </div>
                                 </div>
                             </CardContent>
