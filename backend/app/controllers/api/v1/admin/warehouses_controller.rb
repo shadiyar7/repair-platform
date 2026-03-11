@@ -48,7 +48,7 @@ module Api
         end
 
         def warehouse_params
-          params.require(:warehouse).permit(:name, :external_id_1c, :address)
+          params.require(:warehouse).permit(:name, :external_id_1c, :address, :display_name, :is_active)
         end
       end
     end

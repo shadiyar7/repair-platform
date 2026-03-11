@@ -20,17 +20,12 @@ import { RefreshCw, ShoppingCart, FileText, MapPin, Plus, Minus, Filter, ArrowRi
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 
-const WAREHOUSES = [
-    { id: "000000002", name: "Шымкент", region: "юг" },
-    // { id: "000000001", name: "Павлодар", region: "северо-восток" }, // Main - Hidden temporarily as requested
-    { id: "000000003", name: "Атырау", region: "запад" },
-    { id: "000000005", name: "Аягоз", region: "восток / юго-восток" },
-    { id: "000000004", name: "Караганда", region: "центр" }
-];
+// Removed hardcoded WAREHOUSES array
 
 const CatalogNewPage: React.FC = () => {
     const { addToCart, items, updateQuantity, clearCart, setIsCartOpen } = useCart();
     const [selectedWarehouseId, setSelectedWarehouseId] = useState("000000002");
+    const [warehouses, setWarehouses] = useState<any[]>([]);
     const [warehouseData, setWarehouseData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { user } = useAuth();
@@ -44,6 +39,26 @@ const CatalogNewPage: React.FC = () => {
     // Constants from CatalogPage
     const thicknessRanges = ['30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '64-69', 'СОНК'];
     const ageRanges = ['1-5 лет', '6-10 лет', '11-15 лет', '16-20 лет', '21-25 лет'];
+
+    useEffect(() => {
+        const loadWarehouses = async () => {
+            try {
+                const response = await api.get('/api/v1/warehouses');
+                const whData = Array.isArray(response.data?.data)
+                    ? response.data.data.map((item: any) => item.attributes)
+                    : [];
+                setWarehouses(whData);
+
+                // Keep the default or pick the first available
+                if (whData.length > 0 && !whData.find((w: any) => String(w.external_id_1c).padStart(9, '0') === selectedWarehouseId)) {
+                    setSelectedWarehouseId(String(whData[0].external_id_1c).padStart(9, '0'));
+                }
+            } catch (error) {
+                console.error("Failed to fetch warehouses:", error);
+            }
+        };
+        loadWarehouses();
+    }, []);
 
     useEffect(() => {
         fetchStocks(selectedWarehouseId);
@@ -177,7 +192,8 @@ const CatalogNewPage: React.FC = () => {
         }
     };
 
-    const currentWarehouseName = WAREHOUSES.find(w => w.id === selectedWarehouseId)?.name;
+    const currentWarehouseStr = warehouses.find(w => String(w.external_id_1c).padStart(9, '0') === selectedWarehouseId);
+    const currentWarehouseName = currentWarehouseStr ? (currentWarehouseStr.display_name || currentWarehouseStr.name) : '';
 
     return (
         <div className="space-y-6 container mx-auto py-8">
@@ -193,17 +209,20 @@ const CatalogNewPage: React.FC = () => {
                     Выберите склад:
                 </label>
                 <div className="flex flex-wrap gap-2">
-                    {WAREHOUSES.map((wh) => (
-                        <Button
-                            key={wh.id}
-                            variant={selectedWarehouseId === wh.id ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setSelectedWarehouseId(wh.id)}
-                            className={`rounded-full ${selectedWarehouseId === wh.id ? "bg-red-600 hover:bg-red-700" : "hover:bg-gray-100"}`}
-                        >
-                            {wh.name}
-                        </Button>
-                    ))}
+                    {warehouses.map((wh) => {
+                        const whIdStr = String(wh.external_id_1c).padStart(9, '0');
+                        return (
+                            <Button
+                                key={wh.id}
+                                variant={selectedWarehouseId === whIdStr ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setSelectedWarehouseId(whIdStr)}
+                                className={`rounded-full ${selectedWarehouseId === whIdStr ? "bg-red-600 hover:bg-red-700" : "hover:bg-gray-100"}`}
+                            >
+                                {wh.display_name || wh.name}
+                            </Button>
+                        );
+                    })}
                 </div>
             </div>
 

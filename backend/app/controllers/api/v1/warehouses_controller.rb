@@ -3,7 +3,7 @@ module Api
     class WarehousesController < ApplicationController
       # GET /api/v1/warehouses
       def index
-        warehouses = Warehouse.all.order(:external_id_1c)
+        warehouses = Warehouse.where(is_active: true).order(:external_id_1c)
         render json: WarehouseSerializer.new(warehouses).serializable_hash.to_json
       end
 

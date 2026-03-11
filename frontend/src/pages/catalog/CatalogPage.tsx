@@ -25,13 +25,7 @@ const CatalogPage: React.FC = () => {
     const [thicknessFilter, setThicknessFilter] = useState<string | null>(null);
     const [ageFilter, setAgeFilter] = useState<string | null>(null);
 
-    const warehouses = [
-        { name: 'Шымкент', region: 'юг' },
-        { name: 'Павлодар', region: 'северо-восток' },
-        { name: 'Атырау', region: 'запад' },
-        { name: 'Аягоз', region: 'восток / юго-восток' },
-        { name: 'Караганда', region: 'центр' }
-    ];
+    const [warehouses, setWarehouses] = useState<{ name: string, display_name?: string }[]>([]);
 
     const thicknessRanges = ['30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '64-69', 'СОНК'];
     const ageRanges = ['1-5 лет', '6-10 лет', '11-15 лет', '16-20 лет', '21-25 лет'];
@@ -40,24 +34,36 @@ const CatalogPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             try {
-                const response = await api.get('/api/v1/products');
-                // Creating a structure compatible with the existing code
-                // Expecting response.data.data to be an array of JSON:API objects
-                if (response.data && Array.isArray(response.data.data)) {
-                    setProducts(response.data.data);
+                // Fetch products
+                const prodResponse = await api.get('/api/v1/products');
+                if (prodResponse.data && Array.isArray(prodResponse.data.data)) {
+                    setProducts(prodResponse.data.data);
                 } else {
                     setProducts([]);
                 }
+
+                // Fetch warehouses
+                const whResponse = await api.get('/api/v1/warehouses');
+                const whData = Array.isArray(whResponse.data?.data)
+                    ? whResponse.data.data.map((item: any) => item.attributes)
+                    : [];
+                setWarehouses(whData);
+
+                // If the selected warehouse is not in the list, default to the first available
+                if (whData.length > 0 && !whData.find((w: any) => w.name === selectedWarehouse)) {
+                    setSelectedWarehouse(whData[0].name);
+                }
+
             } catch (error) {
-                console.error("Failed to fetch products:", error);
+                console.error("Failed to fetch catalog data:", error);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchProducts();
+        fetchData();
     }, []);
 
     const filteredProducts = useMemo(() => {
@@ -126,7 +132,7 @@ const CatalogPage: React.FC = () => {
                                     onClick={() => setSelectedWarehouse(wh.name)}
                                     className={`rounded-full ${selectedWarehouse === wh.name ? "bg-red-600 hover:bg-red-700" : "hover:bg-gray-100"}`}
                                 >
-                                    {wh.name}
+                                    {wh.display_name || wh.name}
                                 </Button>
                             ))}
                         </div>
