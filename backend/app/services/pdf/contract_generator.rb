@@ -201,14 +201,30 @@ module Pdf
         text "ПОСТАВЩИК", style: :bold, size: 10
         text "ТОО «Komandeer Supply»", size: 9
         text "БИН: 100740004791", size: 9
+        text "Юр. адрес: г. Астана, район Есиль, пр. Мангилик Ел, д. 53", size: 9
+        text "ИИК: KZ889260000213000000", size: 9
+        text "БИК: AGKZKZ2A", size: 9
+        text "Банк: ДО АО «Банк ВТБ (Казахстан)»", size: 9
         move_down 15
         text "Директор _____________ Командиров А.М.", size: 9
       end
       bounding_box([290, y_pos], width: 250) do
         req = @order.company_requisite
+        buyer_bin = req&.bin || @order.user.bin
+        buyer_address = req&.legal_address || @order.user.legal_address
+        buyer_iban = req&.iban || @order.user.iban
+        buyer_swift = req&.swift || @order.user.swift
+        buyer_phone = @order.user.phone
+
         text "ПОКУПАТЕЛЬ", style: :bold, size: 10
         text "Наименование: #{buyer_name}", size: 9
-        text "БИН: #{req&.bin || @order.user.bin || '________________'}", size: 9
+        
+        text "БИН: #{buyer_bin || '________________'}", size: 9 if buyer_bin.present? || !buyer_bin.present?
+        text "Юр. адрес: #{buyer_address}", size: 9 if buyer_address.present?
+        text "ИИК/IBAN: #{buyer_iban}", size: 9 if buyer_iban.present?
+        text "БИК/SWIFT: #{buyer_swift}", size: 9 if buyer_swift.present?
+        text "Тел: #{buyer_phone}", size: 9 if buyer_phone.present?
+
         move_down 15
         text "Директор _____________ #{buyer_director}", size: 9
       end
