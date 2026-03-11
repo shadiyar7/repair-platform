@@ -7,7 +7,7 @@ class Api::V1::OrdersController < ApplicationController
              when 'warehouse'
                # Global visibility for all warehouse managers
                Order.includes(:company_requisite, order_items: :product)
-                    .joins(order_items: :product)
+                    .left_outer_joins(order_items: :product)
                     .where(status: ['paid', 'searching_driver', 'driver_assigned', 'at_warehouse', 'in_transit', 'delivered', 'documents_ready'])
                     .distinct
              when 'admin', 'supervisor', 'director'
