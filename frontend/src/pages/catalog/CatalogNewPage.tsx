@@ -64,13 +64,16 @@ const CatalogNewPage: React.FC = () => {
         fetchStocks(selectedWarehouseId);
     }, [selectedWarehouseId]);
 
-    const fetchStocks = async (warehouseId: string) => {
+    const fetchStocks = async (_warehouseId: string) => {
         setIsLoading(true);
         setThicknessFilter(null); // Reset filters on warehouse change
         setAgeFilter(null);
 
         try {
-            const response = await api.get(`/api/v1/integrations/one_c/stocks?warehouse_id=${warehouseId}`);
+            // Временное решение: всегда берем остатки со склада Шымкент (ID: 000000002),
+            // чтобы коды отображались для всех выбранных складов одинаково.
+            const targetWarehouseId = "000000002"; // Шымкент
+            const response = await api.get(`/api/v1/integrations/one_c/stocks?warehouse_id=${targetWarehouseId}`);
             if (response.data) {
                 setWarehouseData(response.data);
             }
