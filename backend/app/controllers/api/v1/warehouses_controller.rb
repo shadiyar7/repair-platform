@@ -1,6 +1,8 @@
 module Api
   module V1
     class WarehousesController < ApplicationController
+      skip_before_action :authenticate_user!, only: [:index, :show]
+
       # GET /api/v1/warehouses
       def index
         warehouses = Warehouse.where(is_active: true).order(:external_id_1c)
