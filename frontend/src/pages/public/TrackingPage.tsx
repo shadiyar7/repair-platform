@@ -259,7 +259,11 @@ const TrackingPage: React.FC = () => {
                             <Truck className="h-6 w-6 text-blue-600" />
                         </div>
                         <div>
-                            <p className="font-semibold">{order.status === 'in_transit' ? 'Заказ в пути' : 'Статус: ' + order.status}</p>
+                            <p className="font-semibold">
+                                {order.status === 'in_transit' ? 'Заказ в пути' :
+                                    (order.status === 'driver_assigned' || order.status === 'at_warehouse' ? 'Подготовка к отправке' :
+                                        'Статус: ' + order.status)}
+                            </p>
                             <p className="text-xs text-muted-foreground">Обновлено: {new Date().toLocaleTimeString()}</p>
                         </div>
                     </CardContent>

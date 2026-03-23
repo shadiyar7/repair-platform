@@ -27,6 +27,7 @@ import ContractReviewView from '@/components/orders/ContractReviewView';
 const OrderDetailPage: React.FC = () => {
     const { id } = useParams();
     const { user } = useAuth();
+    const isClient = user?.role === 'client';
     const queryClient = useQueryClient();
     const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
     const [driverForm, setDriverForm] = useState(() => {
@@ -320,8 +321,8 @@ const OrderDetailPage: React.FC = () => {
         { id: 'pending_signature', label: 'Подписание договора', icon: FileText },
         { id: 'pending_payment', label: 'Оплата', icon: CreditCard },
         { id: 'searching_driver', label: 'Поиск водителя', icon: User },
-        { id: 'driver_assigned', label: 'Водитель назначен', icon: Truck },
-        { id: 'at_warehouse', label: 'На складе', icon: Building },
+        ...(isClient ? [] : [{ id: 'driver_assigned', label: 'Водитель назначен', icon: Truck }]),
+        ...(isClient ? [] : [{ id: 'at_warehouse', label: 'На складе', icon: Building }]),
         { id: 'in_transit', label: 'В пути', icon: MapPin },
         { id: 'delivered', label: 'Доставлен', icon: CheckCircle },
     ];
@@ -334,12 +335,8 @@ const OrderDetailPage: React.FC = () => {
     } else if (attributes.status === 'cart' || attributes.status === 'requisites_selected') {
         currentStepIndex = -1;
     } else if (attributes.status === 'payment_review' || attributes.status === 'paid') {
-        // If in review/paid, show as "Payment" completed (or transition to Search visually)
-        // Since user wants "immediate", these states shouldn't persist long, 
-        // but if they do, we map them to "Searching Driver" (as current pending step) 
-        // OR map them to "Payment" (as completed step). 
-        // Let's map to 'searching_driver' index so it shows Payment as Done and Search as Active?
-        // No, if status is 'paid', it means Payment is Done. Next is Search.
+        currentStepIndex = steps.findIndex(s => s.id === 'searching_driver');
+    } else if (isClient && (attributes.status === 'driver_assigned' || attributes.status === 'at_warehouse')) {
         currentStepIndex = steps.findIndex(s => s.id === 'searching_driver');
     }
 
@@ -353,8 +350,8 @@ const OrderDetailPage: React.FC = () => {
             payment_review: { label: 'Проверка оплаты', color: 'bg-yellow-500 text-white' },
             paid: { label: 'Оплачено', color: 'bg-green-100 text-green-800' },
             searching_driver: { label: 'Поиск водителя', color: 'bg-purple-100 text-purple-800' },
-            driver_assigned: { label: 'Водитель назначен', color: 'bg-indigo-100 text-indigo-800' },
-            at_warehouse: { label: 'На складе', color: 'bg-yellow-100 text-yellow-800' },
+            driver_assigned: { label: isClient ? 'Поиск водителя' : 'Водитель назначен', color: isClient ? 'bg-purple-100 text-purple-800' : 'bg-indigo-100 text-indigo-800' },
+            at_warehouse: { label: isClient ? 'Поиск водителя' : 'На складе', color: isClient ? 'bg-purple-100 text-purple-800' : 'bg-yellow-100 text-yellow-800' },
             in_transit: { label: 'В пути', color: 'bg-blue-500 text-white' },
             delivered: { label: 'Доставлено', color: 'bg-green-500 text-white' },
             documents_ready: { label: 'Документы готовы', color: 'bg-green-100 text-green-800' },

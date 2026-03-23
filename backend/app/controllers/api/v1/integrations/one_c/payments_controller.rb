@@ -36,6 +36,11 @@ module Api
                 
                 if order.may_confirm_payment?
                    order.confirm_payment!
+                   begin
+                     OrderMailer.with(order: order).payment_confirmed.deliver_later
+                   rescue => e
+                     Rails.logger.error "Failed to send payment confirmation email: #{e.message}"
+                   end
                    Rails.logger.info "Order ##{order.id} payment confirmed by 1C"
                 else
                    # Just mark as verified to be safe if status moved on

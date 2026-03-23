@@ -107,7 +107,7 @@ class Order < ApplicationRecord
       end
 
       event :upload_receipt do
-        transitions from: [:pending_payment, :payment_review], to: :searching_driver
+        transitions from: [:pending_payment, :payment_review], to: :payment_review
       end
 
       # Admin confirms payment manually or system auto-confirms
